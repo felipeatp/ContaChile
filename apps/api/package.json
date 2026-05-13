@@ -1,0 +1,23 @@
+{
+  "name": "@contachile/api",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@contachile/db": "workspace:*",
+    "@contachile/dte": "workspace:*",
+    "@contachile/transport-sii": "workspace:*",
+    "@contachile/validators": "workspace:*",
+    "fastify": "^4.26.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.0.0"
+  }
+}
