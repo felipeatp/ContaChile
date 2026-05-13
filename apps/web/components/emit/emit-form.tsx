@@ -1,17 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EmitDocumentSchema } from "@contachile/validators"
-import { useEmitDocument } from "@/hooks/use-emit-document"
+import { EmitDocumentSchema, calcularIVA, calcularTotal } from "@contachile/validators"
+import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
 
 export function EmitForm() {
   const [mode, setMode] = useState<"direct" | "bridge">("direct")
-  const emit = useEmitDocument()
+  const emitDirect = useEmitDocument()
+  const emitBridge = useEmitBridgeDocument()
+  const router = useRouter()
+
   const form = useForm({
     resolver: zodResolver(EmitDocumentSchema),
     defaultValues: {
@@ -27,11 +31,32 @@ export function EmitForm() {
     name: "items",
   })
 
+  const items = form.watch("items")
+
+  const totals = useMemo(() => {
+    const neto = items.reduce((sum, item) => {
+      const qty = Number(item.quantity) || 0
+      const price = Number(item.unitPrice) || 0
+      return sum + qty * price
+    }, 0)
+    const tax = calcularIVA(neto)
+    const total = calcularTotal(neto)
+    return { neto, tax, total }
+  }, [items])
+
   const onSubmit = form.handleSubmit(async (data) => {
     const idempotencyKey = crypto.randomUUID()
+    const emit = mode === "direct" ? emitDirect : emitBridge
     await emit.mutateAsync({ body: data, idempotencyKey })
     form.reset()
+    setTimeout(() => router.push("/documents"), 1500)
   })
+
+  const isPending = emitDirect.isPending || emitBridge.isPending
+  const isSuccess = emitDirect.isSuccess || emitBridge.isSuccess
+  const isError = emitDirect.isError || emitBridge.isError
+  const error = emitDirect.error || emitBridge.error
+  const successData = emitDirect.data || emitBridge.data
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -73,6 +98,11 @@ export function EmitForm() {
             <div>
               <label className="text-sm font-medium">Nombre</label>
               <Input {...form.register("receiver.name")} placeholder="Razón social" />
+              {form.formState.errors.receiver?.name && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.receiver.name.message}
+                </p>
+              )}
             </div>
           </div>
           <div>
@@ -81,7 +111,7 @@ export function EmitForm() {
           </div>
           <div>
             <label className="text-sm font-medium">Email (opcional)</label>
-            <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" />
+            <Input {...form.register("receiver.email")} placeholder="receptor@empresa.cl" />
           </div>
         </CardContent>
       </Card>
@@ -150,18 +180,38 @@ export function EmitForm() {
         </div>
       </div>
 
-      <Button type="submit" disabled={emit.isPending}>
-        {emit.isPending ? "Emitiendo..." : "Emitir DTE"}
+      <Card>
+        <CardHeader>
+          <CardTitle>Totales</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Neto</span>
+            <span>${totals.neto.toLocaleString("es-CL")}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">IVA (19%)</span>
+            <span>${totals.tax.toLocaleString("es-CL")}</span>
+          </div>
+          <div className="flex justify-between text-lg font-bold">
+            <span>Total</span>
+            <span>${totals.total.toLocaleString("es-CL")}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Emitiendo..." : mode === "direct" ? "Emitir DTE" : "Emitir vía Acepta"}
       </Button>
 
-      {emit.isSuccess && (
+      {isSuccess && (
         <p className="text-sm text-green-600">
-          Documento emitido correctamente. Folio: {emit.data.folio}
+          Documento emitido correctamente. Folio: {successData?.folio ?? "N/A"}
         </p>
       )}
-      {emit.isError && (
+      {isError && (
         <p className="text-sm text-destructive">
-          Error al emitir: {emit.error.message}
+          Error al emitir: {error?.message}
         </p>
       )}
     </form>
