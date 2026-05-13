@@ -5,8 +5,13 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const query = searchParams.toString()
 
+  const cookie = req.headers.get('cookie')
+  const extraHeaders: Record<string, string> = {}
+  if (cookie) extraHeaders['Cookie'] = cookie
+
   const { status, data } = await apiFetch(`/documents${query ? `?${query}` : ''}`, {
     method: 'GET',
+    headers: extraHeaders,
   })
 
   return NextResponse.json(data, { status })
