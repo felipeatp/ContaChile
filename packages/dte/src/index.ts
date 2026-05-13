@@ -13,5 +13,6 @@ registerType({
 })
 
 export { runPipeline } from './pipeline'
+export type { PipelineResult } from './pipeline'
 export { registerType, getTypePlugin } from './registry'
-export type { DocumentData, DocumentTypePlugin, PipelineResult } from './types'
+export type { DocumentData, DocumentTypePlugin } from './types'

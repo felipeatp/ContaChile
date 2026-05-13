@@ -9,6 +9,7 @@
   "dependencies": {
     "@contachile/db": "workspace:*",
     "@contachile/dte": "workspace:*",
+    "@contachile/transport-acepta": "workspace:*",
     "@contachile/transport-sii": "workspace:*",
     "@contachile/validators": "workspace:*",
     "fastify": "^4.26.0",
