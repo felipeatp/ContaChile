@@ -1,4 +1,5 @@
 import { Worker } from 'bullmq'
+import Redis from 'ioredis'
 import { prisma } from '@contachile/db'
 import { SIIClient } from '@contachile/transport-sii'
 import { AceptaClient } from '@contachile/transport-acepta'
@@ -22,56 +23,77 @@ const aceptaClient = new AceptaClient({
   baseURL: process.env.ACEPTA_BASE_URL,
 })
 
-export const dteWorker = new Worker<PollJobData>(
-  'dte-polling',
-  async (job) => {
-    const { documentId, trackId, source } = job.data
+async function initWorker(): Promise<void> {
+  const testRedis = new Redis({
+    ...redisConnection,
+    connectTimeout: 2000,
+    lazyConnect: true,
+  })
 
-    const statusResult =
-      source === 'sii'
-        ? await siiClient.queryStatus(trackId)
-        : await aceptaClient.queryStatus(trackId)
+  testRedis.on('error', () => {
+    // ignore connection errors during probe
+  })
 
-    if (statusResult.status === 'PENDING') {
-      throw new Error(`Document ${documentId} still pending`)
-    }
+  try {
+    await testRedis.connect()
+    await testRedis.disconnect()
 
-    const newStatus = statusResult.status
+    new Worker<PollJobData>(
+      'dte-polling',
+      async (job) => {
+        const { documentId, trackId, source } = job.data
 
-    await prisma.document.update({
-      where: { id: documentId },
-      data: {
-        status: newStatus,
-        ...(newStatus === 'ACCEPTED'
-          ? { acceptedAt: new Date() }
-          : newStatus === 'REJECTED'
-            ? { rejectedAt: new Date(), rejectionReason: statusResult.detail }
-            : {}),
-      },
-    })
+        const statusResult =
+          source === 'sii'
+            ? await siiClient.queryStatus(trackId)
+            : await aceptaClient.queryStatus(trackId)
 
-    if (newStatus === 'ACCEPTED') {
-      const doc = await prisma.document.findUnique({ where: { id: documentId } })
-      if (doc?.receiverEmail) {
-        await emailService.sendDocumentAccepted({
-          documentId: doc.id,
-          folio: doc.folio,
-          type: doc.type,
-          receiverName: doc.receiverName,
-          receiverEmail: doc.receiverEmail,
+        if (statusResult.status === 'PENDING') {
+          throw new Error(`Document ${documentId} still pending`)
+        }
+
+        const newStatus = statusResult.status
+
+        await prisma.document.update({
+          where: { id: documentId },
+          data: {
+            status: newStatus,
+            ...(newStatus === 'ACCEPTED'
+              ? { acceptedAt: new Date() }
+              : newStatus === 'REJECTED'
+                ? { rejectedAt: new Date(), rejectionReason: statusResult.detail }
+                : {}),
+          },
         })
-      }
-    }
 
-    await prisma.auditLog.create({
-      data: {
-        documentId,
-        action: newStatus,
-        payload: { source, detail: statusResult.detail },
+        if (newStatus === 'ACCEPTED') {
+          const doc = await prisma.document.findUnique({ where: { id: documentId } })
+          if (doc?.receiverEmail) {
+            await emailService.sendDocumentAccepted({
+              documentId: doc.id,
+              folio: doc.folio,
+              type: doc.type,
+              receiverName: doc.receiverName,
+              receiverEmail: doc.receiverEmail,
+            })
+          }
+        }
+
+        await prisma.auditLog.create({
+          data: {
+            documentId,
+            action: newStatus,
+            payload: { source, detail: statusResult.detail },
+          },
+        })
+
+        return { documentId, status: newStatus }
       },
-    })
+      { connection: redisConnection }
+    )
+  } catch {
+    console.warn('[dte-worker] Redis not available, worker not started')
+  }
+}
 
-    return { documentId, status: newStatus }
-  },
-  { connection: redisConnection }
-)
+void initWorker()
