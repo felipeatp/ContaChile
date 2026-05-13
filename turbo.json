@@ -3,7 +3,6 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json", "package.json"],
       "outputs": ["dist/**"]
     },
     "dev": {
@@ -11,11 +10,8 @@
       "persistent": true
     },
     "test": {
-      "dependsOn": ["build"],
-      "inputs": ["src/**", "tests/**", "tsconfig.json"]
+      "dependsOn": ["build"]
     },
-    "lint": {
-      "inputs": ["src/**", "tsconfig.json", "package.json"]
-    }
+    "lint": {}
   }
 }
