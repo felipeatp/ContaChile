@@ -17,6 +17,10 @@ vi.mock('@contachile/db', () => ({
   },
 }))
 
+vi.mock('../../src/queues/dte', () => ({
+  enqueuePollJob: vi.fn(),
+}))
+
 describe('POST /dte/emit', () => {
   const mockPrisma = prisma as any
 

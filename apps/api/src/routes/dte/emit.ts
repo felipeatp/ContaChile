@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { EmitDocumentSchema, calcularIVA, calcularTotal } from '@contachile/validators'
 import { prisma } from '@contachile/db'
+import { enqueuePollJob } from '../../queues/dte'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit', async (request, reply) => {
@@ -58,6 +59,8 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     })
+
+    await enqueuePollJob({ documentId: doc.id, trackId, source: 'sii' })
 
     return reply.code(201).send({
       id: doc.id,
