@@ -8,7 +8,7 @@ export interface PipelineResult {
   pdf: Buffer
 }
 
-export function runPipeline(data: DocumentData): PipelineResult {
+export async function runPipeline(data: DocumentData): Promise<PipelineResult> {
   const plugin = getTypePlugin(data.type)
   if (!plugin) {
     throw new Error(`Document type ${data.type} not registered`)
@@ -26,7 +26,7 @@ export function runPipeline(data: DocumentData): PipelineResult {
 
   const xml = plugin.generateXML(data)
   const signedXml = firmarDTE(xml, data.company.cert)
-  const pdf = plugin.generatePDF(signedXml)
+  const pdf = await plugin.generatePDF(signedXml)
 
   return { xml: signedXml, pdf }
 }

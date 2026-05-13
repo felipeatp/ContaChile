@@ -49,6 +49,6 @@ export interface DocumentTypePlugin {
   name: string
   validate(data: unknown): ValidationResult
   generateXML(data: DocumentData): string
-  generatePDF(xml: string): Buffer
+  generatePDF(xml: string): Promise<Buffer>
   requiredFields: string[]
 }

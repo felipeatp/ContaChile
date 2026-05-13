@@ -9,6 +9,7 @@ import { generateGuiaDespacho52 } from './generators/guia-despacho-52'
 import { generateNotaDebito56 } from './generators/nota-debito-56'
 import { generateNotaCredito61 } from './generators/nota-credito-61'
 import { validateBusinessRules } from './validators/business'
+import { renderPDF } from './pdf-renderer'
 import { DocumentData } from './types'
 
 function createPlugin(code: number, name: string, generateXML: (data: DocumentData) => string) {
@@ -17,7 +18,7 @@ function createPlugin(code: number, name: string, generateXML: (data: DocumentDa
     name,
     validate: (data: unknown) => validateBusinessRules(data as DocumentData),
     generateXML,
-    generatePDF: () => Buffer.from('pdf-stub'),
+    generatePDF: (xml: string) => renderPDF(xml),
     requiredFields: ['receiver', 'items'],
   }
 }

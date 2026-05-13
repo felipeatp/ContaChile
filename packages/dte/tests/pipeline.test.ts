@@ -14,14 +14,14 @@ const fakePlugin: DocumentTypePlugin = {
   name: 'Factura',
   validate: () => ({ valid: true }),
   generateXML: () => '<?xml version="1.0"?><DTE><Documento ID="T1"></Documento></DTE>',
-  generatePDF: () => Buffer.from('pdf'),
+  generatePDF: async () => Buffer.from('pdf'),
   requiredFields: [],
 }
 
 registerType(fakePlugin)
 
 describe('runPipeline', () => {
-  it('returns signed XML and PDF', () => {
+  it('returns signed XML and PDF', async () => {
     const data: DocumentData = {
       type: 33,
       folio: 1,
@@ -31,7 +31,7 @@ describe('runPipeline', () => {
       paymentMethod: 'CONTADO',
       emittedAt: '2026-05-01',
     }
-    const result = runPipeline(data)
+    const result = await runPipeline(data)
     expect(result.xml).toContain('<?xml')
     expect(result.xml).toContain('<Signature')
     expect(result.pdf.toString()).toBe('pdf')
