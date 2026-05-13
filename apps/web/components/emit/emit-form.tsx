@@ -119,7 +119,7 @@ export function EmitForm() {
           </div>
           <div>
             <label className="text-sm font-medium">Email (opcional)</label>
-            <Input {...form.register("receiver.email")} placeholder="receptor@empresa.cl" />
+            <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" />
           </div>
         </CardContent>
       </Card>
