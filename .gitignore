@@ -1,6 +1,14 @@
 node_modules/
 dist/
+.turbo/
+.next/
+build/
 .env
 .env.local
 *.log
 .superpowers/
+.vscode/
+.idea/
+.DS_Store
+.vercel
+coverage/
