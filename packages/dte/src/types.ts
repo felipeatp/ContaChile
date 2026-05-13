@@ -29,6 +29,19 @@ export interface DocumentData {
   }>
   paymentMethod: 'CONTADO' | 'CREDITO'
   emittedAt: string // YYYY-MM-DD
+  references?: Array<{
+    type: number
+    folio: number
+    date: string
+    reason: string
+  }>
+  transport?: {
+    patente: string
+    rutTransporter: string
+    direction: string
+    commune: string
+    city: string
+  }
 }
 
 export interface DocumentTypePlugin {
