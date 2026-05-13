@@ -1,15 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentTable } from "@/components/documents/document-table"
-import { apiFetch } from "@/lib/api-server"
 import { DocumentsResponse } from "@/types"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 async function getStats() {
   try {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const { data } = await apiFetch(`/documents?limit=1000`)
-    const docs = (data as DocumentsResponse)?.documents || []
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/documents?limit=1000`, {
+      cache: 'no-store',
+    })
+    const json = (await res.json()) as DocumentsResponse
+    const docs = json?.documents || []
 
     const todayDocs = docs.filter((d) => new Date(d.emittedAt) >= today)
     const pending = docs.filter((d) => d.status === "PENDING").length
@@ -33,13 +37,16 @@ async function getStats() {
 }
 
 export default async function HomePage() {
-  console.log('[HomePage] rendering')
   const stats = await getStats()
-  console.log('[HomePage] stats:', stats)
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <Link href="/emit">
+          <Button>Emitir DTE</Button>
+        </Link>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
