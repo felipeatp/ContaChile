@@ -1,10 +1,31 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import Fastify from 'fastify'
+import { prisma } from '@contachile/db'
+import tenantPlugin from '../../src/plugins/tenant'
 import emitBridgeRoute from '../../src/routes/dte/emit-bridge'
 
+vi.mock('@contachile/db', () => ({
+  prisma: {
+    document: {
+      create: vi.fn(),
+    },
+  },
+}))
+
 describe('POST /dte/emit-bridge', () => {
-  it('returns 201 with bridge document metadata', async () => {
+  const mockPrisma = prisma as any
+
+  it('returns 201 with persisted bridge document metadata', async () => {
+    mockPrisma.document.create.mockResolvedValue({
+      id: 'doc-bridge-1',
+      type: 33,
+      status: 'PENDING',
+      trackId: 'ACEPTA-12345',
+      emittedAt: new Date('2026-05-13T10:00:00Z'),
+    })
+
     const app = Fastify()
+    app.register(tenantPlugin)
     app.register(emitBridgeRoute)
 
     const response = await app.inject({
@@ -14,7 +35,7 @@ describe('POST /dte/emit-bridge', () => {
       payload: {
         type: 33,
         receiver: {
-          rut: '12345678-9',
+          rut: '12345678-5',
           name: 'Cliente',
           address: 'Calle 123',
         },
@@ -25,7 +46,9 @@ describe('POST /dte/emit-bridge', () => {
 
     expect(response.statusCode).toBe(201)
     const body = JSON.parse(response.body)
-    expect(body).toHaveProperty('id')
+    expect(body.id).toBe('doc-bridge-1')
     expect(body.status).toBe('PENDING')
+    expect(body.trackId).toBe('ACEPTA-12345')
+    expect(mockPrisma.document.create).toHaveBeenCalled()
   })
 })
