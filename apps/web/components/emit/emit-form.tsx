@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { EmitDocumentSchema, calcularIVA, calcularTotal } from "@contachile/validators"
@@ -44,12 +44,10 @@ export function EmitForm() {
     return { neto, tax, total }
   }, [items])
 
-  const onSubmit = form.handleSubmit(async (data) => {
+  const onSubmit = form.handleSubmit((data) => {
     const idempotencyKey = crypto.randomUUID()
     const emit = mode === "direct" ? emitDirect : emitBridge
-    await emit.mutateAsync({ body: data, idempotencyKey })
-    form.reset()
-    setTimeout(() => router.push("/documents"), 1500)
+    emit.mutate({ body: data, idempotencyKey })
   })
 
   const isPending = emitDirect.isPending || emitBridge.isPending
@@ -57,6 +55,16 @@ export function EmitForm() {
   const isError = emitDirect.isError || emitBridge.isError
   const error = emitDirect.error || emitBridge.error
   const successData = emitDirect.data || emitBridge.data
+
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        form.reset()
+        router.push("/documents")
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isSuccess, form, router])
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
