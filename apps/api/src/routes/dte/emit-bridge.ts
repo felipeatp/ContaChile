@@ -39,6 +39,7 @@ export default async function (fastify: FastifyInstance) {
         idempotencyKey,
         receiverRut: body.receiver.rut,
         receiverName: body.receiver.name,
+        receiverEmail: body.receiver.email,
         totalNet: neto,
         totalTax: tax,
         totalAmount: total,

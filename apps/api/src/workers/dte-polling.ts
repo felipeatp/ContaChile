@@ -3,6 +3,9 @@ import { prisma } from '@contachile/db'
 import { SIIClient } from '@contachile/transport-sii'
 import { AceptaClient } from '@contachile/transport-acepta'
 import { PollJobData } from '../queues/dte'
+import { StubEmailService } from '../lib/email'
+
+const emailService = new StubEmailService()
 
 const redisConnection = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -46,6 +49,19 @@ export const dteWorker = new Worker<PollJobData>(
             : {}),
       },
     })
+
+    if (newStatus === 'ACCEPTED') {
+      const doc = await prisma.document.findUnique({ where: { id: documentId } })
+      if (doc?.receiverEmail) {
+        await emailService.sendDocumentAccepted({
+          documentId: doc.id,
+          folio: doc.folio,
+          type: doc.type,
+          receiverName: doc.receiverName,
+          receiverEmail: doc.receiverEmail,
+        })
+      }
+    }
 
     await prisma.auditLog.create({
       data: {

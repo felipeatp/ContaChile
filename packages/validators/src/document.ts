@@ -10,6 +10,7 @@ export const ReceiverSchema = z.object({
   rut: z.string().regex(/^\d{7,8}-[\dkK]$/),
   name: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
+  email: z.string().email().optional(),
 })
 
 export const EmitDocumentSchema = z.object({
