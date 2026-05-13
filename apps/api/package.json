@@ -12,6 +12,7 @@
     "@contachile/transport-sii": "workspace:*",
     "@contachile/validators": "workspace:*",
     "fastify": "^4.26.0",
+    "fastify-plugin": "^4.5.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
