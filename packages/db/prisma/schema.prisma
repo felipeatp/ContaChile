@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  rut           String   @unique
+  name          String
+  certEncrypted String?
+  certPassword  String?
+  siiCertified  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+enum DocumentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  FAILED
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  type            Int
+  folio           Int
+  status          DocumentStatus @default(PENDING)
+  trackId         String?
+  xmlUrl          String?
+  pdfUrl          String?
+  receiverRut     String
+  receiverName    String
+  totalNet        Int
+  totalTax        Int
+  totalAmount     Int
+  paymentMethod   String
+  emittedAt       DateTime       @default(now())
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  items           DocumentItem[]
+  auditLogs       AuditLog[]
+
+  @@unique([type, folio])
+  @@index([status])
+  @@index([emittedAt])
+}
+
+model DocumentItem {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  description String
+  quantity    Int
+  unitPrice   Int
+  totalPrice  Int
+}
+
+model FolioCounter {
+  id        String @id @default(cuid())
+  companyId String
+  type      Int
+  nextFolio Int
+
+  @@unique([companyId, type])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  action      String
+  payload     Json?
+  errorDetail String?
+  createdAt   DateTime @default(now())
+}
