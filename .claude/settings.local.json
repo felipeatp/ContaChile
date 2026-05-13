@@ -6,7 +6,11 @@
       "Bash(git *)",
       "Bash(pnpm test *)",
       "Bash(pnpm build *)",
-      "Bash(pnpm install *)"
+      "Bash(pnpm install *)",
+      "Bash(pnpm *)",
+      "Bash(node *)",
+      "WebSearch",
+      "Bash(npx vitest *)"
     ]
   }
 }
