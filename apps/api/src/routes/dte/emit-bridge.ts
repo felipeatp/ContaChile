@@ -7,6 +7,22 @@ export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit-bridge', async (request, reply) => {
     const body = EmitDocumentSchema.parse(request.body)
     const companyId = request.companyId
+    const idempotencyKey = request.headers['idempotency-key'] as string | undefined
+
+    if (idempotencyKey) {
+      const existing = await prisma.document.findUnique({
+        where: { idempotencyKey },
+      })
+      if (existing) {
+        return reply.code(201).send({
+          id: existing.id,
+          type: existing.type,
+          status: existing.status,
+          trackId: existing.trackId,
+          createdAt: existing.emittedAt.toISOString(),
+        })
+      }
+    }
 
     const neto = body.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
     const tax = calcularIVA(neto)
@@ -20,6 +36,7 @@ export default async function (fastify: FastifyInstance) {
         folio: 0,
         status: 'PENDING',
         trackId,
+        idempotencyKey,
         receiverRut: body.receiver.rut,
         receiverName: body.receiver.name,
         totalNet: neto,

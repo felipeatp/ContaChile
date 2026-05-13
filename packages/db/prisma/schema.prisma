@@ -42,6 +42,7 @@ model Document {
   acceptedAt      DateTime?
   rejectedAt      DateTime?
   rejectionReason String?
+  idempotencyKey  String?        @unique
   items           DocumentItem[]
   auditLogs       AuditLog[]
 
