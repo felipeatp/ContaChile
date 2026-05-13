@@ -17,6 +17,10 @@ function getForwardedHeaders(): Record<string, string> {
   const idempotencyKey = h.get('idempotency-key')
   if (idempotencyKey) forwarded['idempotency-key'] = idempotencyKey
 
+  // Forward cookie so Clerk session works through the proxy
+  const cookie = h.get('cookie')
+  if (cookie) forwarded['Cookie'] = cookie
+
   return forwarded
 }
 
