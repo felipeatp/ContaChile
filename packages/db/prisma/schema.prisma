@@ -8,13 +8,21 @@ datasource db {
 }
 
 model Company {
-  id            String   @id @default(cuid())
-  rut           String   @unique
-  name          String
-  certEncrypted String?
-  certPassword  String?
-  siiCertified  Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  id                  String   @id @default(cuid())
+  rut                 String   @unique
+  name                String
+  giro                String?
+  address             String?
+  commune             String?
+  phone               String?
+  email               String?
+  certEncrypted       String?
+  certPassword        String?
+  siiCertified        Boolean  @default(false)
+  defaultPaymentMethod String  @default("CONTADO")
+  defaultDocumentType Int      @default(33)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime? @updatedAt
 }
 
 enum DocumentStatus {

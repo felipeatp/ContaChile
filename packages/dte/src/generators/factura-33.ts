@@ -20,7 +20,7 @@ export function generateFactura33(data: DocumentData): string {
     .ele('Emisor')
     .ele('RUTEmisor').txt(data.company.rut).up()
     .ele('RznSoc').txt(data.company.name).up()
-    .ele('GiroEmis').txt('Servicios').up()
+    .ele('GiroEmis').txt(data.company.giro || data.company.economicActivity || 'Servicios').up()
     .ele('Acteco').txt(data.company.economicActivity).up()
     .ele('DirOrigen').txt(data.company.address).up()
     .ele('CmnaOrigen').txt(data.company.commune).up()

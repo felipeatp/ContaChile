@@ -12,6 +12,7 @@ export interface DocumentData {
     address: string
     commune: string
     city: string
+    giro?: string
     economicActivity: string
     cert: string // PEM
   }

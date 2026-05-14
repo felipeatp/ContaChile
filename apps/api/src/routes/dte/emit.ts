@@ -9,6 +9,14 @@ export default async function (fastify: FastifyInstance) {
     const companyId = request.companyId
     const idempotencyKey = request.headers['idempotency-key'] as string | undefined
 
+    const company = await prisma.company.findUnique({ where: { id: companyId } })
+    if (!company) {
+      return reply.code(400).send({ error: 'Empresa no configurada. Ve a Configuración y completa tus datos.' })
+    }
+    if (!company.rut || !company.name) {
+      return reply.code(400).send({ error: 'RUT y Razón Social de la empresa son obligatorios para emitir DTE.' })
+    }
+
     if (idempotencyKey) {
       const existing = await prisma.document.findUnique({
         where: { idempotencyKey },
@@ -74,7 +82,10 @@ export default async function (fastify: FastifyInstance) {
         auditLogs: {
           create: {
             action: 'EMIT',
-            payload: { source: 'direct' },
+            payload: {
+              source: 'direct',
+              emitter: { rut: company.rut, name: company.name, giro: company.giro },
+            },
           },
         },
       },

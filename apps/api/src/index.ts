@@ -8,6 +8,7 @@ import emitBridgeRoute from './routes/dte/emit-bridge'
 import documentsRoute from './routes/dte/documents'
 import pdfRoute from './routes/dte/pdf'
 import consultorRoute from './routes/ai/consultor'
+import companyRoute from './routes/company'
 
 const app = Fastify({ logger: true })
 
@@ -66,6 +67,7 @@ app.register(async (instance) => {
 
 app.register(documentsRoute)
 app.register(pdfRoute)
+app.register(companyRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {

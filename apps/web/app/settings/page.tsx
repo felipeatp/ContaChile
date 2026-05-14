@@ -1,15 +1,99 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Building2, Mail, Phone, MapPin, User } from "lucide-react"
+import { Building2, Mail, Phone, MapPin, User, Loader2 } from "lucide-react"
+
+interface Company {
+  id: string
+  rut: string
+  name: string
+  giro: string | null
+  address: string | null
+  commune: string | null
+  phone: string | null
+  email: string | null
+  defaultPaymentMethod: string
+  defaultDocumentType: number
+  siiCertified: boolean
+}
 
 export default function SettingsPage() {
+  const [company, setCompany] = useState<Company | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/company")
+      .then((res) => res.json())
+      .then((data) => {
+        setCompany(data)
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(false)
+        setMessage("Error al cargar datos de la empresa")
+      })
+  }, [])
+
+  const handleChange = (field: keyof Company, value: string | number) => {
+    setCompany((prev) => (prev ? { ...prev, [field]: value } : null))
+  }
+
+  const handleSave = async () => {
+    if (!company) return
+    setSaving(true)
+    setMessage(null)
+
+    const res = await fetch("/api/company", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rut: company.rut,
+        name: company.name,
+        giro: company.giro,
+        address: company.address,
+        commune: company.commune,
+        phone: company.phone,
+        email: company.email,
+        defaultPaymentMethod: company.defaultPaymentMethod,
+        defaultDocumentType: company.defaultDocumentType,
+      }),
+    })
+
+    if (res.ok) {
+      const updated = await res.json()
+      setCompany(updated)
+      setMessage("Cambios guardados correctamente")
+    } else {
+      setMessage("Error al guardar los cambios")
+    }
+    setSaving(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Configuración</h1>
         <p className="text-muted-foreground">Administra la información de tu empresa y preferencias</p>
       </div>
+
+      {message && (
+        <div className={`rounded-lg px-4 py-2 text-sm ${message.includes("Error") ? "bg-destructive/10 text-destructive" : "bg-green-100 text-green-800"}`}>
+          {message}
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Company info */}
@@ -25,28 +109,49 @@ export default function SettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">RUT</label>
-                <Input placeholder="76.123.456-7" defaultValue="76.123.456-7" />
+                <Input
+                  placeholder="76.123.456-7"
+                  value={company?.rut ?? ""}
+                  onChange={(e) => handleChange("rut", e.target.value)}
+                />
               </div>
               <div>
                 <label className="text-sm font-medium">Nombre / Razón Social</label>
-                <Input placeholder="Empresa SpA" defaultValue="Empresa de Prueba SpA" />
+                <Input
+                  placeholder="Empresa SpA"
+                  value={company?.name ?? ""}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                />
               </div>
             </div>
             <div>
               <label className="text-sm font-medium">Giro</label>
-              <Input placeholder="Actividad económica" />
+              <Input
+                placeholder="Actividad económica"
+                value={company?.giro ?? ""}
+                onChange={(e) => handleChange("giro", e.target.value)}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Dirección</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-9" placeholder="Av. Principal 123" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Av. Principal 123"
+                    value={company?.address ?? ""}
+                    onChange={(e) => handleChange("address", e.target.value)}
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium">Comuna</label>
-                <Input placeholder="Santiago" />
+                <Input
+                  placeholder="Santiago"
+                  value={company?.commune ?? ""}
+                  onChange={(e) => handleChange("commune", e.target.value)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -54,18 +159,31 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Teléfono</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-9" placeholder="+56 2 1234 5678" />
+                  <Input
+                    className="pl-9"
+                    placeholder="+56 2 1234 5678"
+                    value={company?.phone ?? ""}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                  />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input className="pl-9" placeholder="contacto@empresa.cl" />
+                  <Input
+                    className="pl-9"
+                    placeholder="contacto@empresa.cl"
+                    value={company?.email ?? ""}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                  />
                 </div>
               </div>
             </div>
-            <Button disabled>Guardar cambios</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Guardar cambios
+            </Button>
           </CardContent>
         </Card>
 
@@ -100,20 +218,31 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Método de pago por defecto</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={company?.defaultPaymentMethod ?? "CONTADO"}
+                onChange={(e) => handleChange("defaultPaymentMethod", e.target.value)}
+              >
                 <option value="CONTADO">Contado</option>
                 <option value="CREDITO">Crédito</option>
               </select>
             </div>
             <div>
               <label className="text-sm font-medium">Tipo de documento por defecto</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                <option value="33">33 - Factura Electrónica</option>
-                <option value="39">39 - Boleta Electrónica</option>
-                <option value="61">61 - Nota de Crédito</option>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={company?.defaultDocumentType ?? 33}
+                onChange={(e) => handleChange("defaultDocumentType", Number(e.target.value))}
+              >
+                <option value={33}>33 - Factura Electrónica</option>
+                <option value={39}>39 - Boleta Electrónica</option>
+                <option value={61}>61 - Nota de Crédito</option>
               </select>
             </div>
-            <Button disabled>Guardar preferencias</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Guardar preferencias
+            </Button>
           </CardContent>
         </Card>
 

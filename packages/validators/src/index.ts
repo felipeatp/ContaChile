@@ -10,3 +10,5 @@ export type {
   DocumentItem,
   Receiver,
 } from './document'
+export { CompanySchema, UpdateCompanySchema } from './company'
+export type { CompanyInput, UpdateCompanyInput } from './company'
