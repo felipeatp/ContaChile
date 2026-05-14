@@ -4,6 +4,7 @@ import tenantPlugin from './plugins/tenant'
 import emitRoute from './routes/dte/emit'
 import emitBridgeRoute from './routes/dte/emit-bridge'
 import documentsRoute from './routes/dte/documents'
+import pdfRoute from './routes/dte/pdf'
 
 const app = Fastify({ logger: true })
 
@@ -25,6 +26,7 @@ app.register(tenantPlugin)
 app.register(emitRoute)
 app.register(emitBridgeRoute)
 app.register(documentsRoute)
+app.register(pdfRoute)
 
 app.get('/health', async () => ({ status: 'ok' }))
 
