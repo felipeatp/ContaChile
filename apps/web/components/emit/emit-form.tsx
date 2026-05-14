@@ -64,6 +64,7 @@ export function EmitForm() {
 
   const items = form.watch("items")
   const rutValue = form.watch("receiver.rut")
+  const currentType = form.watch("type")
 
   const totals = useMemo(() => {
     const neto = items.reduce((sum, item) => {
@@ -140,15 +141,17 @@ export function EmitForm() {
               <label
                 key={type.value}
                 className={`flex flex-col p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                  form.watch("type") === type.value
+                  currentType === type.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground/30"
                 }`}
               >
                 <input
                   type="radio"
-                  {...form.register("type", { valueAsNumber: true })}
+                  name="type"
                   value={type.value}
+                  checked={currentType === type.value}
+                  onChange={() => form.setValue("type", type.value, { shouldValidate: true })}
                   className="sr-only"
                 />
                 <span className="font-medium text-sm">{type.label}</span>
