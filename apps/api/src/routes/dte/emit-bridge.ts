@@ -37,6 +37,7 @@ export default async function (fastify: FastifyInstance) {
         status: 'PENDING',
         trackId,
         idempotencyKey,
+        companyId,
         receiverRut: body.receiver.rut,
         receiverName: body.receiver.name,
         receiverEmail: body.receiver.email,
