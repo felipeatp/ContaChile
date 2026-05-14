@@ -2,8 +2,8 @@ import { headers } from 'next/headers'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
-function getForwardedHeaders(): Record<string, string> {
-  const h = headers()
+async function getForwardedHeaders(): Promise<Record<string, string>> {
+  const h = await headers()
   const forwarded: Record<string, string> = {
     'Content-Type': 'application/json',
   }
@@ -26,14 +26,14 @@ function getForwardedHeaders(): Record<string, string> {
 
 export async function apiFetch(path: string, init?: RequestInit) {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 3000)
+  const timeout = setTimeout(() => controller.abort(), 15000)
 
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       signal: controller.signal,
       headers: {
-        ...getForwardedHeaders(),
+        ...(await getForwardedHeaders()),
         ...(init?.headers || {}),
       },
     })
