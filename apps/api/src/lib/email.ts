@@ -17,3 +17,40 @@ export class StubEmailService implements EmailService {
     this.calls.push({ method: 'sendDocumentAccepted', params })
   }
 }
+
+export class ResendEmailService implements EmailService {
+  private resend: any
+  private from: string
+
+  constructor(apiKey: string, fromEmail: string = 'ContaChile <noreply@contachile.cl>') {
+    const { Resend } = require('resend')
+    this.resend = new Resend(apiKey)
+    this.from = fromEmail
+  }
+
+  async sendDocumentAccepted(params: SendDocumentAcceptedParams): Promise<void> {
+    const tipoLabel = params.type === 33 ? 'Factura Electrónica' : params.type === 39 ? 'Boleta Electrónica' : `DTE tipo ${params.type}`
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: params.receiverEmail,
+      subject: `${tipoLabel} N° ${params.folio} aceptada por el SII`,
+      html: `
+        <h2>Documento Tributario Electrónico Aceptado</h2>
+        <p>Estimado/a <strong>${params.receiverName}</strong>,</p>
+        <p>Su ${tipoLabel} N° <strong>${params.folio}</strong> ha sido aceptada exitosamente por el SII.</p>
+        <p>Puede descargar el documento desde su portal de ContaChile.</p>
+        <hr/>
+        <p><small>Este es un correo automático enviado por ContaChile.</small></p>
+      `,
+    })
+  }
+}
+
+export function createEmailService(): EmailService {
+  const apiKey = process.env.RESEND_API_KEY
+  if (apiKey && apiKey !== 'test-key') {
+    return new ResendEmailService(apiKey)
+  }
+  return new StubEmailService()
+}

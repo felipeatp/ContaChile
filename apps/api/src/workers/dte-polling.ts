@@ -4,9 +4,9 @@ import { prisma } from '@contachile/db'
 import { SIIClient } from '@contachile/transport-sii'
 import { AceptaClient } from '@contachile/transport-acepta'
 import { PollJobData } from '../queues/dte'
-import { StubEmailService } from '../lib/email'
+import { createEmailService } from '../lib/email'
 
-const emailService = new StubEmailService()
+const emailService = createEmailService()
 
 const redisConnection = {
   host: process.env.REDIS_HOST || 'localhost',
