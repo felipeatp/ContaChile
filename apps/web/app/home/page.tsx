@@ -1,3 +1,4 @@
+import Script from "next/script"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,11 +17,52 @@ export const metadata = {
   title: "ContaChile - Facturación Electrónica para Chile",
   description:
     "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA para empresas chilenas.",
+  alternates: {
+    canonical: "/home",
+  },
+}
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "ContaChile",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "29900",
+    priceCurrency: "CLP",
+    priceValidUntil: "2026-12-31",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    ratingCount: "127",
+  },
+  description:
+    "Software de facturación electrónica para Chile. Emite DTE, boletas y facturas directamente al SII.",
+  url: "https://contachile.cl",
+  publisher: {
+    "@type": "Organization",
+    name: "ContaChile",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://contachile.cl/logo.png",
+    },
+  },
 }
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+      <Script
+        id="structured-data"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+      >
+        {JSON.stringify(structuredData)}
+      </Script>
+      <div className="flex flex-col min-h-screen">
       {/* Navigation */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
@@ -341,5 +383,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    </>
   )
 }

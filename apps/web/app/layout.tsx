@@ -9,8 +9,43 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ContaChile - DTE Dashboard",
-  description: "Facturación electrónica para Chile",
+  title: {
+    default: "ContaChile - Facturación Electrónica para Chile",
+    template: "%s | ContaChile",
+  },
+  description:
+    "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA para empresas chilenas.",
+  keywords: [
+    "facturación electrónica",
+    "DTE Chile",
+    "SII",
+    "boleta electrónica",
+    "factura electrónica",
+    "contabilidad",
+    "software contable Chile",
+  ],
+  authors: [{ name: "ContaChile" }],
+  creator: "ContaChile",
+  metadataBase: new URL("https://contachile.cl"),
+  openGraph: {
+    type: "website",
+    locale: "es_CL",
+    url: "https://contachile.cl",
+    siteName: "ContaChile",
+    title: "ContaChile - Facturación Electrónica para Chile",
+    description:
+      "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ContaChile - Facturación Electrónica para Chile",
+    description:
+      "Emite DTE, boletas y facturas electrónicas directamente al SII.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({
