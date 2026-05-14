@@ -8,10 +8,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev"
   },
-  "dependencies": {
-    "@prisma/client": "^5.10.0"
-  },
   "devDependencies": {
+    "@prisma/client": "^5.10.0",
     "prisma": "^5.10.0",
     "typescript": "^5.4.0"
   }
