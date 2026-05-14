@@ -44,12 +44,14 @@ model Document {
   rejectedAt      DateTime?
   rejectionReason String?
   idempotencyKey  String?        @unique
+  companyId       String?
   items           DocumentItem[]
   auditLogs       AuditLog[]
 
-  @@unique([type, folio])
+  @@unique([companyId, type, folio])
   @@index([status])
   @@index([emittedAt])
+  @@index([companyId])
 }
 
 model DocumentItem {
