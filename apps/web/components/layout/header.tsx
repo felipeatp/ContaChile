@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 
 const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
+  "/dashboard": "Dashboard",
   "/documents": "Documentos",
   "/emit": "Emitir DTE",
   "/settings": "Configuración",
