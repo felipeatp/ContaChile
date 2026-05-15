@@ -3,6 +3,7 @@ import { prisma } from '@contachile/db'
 import { GeneratePayrollSchema } from '@contachile/validators'
 import { generatePayrollForMonth } from '../lib/payroll-service'
 import { createPayrollEntry } from '../lib/accounting-entries'
+import { generatePayrollPdf } from '../lib/payroll-pdf'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/payroll/generate', async (request, reply) => {
@@ -66,6 +67,34 @@ export default async function (fastify: FastifyInstance) {
     })
     if (!payroll) return reply.code(404).send({ error: 'Liquidación no encontrada' })
     return reply.send(payroll)
+  })
+
+  fastify.get('/payroll/item/:id/pdf', async (request, reply) => {
+    const companyId = request.companyId
+    const { id } = request.params as { id: string }
+
+    const payroll = await prisma.payroll.findFirst({
+      where: { id, companyId },
+      include: { employee: true },
+    })
+    if (!payroll) return reply.code(404).send({ error: 'Liquidación no encontrada' })
+
+    const company = await prisma.company.findUnique({ where: { id: companyId } })
+    if (!company) return reply.code(400).send({ error: 'Empresa no configurada' })
+
+    const pdf = await generatePayrollPdf({
+      payroll,
+      employee: payroll.employee,
+      company,
+    })
+
+    return reply
+      .header('Content-Type', 'application/pdf')
+      .header(
+        'Content-Disposition',
+        `inline; filename="liquidacion-${payroll.year}-${String(payroll.month).padStart(2, '0')}-${payroll.employee.rut}.pdf"`
+      )
+      .send(pdf)
   })
 
   fastify.post('/payroll/item/:id/approve', async (request, reply) => {
