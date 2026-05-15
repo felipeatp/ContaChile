@@ -16,6 +16,7 @@ import f29Route from './routes/f29'
 import salesBookRoute from './routes/sales-book'
 import purchasesBookRoute from './routes/purchases-book'
 import receiversRoute from './routes/receivers'
+import './workers/dte-polling'
 
 const app = Fastify({ logger: true })
 
