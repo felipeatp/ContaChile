@@ -16,6 +16,7 @@ import f29Route from './routes/f29'
 import salesBookRoute from './routes/sales-book'
 import purchasesBookRoute from './routes/purchases-book'
 import receiversRoute from './routes/receivers'
+import accountsRoute from './routes/accounts'
 import './workers/dte-polling'
 
 const app = Fastify({ logger: true })
@@ -83,6 +84,7 @@ app.register(f29Route)
 app.register(salesBookRoute)
 app.register(purchasesBookRoute)
 app.register(receiversRoute)
+app.register(accountsRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {
