@@ -50,6 +50,10 @@ export function EmitForm() {
   const creditNoteId = searchParams.get("creditNote")
   const duplicateId = searchParams.get("duplicate")
 
+  const [receiverSuggestions, setReceiverSuggestions] = useState<Array<{ rut: string; name: string; email: string | null }>>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+
   const form = useForm({
     resolver: zodResolver(EmitDocumentSchema),
     defaultValues: {
@@ -150,6 +154,33 @@ export function EmitForm() {
     }
   }, [duplicateId, form])
 
+  useEffect(() => {
+    const rawRut = rutValue?.replace(/[^0-9kK]/g, "") ?? ""
+    if (rawRut.length < 3) {
+      setReceiverSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setSuggestionsLoading(true)
+      fetch(`/api/receivers?search=${encodeURIComponent(rawRut)}`)
+        .then((res) => res.json())
+        .then((json) => {
+          const list = json?.receivers ?? []
+          setReceiverSuggestions(list)
+          setShowSuggestions(list.length > 0)
+        })
+        .catch(() => {
+          setReceiverSuggestions([])
+          setShowSuggestions(false)
+        })
+        .finally(() => setSuggestionsLoading(false))
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [rutValue])
+
   const onSubmit = form.handleSubmit((data) => {
     const idempotencyKey = crypto.randomUUID()
     const emit = mode === "direct" ? emitDirect : emitBridge
@@ -242,14 +273,43 @@ export function EmitForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
+            <div className="relative">
               <label className="text-sm font-medium">RUT</label>
               <Input
                 {...form.register("receiver.rut")}
                 placeholder="76.123.456-7"
                 onBlur={handleRutBlur}
+                onFocus={() => rutValue?.length >= 3 && receiverSuggestions.length > 0 && setShowSuggestions(true)}
                 className={form.formState.errors.receiver?.rut ? "border-destructive" : ""}
               />
+              {suggestionsLoading && (
+                <div className="absolute right-3 top-8">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {showSuggestions && receiverSuggestions.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full rounded-md border bg-background shadow-lg">
+                  {receiverSuggestions.map((s) => (
+                    <button
+                      key={s.rut}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        form.setValue("receiver.rut", formatRUT(s.rut), { shouldValidate: true })
+                        form.setValue("receiver.name", s.name || "", { shouldValidate: true })
+                        if (s.email) {
+                          form.setValue("receiver.email" as never, s.email as never)
+                        }
+                        setShowSuggestions(false)
+                      }}
+                    >
+                      <span className="font-medium">{formatRUT(s.rut)}</span>
+                      <span className="text-muted-foreground ml-2">{s.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {form.formState.errors.receiver?.rut && (
                 <div className="flex items-center mt-1 text-sm text-destructive">
                   <AlertCircle className="h-3 w-3 mr-1" />
