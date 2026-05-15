@@ -33,6 +33,9 @@ const navItems = [
   { href: "/contabilidad/puc", label: "Plan de Cuentas", icon: BookOpen },
   { href: "/contabilidad/libro-diario", label: "Libro Diario", icon: BookOpen },
   { href: "/contabilidad/mayor", label: "Libro Mayor", icon: BookOpen },
+  { href: "/contabilidad/reportes/balance-comprobacion", label: "Balance Comprobación", icon: FileBarChart },
+  { href: "/contabilidad/reportes/estado-resultados", label: "Estado Resultados", icon: FileBarChart },
+  { href: "/contabilidad/reportes/balance-general", label: "Balance General", icon: FileBarChart },
   { href: "/ai", label: "Agentes IA", icon: Bot },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
