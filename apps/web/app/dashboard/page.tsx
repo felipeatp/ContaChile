@@ -3,6 +3,7 @@ import { DocumentsResponse } from "@/types"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { DocumentsChart } from "@/components/dashboard/documents-chart"
 import { StatusChart } from "@/components/dashboard/status-chart"
+import { F29Alert } from "@/components/dashboard/f29-alert"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
@@ -45,6 +46,8 @@ export default async function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      <F29Alert />
 
       <StatsCards documents={documents} />
 
