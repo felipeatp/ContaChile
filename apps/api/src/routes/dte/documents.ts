@@ -19,11 +19,44 @@ const emailService = createEmailService()
 export default async function (fastify: FastifyInstance) {
   fastify.get('/documents', async (request, reply) => {
     const companyId = request.companyId
-    const query = request.query as { status?: string; page?: string; limit?: string }
+    const query = request.query as {
+      status?: string
+      page?: string
+      limit?: string
+      from?: string
+      to?: string
+      type?: string
+      search?: string
+    }
     const where: Record<string, unknown> = { companyId }
 
     if (query.status) {
       where.status = query.status
+    }
+
+    if (query.type) {
+      where.type = parseInt(query.type, 10)
+    }
+
+    if (query.from || query.to) {
+      where.emittedAt = {}
+      if (query.from) {
+        ;(where.emittedAt as Record<string, Date>).gte = new Date(query.from)
+      }
+      if (query.to) {
+        const toDate = new Date(query.to)
+        toDate.setHours(23, 59, 59, 999)
+        ;(where.emittedAt as Record<string, Date>).lte = toDate
+      }
+    }
+
+    if (query.search) {
+      const search = query.search.trim()
+      where.OR = [
+        { receiverRut: { contains: search, mode: 'insensitive' } },
+        { receiverName: { contains: search, mode: 'insensitive' } },
+        { folio: isNaN(Number(search)) ? undefined : Number(search) },
+      ].filter(Boolean)
     }
 
     const page = parseInt(query.page || '1', 10)
@@ -40,7 +73,7 @@ export default async function (fastify: FastifyInstance) {
       prisma.document.count({ where }),
     ])
 
-    return reply.send({ documents, total, page, limit })
+    return reply.send({ documents, total, page, limit, totalPages: Math.ceil(total / limit) })
   })
 
   fastify.get('/documents/:id', async (request, reply) => {

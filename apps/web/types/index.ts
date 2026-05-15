@@ -34,6 +34,7 @@ export interface DocumentsResponse {
   total: number
   page: number
   limit: number
+  totalPages: number
 }
 
 export interface EmitDocumentResponse {

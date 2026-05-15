@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getDocuments, getDocument } from '@/lib/api-client'
 
-export function useDocuments(params?: { status?: string; page?: number; limit?: number }) {
+export function useDocuments(params?: { status?: string; page?: number; limit?: number; from?: string; to?: string; type?: number; search?: string }) {
   return useQuery({
     queryKey: ['documents', params],
     queryFn: () => getDocuments(params),
