@@ -27,6 +27,7 @@ const navItems = [
   { href: "/purchases", label: "Compras", icon: ShoppingCart },
   { href: "/f29", label: "F29", icon: FileBarChart },
   { href: "/libro-ventas", label: "Libro Ventas", icon: BookOpen },
+  { href: "/libro-compras", label: "Libro Compras", icon: ShoppingCart },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
 
