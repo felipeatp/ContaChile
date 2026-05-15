@@ -3,8 +3,9 @@ import { prisma } from '@contachile/db'
 
 export default async function (fastify: FastifyInstance) {
   fastify.get('/documents', async (request, reply) => {
+    const companyId = request.companyId
     const query = request.query as { status?: string; page?: string; limit?: string }
-    const where: Record<string, unknown> = {}
+    const where: Record<string, unknown> = { companyId }
 
     if (query.status) {
       where.status = query.status
@@ -28,10 +29,11 @@ export default async function (fastify: FastifyInstance) {
   })
 
   fastify.get('/documents/:id', async (request, reply) => {
+    const companyId = request.companyId
     const { id } = request.params as { id: string }
 
-    const document = await prisma.document.findUnique({
-      where: { id },
+    const document = await prisma.document.findFirst({
+      where: { id, companyId },
       include: { items: true },
     })
 
