@@ -27,3 +27,13 @@ export type {
   JournalListQuery,
   LedgerQuery,
 } from './journal'
+export {
+  TrialBalanceQuerySchema,
+  IncomeStatementQuerySchema,
+  BalanceSheetQuerySchema,
+} from './reports'
+export type {
+  TrialBalanceQuery,
+  IncomeStatementQuery,
+  BalanceSheetQuery,
+} from './reports'
