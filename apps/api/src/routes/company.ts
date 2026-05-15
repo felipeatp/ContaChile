@@ -1,6 +1,23 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
-import { UpdateCompanySchema } from '@contachile/validators'
+import { UpdateCompanySchema, PUC_BASE_ACCOUNTS } from '@contachile/validators'
+
+async function seedPucBase(companyId: string): Promise<void> {
+  const existingCount = await prisma.account.count({ where: { companyId } })
+  if (existingCount > 0) return // Already seeded
+
+  await prisma.account.createMany({
+    data: PUC_BASE_ACCOUNTS.map((acc) => ({
+      companyId,
+      code: acc.code,
+      name: acc.name,
+      type: acc.type,
+      description: acc.description,
+      isSystem: true,
+    })),
+    skipDuplicates: true,
+  })
+}
 
 export default async function (fastify: FastifyInstance) {
   fastify.get('/company', async (request, reply) => {
@@ -19,6 +36,7 @@ export default async function (fastify: FastifyInstance) {
           name: 'Empresa de Prueba SpA',
         },
       })
+      await seedPucBase(companyId)
     }
 
     return reply.send(company)
@@ -45,6 +63,7 @@ export default async function (fastify: FastifyInstance) {
         ...data,
       },
     })
+    await seedPucBase(companyId)
 
     return reply.send(company)
   })
@@ -71,6 +90,7 @@ export default async function (fastify: FastifyInstance) {
         certPassword: body.password || null,
       },
     })
+    await seedPucBase(companyId)
 
     return reply.send({
       id: company.id,
