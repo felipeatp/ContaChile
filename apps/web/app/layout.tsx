@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { Providers } from "./providers"
+import { ChatWidget } from "@/components/ai/chat-widget"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -63,6 +64,7 @@ export default function RootLayout({
               <Header />
               <main className="container py-6">{children}</main>
             </div>
+            <ChatWidget />
           </Providers>
         </body>
       </html>
