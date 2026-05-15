@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   FileText,
   PlusCircle,
+  ShoppingCart,
+  FileBarChart,
   Settings,
   Menu,
   X,
@@ -21,6 +23,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/emit", label: "Emitir DTE", icon: PlusCircle },
+  { href: "/purchases", label: "Compras", icon: ShoppingCart },
+  { href: "/f29", label: "F29", icon: FileBarChart },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
 

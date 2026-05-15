@@ -12,3 +12,5 @@ export type {
 } from './document'
 export { CompanySchema, UpdateCompanySchema } from './company'
 export type { CompanyInput, UpdateCompanyInput } from './company'
+export { PurchaseSchema, PurchaseListQuerySchema } from './purchase'
+export type { PurchaseInput, PurchaseListQuery } from './purchase'
