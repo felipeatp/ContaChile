@@ -12,6 +12,7 @@ import consultorRoute from './routes/ai/consultor'
 import companyRoute from './routes/company'
 import purchasesRoute from './routes/purchases'
 import f29Route from './routes/f29'
+import salesBookRoute from './routes/sales-book'
 
 const app = Fastify({ logger: true })
 
@@ -74,6 +75,7 @@ app.register(xmlRoute)
 app.register(companyRoute)
 app.register(purchasesRoute)
 app.register(f29Route)
+app.register(salesBookRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {
