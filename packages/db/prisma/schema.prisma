@@ -143,26 +143,3 @@ model Purchase {
   @@index([companyId])
   @@index([date])
 }
-
-enum AccountType {
-  ASSET
-  LIABILITY
-  EQUITY
-  INCOME
-  EXPENSE
-}
-
-model Account {
-  id          String   @id @default(cuid())
-  companyId   String
-  code        String
-  name        String
-  type        AccountType
-  description String?
-  isSystem    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime? @updatedAt
-
-  @@unique([companyId, code])
-  @@index([companyId])
-}
