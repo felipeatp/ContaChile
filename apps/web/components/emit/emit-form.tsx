@@ -8,7 +8,7 @@ import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-documen
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AlertCircle, CheckCircle2, Loader2, Trash2, Plus, Send, Building2 } from "lucide-react"
 
 const DTE_TYPES = [
@@ -46,6 +46,8 @@ export function EmitForm() {
   const emitDirect = useEmitDocument()
   const emitBridge = useEmitBridgeDocument()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const creditNoteId = searchParams.get("creditNote")
 
   const form = useForm({
     resolver: zodResolver(EmitDocumentSchema),
@@ -54,6 +56,7 @@ export function EmitForm() {
       receiver: { rut: "", name: "", address: "", commune: "", city: "" },
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
       paymentMethod: "CONTADO",
+      references: [],
     },
   })
 
@@ -76,6 +79,44 @@ export function EmitForm() {
     const total = calcularTotal(neto)
     return { neto, tax, total }
   }, [items])
+
+  useEffect(() => {
+    if (creditNoteId) {
+      fetch(`/api/documents/${creditNoteId}`)
+        .then((res) => res.json())
+        .then((doc) => {
+          if (doc) {
+            form.setValue("type", 61, { shouldValidate: true })
+            form.setValue("receiver.rut", doc.receiverRut || "")
+            form.setValue("receiver.name", doc.receiverName || "")
+            form.setValue("receiver.address", doc.receiverAddress || "")
+            form.setValue("receiver.commune", doc.receiverCommune || "")
+            form.setValue("receiver.city", doc.receiverCity || "")
+            form.setValue("references" as any, [
+              {
+                type: doc.type,
+                folio: doc.folio,
+                date: doc.emittedAt ? doc.emittedAt.split("T")[0] : new Date().toISOString().split("T")[0],
+                reason: "Anulación",
+              },
+            ] as any)
+            if (doc.items && doc.items.length > 0) {
+              form.setValue(
+                "items",
+                doc.items.map((item: any) => ({
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                }))
+              )
+            }
+          }
+        })
+        .catch(() => {
+          // ignore fetch errors
+        })
+    }
+  }, [creditNoteId, form])
 
   const onSubmit = form.handleSubmit((data) => {
     const idempotencyKey = crypto.randomUUID()

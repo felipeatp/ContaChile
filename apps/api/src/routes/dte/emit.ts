@@ -94,6 +94,7 @@ export default async function (fastify: FastifyInstance) {
           items: body.items,
           paymentMethod: body.paymentMethod,
           emittedAt,
+          references: body.references,
         })
 
         xmlContent = result.xml

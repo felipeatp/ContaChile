@@ -116,12 +116,14 @@ export default function DocumentDetailPage() {
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
           </Button>
-          <Link href={`/emit?duplicate=${id}`}>
-            <Button variant="outline">
-              <Copy className="mr-2 h-4 w-4" />
-              Duplicar
-            </Button>
-          </Link>
+          {doc?.type === 33 && (
+            <Link href={`/emit?creditNote=${id}`}>
+              <Button variant="outline">
+                <Copy className="mr-2 h-4 w-4" />
+                Nota de Crédito
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
