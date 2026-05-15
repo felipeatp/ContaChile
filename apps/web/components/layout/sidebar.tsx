@@ -29,6 +29,7 @@ const navItems = [
   { href: "/f29", label: "F29", icon: FileBarChart },
   { href: "/libro-ventas", label: "Libro Ventas", icon: BookOpen },
   { href: "/libro-compras", label: "Libro Compras", icon: ShoppingCart },
+  { href: "/contabilidad/puc", label: "Plan de Cuentas", icon: BookOpen },
   { href: "/ai", label: "Agentes IA", icon: Bot },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
