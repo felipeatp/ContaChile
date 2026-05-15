@@ -38,6 +38,7 @@ const navItems = [
   { href: "/contabilidad/reportes/estado-resultados", label: "Estado Resultados", icon: FileBarChart },
   { href: "/contabilidad/reportes/balance-general", label: "Balance General", icon: FileBarChart },
   { href: "/remuneraciones/trabajadores", label: "Trabajadores", icon: Users },
+  { href: "/remuneraciones/liquidaciones", label: "Liquidaciones", icon: Users },
   { href: "/ai", label: "Agentes IA", icon: Bot },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
