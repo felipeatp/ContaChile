@@ -8,6 +8,7 @@ import emitBridgeRoute from './routes/dte/emit-bridge'
 import documentsRoute from './routes/dte/documents'
 import pdfRoute from './routes/dte/pdf'
 import xmlRoute from './routes/dte/xml'
+import envioDteRoute from './routes/dte/envio-dte'
 import consultorRoute from './routes/ai/consultor'
 import companyRoute from './routes/company'
 import purchasesRoute from './routes/purchases'
@@ -73,6 +74,7 @@ app.register(async (instance) => {
 app.register(documentsRoute)
 app.register(pdfRoute)
 app.register(xmlRoute)
+app.register(envioDteRoute)
 app.register(companyRoute)
 app.register(purchasesRoute)
 app.register(f29Route)
