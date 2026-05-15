@@ -16,3 +16,14 @@ export { PurchaseSchema, PurchaseListQuerySchema } from './purchase'
 export type { PurchaseInput, PurchaseListQuery } from './purchase'
 export { PUC_BASE_ACCOUNTS } from './puc-base'
 export type { PucBaseAccount } from './puc-base'
+export {
+  JournalLineSchema,
+  CreateJournalEntrySchema,
+  JournalListQuerySchema,
+  LedgerQuerySchema,
+} from './journal'
+export type {
+  CreateJournalEntryInput,
+  JournalListQuery,
+  LedgerQuery,
+} from './journal'
