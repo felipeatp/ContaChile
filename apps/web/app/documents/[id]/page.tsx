@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ArrowLeft, Download, Copy, FileText } from "lucide-react"
+import { ArrowLeft, Download, Copy, FileText, FileCode2 } from "lucide-react"
 
 export default function DocumentDetailPage() {
   const params = useParams()
@@ -39,6 +39,24 @@ export default function DocumentDetailPage() {
     }
   }
 
+  const handleDownloadXML = async () => {
+    try {
+      const res = await fetch(`/api/documents/${id}/xml`)
+      if (!res.ok) throw new Error("Error al descargar XML")
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `DTE-${doc?.type}-${doc?.folio}.xml`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (e) {
+      alert("Error al descargar el XML")
+    }
+  }
+
   if (isLoading) {
     return <p className="text-muted-foreground">Cargando...</p>
   }
@@ -59,6 +77,10 @@ export default function DocumentDetailPage() {
           <h1 className="text-3xl font-bold">Documento #{doc.folio}</h1>
         </div>
         <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={handleDownloadXML}>
+            <FileCode2 className="mr-2 h-4 w-4" />
+            Descargar XML
+          </Button>
           <Button variant="outline" onClick={handleDownloadPDF}>
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
