@@ -8,6 +8,9 @@ import { createEmailService } from '../lib/email'
 
 const emailService = createEmailService()
 
+const SIMULATE_DTE_STATUS = process.env.SIMULATE_DTE_STATUS === 'true'
+const SIMULATED_ATTEMPTS = parseInt(process.env.SIMULATED_ATTEMPTS || '3', 10)
+
 const redisConnection = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379', 10),
@@ -42,7 +45,48 @@ async function initWorker(): Promise<void> {
       'dte-polling',
       async (job) => {
         const { documentId, trackId, source } = job.data
+        const attempt = job.attemptsMade + 1 // BullMQ uses 0-indexed attemptsMade
 
+        // ── Simulation mode (development only) ─────────────────────────────
+        if (SIMULATE_DTE_STATUS) {
+          if (attempt < SIMULATED_ATTEMPTS) {
+            console.log(`[dte-worker] Simulating PENDING for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
+            throw new Error(`Simulated PENDING for ${documentId}`)
+          }
+
+          console.log(`[dte-worker] Simulating ACCEPTED for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
+
+          await prisma.document.update({
+            where: { id: documentId },
+            data: {
+              status: 'ACCEPTED',
+              acceptedAt: new Date(),
+            },
+          })
+
+          const doc = await prisma.document.findUnique({ where: { id: documentId } })
+          if (doc?.receiverEmail) {
+            await emailService.sendDocumentAccepted({
+              documentId: doc.id,
+              folio: doc.folio,
+              type: doc.type,
+              receiverName: doc.receiverName,
+              receiverEmail: doc.receiverEmail,
+            })
+          }
+
+          await prisma.auditLog.create({
+            data: {
+              documentId,
+              action: 'ACCEPTED',
+              payload: { source, simulated: true },
+            },
+          })
+
+          return { documentId, status: 'ACCEPTED', simulated: true }
+        }
+
+        // ── Real transport mode (production) ────────────────────────────────
         const statusResult =
           source === 'sii'
             ? await siiClient.queryStatus(trackId)
