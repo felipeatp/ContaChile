@@ -47,6 +47,9 @@ model Document {
   receiverRut     String
   receiverName    String
   receiverEmail   String?
+  receiverAddress String?
+  receiverCommune String?
+  receiverCity    String?
   totalNet        Int
   totalTax        Int
   totalAmount     Int
