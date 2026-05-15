@@ -37,3 +37,25 @@ export type {
   IncomeStatementQuery,
   BalanceSheetQuery,
 } from './reports'
+export {
+  AFP_RATES,
+  SALUD_FONASA_RATE,
+  SEGURO_CESANTIA_EMPLEADO,
+  SEGURO_CESANTIA_EMPLEADOR,
+  UTM_DEFAULT,
+  TAX_BRACKETS,
+} from './payroll-constants'
+export type { AfpCode, HealthPlan, ContractType, TaxBracket } from './payroll-constants'
+export {
+  CreateEmployeeSchema,
+  UpdateEmployeeSchema,
+  GeneratePayrollSchema,
+  calcularLiquidacion,
+} from './payroll'
+export type {
+  CreateEmployeeInput,
+  UpdateEmployeeInput,
+  GeneratePayrollInput,
+  LiquidacionInput,
+  Liquidacion,
+} from './payroll'
