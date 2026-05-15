@@ -48,6 +48,7 @@ export function EmitForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const creditNoteId = searchParams.get("creditNote")
+  const duplicateId = searchParams.get("duplicate")
 
   const form = useForm({
     resolver: zodResolver(EmitDocumentSchema),
@@ -117,6 +118,37 @@ export function EmitForm() {
         })
     }
   }, [creditNoteId, form])
+
+  useEffect(() => {
+    if (duplicateId) {
+      fetch(`/api/documents/${duplicateId}`)
+        .then((res) => res.json())
+        .then((doc) => {
+          if (doc) {
+            form.setValue("type", doc.type, { shouldValidate: true })
+            form.setValue("receiver.rut", doc.receiverRut || "")
+            form.setValue("receiver.name", doc.receiverName || "")
+            form.setValue("receiver.address", doc.receiverAddress || "")
+            form.setValue("receiver.commune", doc.receiverCommune || "")
+            form.setValue("receiver.city", doc.receiverCity || "")
+            form.setValue("paymentMethod", doc.paymentMethod || "CONTADO")
+            if (doc.items && doc.items.length > 0) {
+              form.setValue(
+                "items",
+                doc.items.map((item: any) => ({
+                  description: item.description,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                }))
+              )
+            }
+          }
+        })
+        .catch(() => {
+          // ignore fetch errors
+        })
+    }
+  }, [duplicateId, form])
 
   const onSubmit = form.handleSubmit((data) => {
     const idempotencyKey = crypto.randomUUID()
