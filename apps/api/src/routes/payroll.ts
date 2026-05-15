@@ -4,6 +4,7 @@ import { GeneratePayrollSchema } from '@contachile/validators'
 import { generatePayrollForMonth } from '../lib/payroll-service'
 import { createPayrollEntry } from '../lib/accounting-entries'
 import { generatePayrollPdf } from '../lib/payroll-pdf'
+import { generatePreviRedFile, generateDdjj1887File } from '../lib/payroll-exports'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/payroll/generate', async (request, reply) => {
@@ -123,5 +124,85 @@ export default async function (fastify: FastifyInstance) {
     })
 
     return reply.send(updated)
+  })
+
+  fastify.get('/payroll/previred/:year/:month', async (request, reply) => {
+    const companyId = request.companyId
+    const { year, month } = request.params as { year: string; month: string }
+    const yearNum = parseInt(year, 10)
+    const monthNum = parseInt(month, 10)
+
+    if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      return reply.code(400).send({ error: 'Año/mes inválido' })
+    }
+
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { rut: true },
+    })
+    if (!company) return reply.code(400).send({ error: 'Empresa no configurada' })
+
+    const payrolls = await prisma.payroll.findMany({
+      where: { companyId, year: yearNum, month: monthNum },
+      include: { employee: true },
+    })
+
+    const content = generatePreviRedFile(
+      company.rut,
+      yearNum,
+      monthNum,
+      payrolls.map((p) => ({
+        payroll: { bruto: p.bruto, afp: p.afp, salud: p.salud, cesantia: p.cesantia },
+        employee: {
+          rut: p.employee.rut,
+          name: p.employee.name,
+          afp: p.employee.afp,
+          healthPlan: p.employee.healthPlan,
+        },
+      }))
+    )
+
+    const filename = `previred_${yearNum}${String(monthNum).padStart(2, '0')}_${company.rut.replace(/\./g, '').replace(/-/g, '')}.txt`
+    return reply
+      .header('Content-Type', 'text/plain; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(content)
+  })
+
+  fastify.get('/payroll/ddjj-1887/:year', async (request, reply) => {
+    const companyId = request.companyId
+    const { year } = request.params as { year: string }
+    const yearNum = parseInt(year, 10)
+
+    if (isNaN(yearNum)) return reply.code(400).send({ error: 'Año inválido' })
+
+    const payrolls = await prisma.payroll.findMany({
+      where: { companyId, year: yearNum, status: { in: ['APPROVED', 'PAID'] } },
+      include: { employee: true },
+    })
+
+    const byEmployee = new Map<
+      string,
+      { rut: string; name: string; totalAnual: number; retenciones: number }
+    >()
+    for (const p of payrolls) {
+      const key = p.employee.id
+      const cur = byEmployee.get(key) ?? {
+        rut: p.employee.rut,
+        name: p.employee.name,
+        totalAnual: 0,
+        retenciones: 0,
+      }
+      cur.totalAnual += p.bruto
+      cur.retenciones += p.impuesto
+      byEmployee.set(key, cur)
+    }
+
+    const content = generateDdjj1887File(yearNum, Array.from(byEmployee.values()))
+    const filename = `ddjj_1887_${yearNum}.txt`
+    return reply
+      .header('Content-Type', 'text/plain; charset=utf-8')
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
+      .send(content)
   })
 }
