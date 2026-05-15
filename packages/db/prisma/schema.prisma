@@ -8,6 +8,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountType {
+  ACTIVO
+  PASIVO
+  PATRIMONIO
+  INGRESO
+  GASTO
+  COSTO
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  companyId   String
+  code        String
+  name        String
+  type        AccountType
+  parentCode  String?
+  description String?
+  isActive    Boolean     @default(true)
+  isSystem    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([type])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
