@@ -12,6 +12,7 @@ import {
   BookOpen,
   Settings,
   Bot,
+  Users,
   Menu,
   X,
   ChevronLeft,
@@ -36,6 +37,7 @@ const navItems = [
   { href: "/contabilidad/reportes/balance-comprobacion", label: "Balance Comprobación", icon: FileBarChart },
   { href: "/contabilidad/reportes/estado-resultados", label: "Estado Resultados", icon: FileBarChart },
   { href: "/contabilidad/reportes/balance-general", label: "Balance General", icon: FileBarChart },
+  { href: "/remuneraciones/trabajadores", label: "Trabajadores", icon: Users },
   { href: "/ai", label: "Agentes IA", icon: Bot },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
