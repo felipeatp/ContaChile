@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import { PurchaseSchema, PurchaseListQuerySchema } from '@contachile/validators'
+import { createPurchaseEntry } from '../lib/accounting-entries'
 
 function extractTag(xml: string, tag: string): string | undefined {
   const match = xml.match(new RegExp(`<${tag}>([^<]+)</${tag}>`, 'i'))
@@ -120,6 +121,13 @@ export default async function (fastify: FastifyInstance) {
       },
     })
 
+    await createPurchaseEntry(purchase, fastify.log).catch((err: Error) => {
+      fastify.log.warn(
+        { err: err.message, purchaseId: purchase.id },
+        'createPurchaseEntry falló — compra registrada sin asiento'
+      )
+    })
+
     return reply.code(201).send(purchase)
   })
 
@@ -161,6 +169,13 @@ export default async function (fastify: FastifyInstance) {
         taxAmount: parsed.taxAmount,
         totalAmount: parsed.totalAmount,
       },
+    })
+
+    await createPurchaseEntry(purchase, fastify.log).catch((err: Error) => {
+      fastify.log.warn(
+        { err: err.message, purchaseId: purchase.id },
+        'createPurchaseEntry falló — compra importada sin asiento'
+      )
     })
 
     return reply.code(201).send(purchase)

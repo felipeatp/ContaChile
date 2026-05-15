@@ -3,6 +3,7 @@ import { EmitDocumentSchema, calcularIVA, calcularTotal } from '@contachile/vali
 import { prisma } from '@contachile/db'
 import { enqueuePollJob } from '../../queues/dte'
 import { createEmailService } from '../../lib/email'
+import { createSalesEntry } from '../../lib/accounting-entries'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit-bridge', async (request, reply) => {
@@ -84,6 +85,13 @@ export default async function (fastify: FastifyInstance) {
         receiverEmail: doc.receiverEmail,
       })
     }
+
+    await createSalesEntry(doc, fastify.log).catch((err: Error) => {
+      fastify.log.warn(
+        { err: err.message, docId: doc.id },
+        'createSalesEntry falló — DTE bridge emitido sin asiento'
+      )
+    })
 
     await enqueuePollJob({ documentId: doc.id, trackId, source: 'acepta' })
 
