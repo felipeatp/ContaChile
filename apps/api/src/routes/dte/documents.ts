@@ -1,5 +1,20 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
+import { SIIClient } from '@contachile/transport-sii'
+import { AceptaClient } from '@contachile/transport-acepta'
+import { createEmailService } from '../../lib/email'
+
+const siiClient = new SIIClient({
+  baseURL: process.env.SII_BASE_URL || 'https://maullin.sii.cl',
+  env: (process.env.SII_ENV as 'test' | 'production') || 'test',
+})
+
+const aceptaClient = new AceptaClient({
+  apiKey: process.env.ACEPTA_API_KEY || 'test-key',
+  baseURL: process.env.ACEPTA_BASE_URL,
+})
+
+const emailService = createEmailService()
 
 export default async function (fastify: FastifyInstance) {
   fastify.get('/documents', async (request, reply) => {
@@ -42,5 +57,68 @@ export default async function (fastify: FastifyInstance) {
     }
 
     return reply.send(document)
+  })
+
+  fastify.post('/documents/:id/check-status', async (request, reply) => {
+    const companyId = request.companyId
+    const { id } = request.params as { id: string }
+
+    const doc = await prisma.document.findFirst({
+      where: { id, companyId },
+    })
+
+    if (!doc) {
+      return reply.code(404).send({ error: 'Document not found' })
+    }
+
+    if (!doc.trackId) {
+      return reply.code(400).send({ error: 'Documento sin trackId' })
+    }
+
+    const source = doc.trackId.startsWith('ACEPTA-') ? 'acepta' : 'sii'
+
+    const statusResult =
+      source === 'sii'
+        ? await siiClient.queryStatus(doc.trackId)
+        : await aceptaClient.queryStatus(doc.trackId)
+
+    if (statusResult.status !== doc.status) {
+      await prisma.document.update({
+        where: { id },
+        data: {
+          status: statusResult.status,
+          ...(statusResult.status === 'ACCEPTED'
+            ? { acceptedAt: new Date() }
+            : statusResult.status === 'REJECTED'
+              ? { rejectedAt: new Date(), rejectionReason: statusResult.detail }
+              : {}),
+        },
+      })
+
+      if (statusResult.status === 'ACCEPTED' && doc.receiverEmail) {
+        await emailService.sendDocumentAccepted({
+          documentId: doc.id,
+          folio: doc.folio,
+          type: doc.type,
+          receiverName: doc.receiverName,
+          receiverEmail: doc.receiverEmail,
+        })
+      }
+
+      await prisma.auditLog.create({
+        data: {
+          documentId: id,
+          action: statusResult.status,
+          payload: { source, detail: statusResult.detail },
+        },
+      })
+    }
+
+    return reply.send({
+      id: doc.id,
+      status: statusResult.status,
+      previousStatus: doc.status,
+      changed: statusResult.status !== doc.status,
+    })
   })
 }

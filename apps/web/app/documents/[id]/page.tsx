@@ -14,12 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ArrowLeft, Download, Copy, FileText, FileCode2 } from "lucide-react"
+import { ArrowLeft, Download, Copy, FileText, FileCode2, RefreshCw } from "lucide-react"
+import { useState } from "react"
 
 export default function DocumentDetailPage() {
   const params = useParams()
   const id = params.id as string
-  const { data: doc, isLoading } = useDocument(id)
+  const { data: doc, isLoading, refetch } = useDocument(id)
+  const [checking, setChecking] = useState(false)
+  const [checkMessage, setCheckMessage] = useState<string | null>(null)
 
   const handleDownloadPDF = async () => {
     try {
@@ -37,6 +40,28 @@ export default function DocumentDetailPage() {
     } catch (e) {
       alert("Error al descargar el PDF")
     }
+  }
+
+  const handleCheckStatus = async () => {
+    setChecking(true)
+    setCheckMessage(null)
+    try {
+      const res = await fetch(`/api/documents/${id}/check-status`, { method: "POST" })
+      const json = await res.json()
+      if (res.ok) {
+        if (json.changed) {
+          setCheckMessage(`Estado actualizado: ${json.status}`)
+        } else {
+          setCheckMessage(`Estado sin cambios: ${json.status}`)
+        }
+        refetch()
+      } else {
+        setCheckMessage(json.error || "Error al verificar estado")
+      }
+    } catch {
+      setCheckMessage("Error de red al verificar estado")
+    }
+    setChecking(false)
   }
 
   const handleDownloadXML = async () => {
@@ -77,6 +102,12 @@ export default function DocumentDetailPage() {
           <h1 className="text-3xl font-bold">Documento #{doc.folio}</h1>
         </div>
         <div className="flex items-center space-x-2">
+          {doc?.status === "PENDING" && (
+            <Button variant="outline" onClick={handleCheckStatus} disabled={checking}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${checking ? "animate-spin" : ""}`} />
+              Verificar estado
+            </Button>
+          )}
           <Button variant="outline" onClick={handleDownloadXML}>
             <FileCode2 className="mr-2 h-4 w-4" />
             Descargar XML
@@ -93,6 +124,12 @@ export default function DocumentDetailPage() {
           </Link>
         </div>
       </div>
+
+      {checkMessage && (
+        <div className={`rounded-lg px-4 py-2 text-sm ${checkMessage.includes("Error") ? "bg-destructive/10 text-destructive" : "bg-green-100 text-green-800"}`}>
+          {checkMessage}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
