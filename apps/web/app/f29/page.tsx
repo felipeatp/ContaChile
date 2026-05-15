@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, FileBarChart, Printer } from "lucide-react"
+import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
 
 interface F29Data {
   period: { year: number; month: number }
@@ -40,6 +40,16 @@ export default function F29Page() {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleExportCsv = () => {
+    const url = `/api/f29/export?year=${year}&month=${month}`
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `F29_${year}${String(month).padStart(2, "0")}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   if (loading) {
@@ -126,6 +136,10 @@ export default function F29Page() {
             <Button variant="outline" onClick={fetchData}>
               <FileBarChart className="mr-2 h-4 w-4" />
               Actualizar
+            </Button>
+            <Button variant="outline" onClick={handleExportCsv}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
             </Button>
             <Button variant="outline" onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
