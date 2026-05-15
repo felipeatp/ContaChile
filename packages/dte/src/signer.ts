@@ -1,5 +1,23 @@
 import forge from 'node-forge'
 
+export function extractPrivateKeyFromPfx(pfxBase64: string, password: string): string {
+  const pfxDer = forge.util.decode64(pfxBase64)
+  const pfxAsn1 = forge.asn1.fromDer(pfxDer)
+  const pfx = forge.pkcs12.pkcs12FromAsn1(pfxAsn1, false, password)
+
+  const keyBag = pfx.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag]
+  if (!keyBag || keyBag.length === 0) {
+    throw new Error('No private key found in PFX')
+  }
+
+  const privateKey = keyBag[0].key
+  if (!privateKey) {
+    throw new Error('Private key is empty')
+  }
+
+  return forge.pki.privateKeyToPem(privateKey)
+}
+
 function extractDocumentoBlock(xml: string): { id: string; full: string; content: string } | null {
   const match = xml.match(/<Documento\s+ID="([^"]+)"\s*>(.*?)<\/Documento>/s)
   if (!match) return null

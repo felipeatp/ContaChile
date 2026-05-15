@@ -13,6 +13,8 @@ export const ReceiverSchema = z.object({
   }),
   name: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
+  commune: z.string().min(1).max(100),
+  city: z.string().min(1).max(100),
   email: z.string().email().optional(),
 })
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Building2, Mail, Phone, MapPin, User, Loader2 } from "lucide-react"
+import { Building2, Mail, Phone, MapPin, User, Loader2, FileKey } from "lucide-react"
 
 interface Company {
   id: string
@@ -13,18 +13,24 @@ interface Company {
   giro: string | null
   address: string | null
   commune: string | null
+  city: string | null
+  economicActivity: string | null
   phone: string | null
   email: string | null
   defaultPaymentMethod: string
   defaultDocumentType: number
   siiCertified: boolean
+  certEncrypted?: string | null
 }
 
 export default function SettingsPage() {
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [certLoading, setCertLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [certFile, setCertFile] = useState<File | null>(null)
+  const [certPassword, setCertPassword] = useState("")
 
   useEffect(() => {
     fetch("/api/company")
@@ -57,6 +63,8 @@ export default function SettingsPage() {
         giro: company.giro,
         address: company.address,
         commune: company.commune,
+        city: company.city,
+        economicActivity: company.economicActivity,
         phone: company.phone,
         email: company.email,
         defaultPaymentMethod: company.defaultPaymentMethod,
@@ -72,6 +80,37 @@ export default function SettingsPage() {
       setMessage("Error al guardar los cambios")
     }
     setSaving(false)
+  }
+
+  const handleCertUpload = async () => {
+    if (!certFile) return
+    setCertLoading(true)
+    setMessage(null)
+
+    const reader = new FileReader()
+    reader.readAsDataURL(certFile)
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(",")[1]
+      const res = await fetch("/api/company/certificate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ certBase64: base64, password: certPassword || undefined }),
+      })
+
+      if (res.ok) {
+        setMessage("Certificado subido correctamente")
+        setCertFile(null)
+        setCertPassword("")
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setMessage(err.error || "Error al subir certificado")
+      }
+      setCertLoading(false)
+    }
+    reader.onerror = () => {
+      setMessage("Error al leer el archivo")
+      setCertLoading(false)
+    }
   }
 
   if (loading) {
@@ -151,6 +190,24 @@ export default function SettingsPage() {
                   placeholder="Santiago"
                   value={company?.commune ?? ""}
                   onChange={(e) => handleChange("commune", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Ciudad</label>
+                <Input
+                  placeholder="Santiago"
+                  value={company?.city ?? ""}
+                  onChange={(e) => handleChange("city", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Actividad Económica (Acteco)</label>
+                <Input
+                  placeholder="620200"
+                  value={company?.economicActivity ?? ""}
+                  onChange={(e) => handleChange("economicActivity", e.target.value)}
                 />
               </div>
             </div>
@@ -249,18 +306,38 @@ export default function SettingsPage() {
         {/* Certificates */}
         <Card>
           <CardHeader>
-            <CardTitle>Certificado digital</CardTitle>
+            <CardTitle className="flex items-center">
+              <FileKey className="mr-2 h-5 w-5" />
+              Certificado digital
+            </CardTitle>
             <CardDescription>Gestiona tu certificado para firma de DTE</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-dashed p-6 text-center">
-              <p className="text-sm text-muted-foreground mb-2">
-                Arrastra tu certificado .pfx aquí o haz click para seleccionar
-              </p>
-              <Button variant="outline" size="sm" disabled>
-                Seleccionar archivo
+            <div className="space-y-2">
+              <input
+                type="file"
+                accept=".pfx,.p12"
+                onChange={(e) => setCertFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              <Input
+                type="password"
+                placeholder="Contraseña del certificado (opcional)"
+                value={certPassword}
+                onChange={(e) => setCertPassword(e.target.value)}
+              />
+              <Button
+                variant="outline"
+                onClick={handleCertUpload}
+                disabled={!certFile || certLoading}
+              >
+                {certLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Subir certificado
               </Button>
             </div>
+            {company?.certEncrypted && (
+              <p className="text-xs text-green-600">✓ Certificado cargado</p>
+            )}
             <p className="text-xs text-muted-foreground">
               Tu certificado se almacena cifrado con AES-256. La clave de cifrado se gestiona de forma segura.
             </p>

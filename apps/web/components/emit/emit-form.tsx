@@ -51,7 +51,7 @@ export function EmitForm() {
     resolver: zodResolver(EmitDocumentSchema),
     defaultValues: {
       type: 33,
-      receiver: { rut: "", name: "", address: "" },
+      receiver: { rut: "", name: "", address: "", commune: "", city: "" },
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
       paymentMethod: "CONTADO",
     },
@@ -199,13 +199,25 @@ export function EmitForm() {
               )}
             </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Dirección</label>
-            <Input {...form.register("receiver.address")} placeholder="Dirección completa" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium">Dirección</label>
+              <Input {...form.register("receiver.address")} placeholder="Dirección completa" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Comuna</label>
+              <Input {...form.register("receiver.commune")} placeholder="Santiago" />
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Email (opcional)</label>
-            <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" type="email" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium">Ciudad</label>
+              <Input {...form.register("receiver.city")} placeholder="Santiago" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Email (opcional)</label>
+              <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" type="email" />
+            </div>
           </div>
         </CardContent>
       </Card>

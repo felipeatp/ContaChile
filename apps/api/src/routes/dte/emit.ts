@@ -1,7 +1,9 @@
 import { FastifyInstance } from 'fastify'
 import { EmitDocumentSchema, calcularIVA, calcularTotal } from '@contachile/validators'
 import { prisma } from '@contachile/db'
+import { runPipeline, extractPrivateKeyFromPfx } from '@contachile/dte'
 import { enqueuePollJob } from '../../queues/dte'
+import { createEmailService } from '../../lib/email'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit', async (request, reply) => {
@@ -55,6 +57,52 @@ export default async function (fastify: FastifyInstance) {
     }
 
     const trackId = `SII-${Date.now()}`
+    const emittedAt = new Date().toISOString().split('T')[0]
+
+    let xmlContent: string | undefined
+    let pdfBuffer: Buffer | undefined
+
+    const certEncrypted = company.certEncrypted
+    const hasCert = !!certEncrypted && certEncrypted.length > 100
+    if (hasCert) {
+      try {
+        const privateKeyPem = extractPrivateKeyFromPfx(
+          certEncrypted,
+          company.certPassword ?? ''
+        )
+
+        const result = await runPipeline({
+          type: body.type,
+          folio,
+          company: {
+            rut: company.rut,
+            name: company.name,
+            address: company.address || 'Dirección no especificada',
+            commune: company.commune || 'Santiago',
+            city: company.city || 'Santiago',
+            giro: company.giro || undefined,
+            economicActivity: company.economicActivity || '620200',
+            cert: privateKeyPem,
+          },
+          receiver: {
+            rut: body.receiver.rut,
+            name: body.receiver.name,
+            address: body.receiver.address,
+            commune: body.receiver.commune,
+            city: body.receiver.city,
+          },
+          items: body.items,
+          paymentMethod: body.paymentMethod,
+          emittedAt,
+        })
+
+        xmlContent = result.xml
+        pdfBuffer = result.pdf
+      } catch (signErr: unknown) {
+        const message = signErr instanceof Error ? signErr.message : String(signErr)
+        fastify.log.warn({ err: message }, 'Firma DTE falló, emitiendo sin XML firmado')
+      }
+    }
 
     const doc = await prisma.document.create({
       data: {
@@ -63,10 +111,11 @@ export default async function (fastify: FastifyInstance) {
         status: 'PENDING',
         trackId,
         idempotencyKey,
+        xmlContent: xmlContent || null,
         companyId,
         receiverRut: body.receiver.rut,
         receiverName: body.receiver.name,
-        receiverEmail: body.receiver.email,
+        receiverEmail: body.receiver.email || null,
         totalNet: neto,
         totalTax: tax,
         totalAmount: total,
@@ -84,12 +133,24 @@ export default async function (fastify: FastifyInstance) {
             action: 'EMIT',
             payload: {
               source: 'direct',
+              signed: !!xmlContent,
               emitter: { rut: company.rut, name: company.name, giro: company.giro },
             },
           },
         },
       },
     })
+
+    const emailService = createEmailService()
+    if (doc.receiverEmail) {
+      await emailService.sendDocumentEmitted({
+        documentId: doc.id,
+        folio: doc.folio,
+        type: doc.type,
+        receiverName: doc.receiverName,
+        receiverEmail: doc.receiverEmail,
+      })
+    }
 
     await enqueuePollJob({ documentId: doc.id, trackId, source: 'sii' })
 
@@ -99,6 +160,7 @@ export default async function (fastify: FastifyInstance) {
       folio: doc.folio,
       status: doc.status,
       trackId: doc.trackId,
+      signed: !!xmlContent,
       createdAt: doc.emittedAt.toISOString(),
     })
   })

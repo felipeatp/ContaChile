@@ -48,4 +48,34 @@ export default async function (fastify: FastifyInstance) {
 
     return reply.send(company)
   })
+
+  fastify.post('/company/certificate', async (request, reply) => {
+    const companyId = request.companyId
+    const body = request.body as { certBase64?: string; password?: string }
+
+    if (!body.certBase64 || body.certBase64.length < 100) {
+      return reply.code(400).send({ error: 'Certificado inválido o vacío' })
+    }
+
+    const company = await prisma.company.upsert({
+      where: { id: companyId },
+      update: {
+        certEncrypted: body.certBase64,
+        certPassword: body.password || null,
+      },
+      create: {
+        id: companyId,
+        rut: '76.123.456-7',
+        name: 'Empresa de Prueba SpA',
+        certEncrypted: body.certBase64,
+        certPassword: body.password || null,
+      },
+    })
+
+    return reply.send({
+      id: company.id,
+      siiCertified: company.siiCertified,
+      certUploaded: !!company.certEncrypted,
+    })
+  })
 }

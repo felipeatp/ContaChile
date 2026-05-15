@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { EmitDocumentSchema, calcularIVA, calcularTotal } from '@contachile/validators'
 import { prisma } from '@contachile/db'
 import { enqueuePollJob } from '../../queues/dte'
+import { createEmailService } from '../../lib/email'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit-bridge', async (request, reply) => {
@@ -72,6 +73,17 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     })
+
+    const emailService = createEmailService()
+    if (doc.receiverEmail) {
+      await emailService.sendDocumentEmitted({
+        documentId: doc.id,
+        folio: doc.folio,
+        type: doc.type,
+        receiverName: doc.receiverName,
+        receiverEmail: doc.receiverEmail,
+      })
+    }
 
     await enqueuePollJob({ documentId: doc.id, trackId, source: 'acepta' })
 

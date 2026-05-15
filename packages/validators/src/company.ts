@@ -9,6 +9,8 @@ export const CompanySchema = z.object({
   giro: z.string().min(1).max(200).optional(),
   address: z.string().min(1).max(200).optional(),
   commune: z.string().min(1).max(100).optional(),
+  city: z.string().min(1).max(100).optional(),
+  economicActivity: z.string().min(1).max(20).optional(),
   phone: z.string().min(1).max(50).optional(),
   email: z.string().email().optional(),
   defaultPaymentMethod: z.enum(['CONTADO', 'CREDITO']).default('CONTADO'),
