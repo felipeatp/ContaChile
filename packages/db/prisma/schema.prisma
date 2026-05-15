@@ -67,6 +67,85 @@ model JournalLine {
   @@index([accountId])
 }
 
+enum ContractType {
+  INDEFINIDO
+  PLAZO_FIJO
+  HONORARIOS
+}
+
+enum AfpCode {
+  CAPITAL
+  CUPRUM
+  HABITAT
+  MODELO
+  PLANVITAL
+  PROVIDA
+  UNO
+}
+
+enum HealthPlan {
+  FONASA
+  ISAPRE
+}
+
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+model Employee {
+  id           String       @id @default(cuid())
+  companyId    String
+  rut          String
+  name         String
+  email        String?
+  position     String
+  startDate    DateTime
+  endDate      DateTime?
+  contractType ContractType
+  workHours    Int          @default(45)
+  baseSalary   Int
+  afp          AfpCode
+  healthPlan   HealthPlan
+  healthAmount Int?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  payrolls     Payroll[]
+
+  @@unique([companyId, rut])
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model Payroll {
+  id            String        @id @default(cuid())
+  companyId     String
+  employeeId    String
+  year          Int
+  month         Int
+  bruto         Int
+  horasExtras   Int           @default(0)
+  bonos         Int           @default(0)
+  afp           Int
+  salud         Int
+  cesantia      Int
+  baseImponible Int
+  impuesto      Int
+  otrosDesc     Int           @default(0)
+  liquido       Int
+  status        PayrollStatus @default(DRAFT)
+  generatedAt   DateTime      @default(now())
+  approvedAt    DateTime?
+  paidAt        DateTime?
+  employee      Employee      @relation(fields: [employeeId], references: [id])
+
+  @@unique([companyId, employeeId, year, month])
+  @@index([companyId, year, month])
+  @@index([status])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
