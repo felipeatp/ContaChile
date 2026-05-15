@@ -1,5 +1,5 @@
 export { validateRUT, formatRUT } from './rut'
-export { calcularIVA, calcularTotal } from './tax'
+export { calcularIVA, calcularTotal, calcularImpuestoRenta } from './tax'
 export {
   EmitDocumentSchema,
   DocumentItemSchema,
