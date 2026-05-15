@@ -22,6 +22,7 @@ import journalRoute from './routes/accounting/journal'
 import ledgerRoute from './routes/accounting/ledger'
 import reportsRoute from './routes/accounting/reports'
 import employeesRoute from './routes/employees'
+import payrollRoute from './routes/payroll'
 import './workers/dte-polling'
 
 const app = Fastify({ logger: true })
@@ -95,6 +96,7 @@ app.register(journalRoute)
 app.register(ledgerRoute)
 app.register(reportsRoute)
 app.register(employeesRoute)
+app.register(payrollRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {

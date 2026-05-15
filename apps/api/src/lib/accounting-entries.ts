@@ -4,8 +4,11 @@ const PUC = {
   CLIENTES: '1103',
   IVA_CREDITO: '1115',
   PROVEEDORES: '2101',
+  IMPUESTOS_POR_PAGAR: '2110',
   IVA_DEBITO: '2111',
+  REMUNERACIONES_POR_PAGAR: '2115',
   INGRESOS_VENTAS: '4100',
+  GASTOS_PERSONAL: '5100',
   GASTOS_DIVERSOS: '5220',
 }
 
@@ -127,6 +130,73 @@ export async function createPurchaseEntry(
           { accountId: ids[gastoCode], debit: purchase.netAmount, credit: 0 },
           { accountId: ids[PUC.IVA_CREDITO], debit: purchase.taxAmount, credit: 0 },
           { accountId: ids[PUC.PROVEEDORES], debit: 0, credit: purchase.totalAmount },
+        ],
+      },
+    },
+  })
+}
+
+export async function createPayrollEntry(
+  payroll: {
+    id: string
+    companyId: string
+    employeeId: string
+    year: number
+    month: number
+    bruto: number
+    liquido: number
+    afp: number
+    salud: number
+    cesantia: number
+    impuesto: number
+  },
+  logger?: Logger
+) {
+  const codes = [PUC.GASTOS_PERSONAL, PUC.REMUNERACIONES_POR_PAGAR, PUC.IMPUESTOS_POR_PAGAR]
+  const ids = await findAccountIds(payroll.companyId, codes)
+  if (!ids) {
+    logger?.warn(
+      { payrollId: payroll.id, missingCodes: codes },
+      'Asiento automático de remuneración omitido: cuentas PUC no encontradas'
+    )
+    return null
+  }
+
+  const cotizaciones = payroll.afp + payroll.salud + payroll.cesantia
+  const totalCredito = payroll.liquido + payroll.impuesto + cotizaciones
+
+  if (totalCredito !== payroll.bruto) {
+    logger?.warn(
+      {
+        payrollId: payroll.id,
+        bruto: payroll.bruto,
+        totalCredito,
+        difference: payroll.bruto - totalCredito,
+      },
+      'Liquidación no cuadra; asiento usa bruto como base'
+    )
+  }
+
+  const period = `${payroll.year}-${String(payroll.month).padStart(2, '0')}`
+
+  return prisma.journalEntry.create({
+    data: {
+      companyId: payroll.companyId,
+      date: new Date(payroll.year, payroll.month - 1, 28),
+      description: `Remuneración ${period} - empleado ${payroll.employeeId}`,
+      reference: `PAYROLL-${period}-${payroll.employeeId.slice(-6)}`,
+      source: 'payroll',
+      sourceId: payroll.id,
+      lines: {
+        create: [
+          { accountId: ids[PUC.GASTOS_PERSONAL], debit: payroll.bruto, credit: 0 },
+          { accountId: ids[PUC.REMUNERACIONES_POR_PAGAR], debit: 0, credit: payroll.liquido },
+          {
+            accountId: ids[PUC.IMPUESTOS_POR_PAGAR],
+            debit: 0,
+            credit: payroll.impuesto + cotizaciones,
+            description: 'Impuesto único + cotizaciones empleado',
+          },
         ],
       },
     },
