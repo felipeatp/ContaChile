@@ -59,3 +59,9 @@ export type {
   LiquidacionInput,
   Liquidacion,
 } from './payroll'
+export {
+  VENCIMIENTOS_MENSUALES,
+  adjustForWeekend,
+  findUpcomingDueDates,
+} from './vencimientos'
+export type { VencimientoConfig, UpcomingAlert, AlertCode } from './vencimientos'
