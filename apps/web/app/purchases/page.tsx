@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Loader2, Plus, ShoppingCart } from "lucide-react"
+import { Loader2, Plus, ShoppingCart, FileCode2 } from "lucide-react"
 
 interface Purchase {
   id: string
@@ -25,6 +25,8 @@ export default function PurchasesPage() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [xmlLoading, setXmlLoading] = useState(false)
+  const [xmlFile, setXmlFile] = useState<File | null>(null)
 
   const [form, setForm] = useState({
     type: 33,
@@ -104,6 +106,37 @@ export default function PurchasesPage() {
     setSaving(false)
   }
 
+  const handleXmlUpload = async () => {
+    if (!xmlFile) return
+    setXmlLoading(true)
+    setMessage(null)
+
+    const reader = new FileReader()
+    reader.readAsText(xmlFile)
+    reader.onload = async () => {
+      const xmlContent = reader.result as string
+      const res = await fetch("/api/purchases/import-xml", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ xmlContent }),
+      })
+
+      if (res.ok) {
+        setMessage("Compra importada desde XML correctamente")
+        setXmlFile(null)
+        fetchPurchases()
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setMessage(err.error || "Error al importar XML")
+      }
+      setXmlLoading(false)
+    }
+    reader.onerror = () => {
+      setMessage("Error al leer el archivo XML")
+      setXmlLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -130,6 +163,36 @@ export default function PurchasesPage() {
           {message}
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileCode2 className="mr-2 h-5 w-5" />
+            Importar desde XML
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <input
+              type="file"
+              accept=".xml"
+              onChange={(e) => setXmlFile(e.target.files?.[0] || null)}
+              className="block text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+            />
+            <Button
+              variant="outline"
+              onClick={handleXmlUpload}
+              disabled={!xmlFile || xmlLoading}
+            >
+              {xmlLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Importar XML
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Sube un archivo XML de DTE recibido (factura electrónica de proveedor) para registrar la compra automáticamente.
+          </p>
+        </CardContent>
+      </Card>
 
       {showForm && (
         <Card>

@@ -2,6 +2,56 @@ import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import { PurchaseSchema, PurchaseListQuerySchema } from '@contachile/validators'
 
+function extractTag(xml: string, tag: string): string | undefined {
+  const match = xml.match(new RegExp(`<${tag}>([^<]+)</${tag}>`, 'i'))
+  return match ? match[1].trim() : undefined
+}
+
+function parsePurchaseXml(xml: string): {
+  type: number
+  folio: number
+  date: string
+  issuerRut: string
+  issuerName: string
+  netAmount: number
+  taxAmount: number
+  totalAmount: number
+} | null {
+  const typeStr = extractTag(xml, 'TipoDTE')
+  const folioStr = extractTag(xml, 'Folio')
+  const dateStr = extractTag(xml, 'FchEmis')
+  const issuerRut = extractTag(xml, 'RUTEmisor')
+  const issuerName = extractTag(xml, 'RznSoc') || extractTag(xml, 'RznSocEmis')
+  const netStr = extractTag(xml, 'MntNeto')
+  const taxStr = extractTag(xml, 'IVA')
+  const totalStr = extractTag(xml, 'MntTotal')
+
+  if (!typeStr || !folioStr || !dateStr || !issuerRut || !issuerName) {
+    return null
+  }
+
+  const type = parseInt(typeStr, 10)
+  const folio = parseInt(folioStr, 10)
+  const netAmount = netStr ? parseInt(netStr, 10) : 0
+  const taxAmount = taxStr ? parseInt(taxStr, 10) : 0
+  const totalAmount = totalStr ? parseInt(totalStr, 10) : netAmount + taxAmount
+
+  if (isNaN(type) || isNaN(folio)) {
+    return null
+  }
+
+  return {
+    type,
+    folio,
+    date: dateStr,
+    issuerRut,
+    issuerName,
+    netAmount,
+    taxAmount,
+    totalAmount,
+  }
+}
+
 export default async function (fastify: FastifyInstance) {
   fastify.get('/purchases', async (request, reply) => {
     const companyId = request.companyId
@@ -67,6 +117,49 @@ export default async function (fastify: FastifyInstance) {
         taxAmount: data.taxAmount,
         totalAmount: data.totalAmount,
         category: data.category,
+      },
+    })
+
+    return reply.code(201).send(purchase)
+  })
+
+  fastify.post('/purchases/import-xml', async (request, reply) => {
+    const companyId = request.companyId
+    const body = request.body as { xmlContent?: string }
+
+    if (!body.xmlContent || body.xmlContent.length < 100) {
+      return reply.code(400).send({ error: 'XML inválido o vacío' })
+    }
+
+    const parsed = parsePurchaseXml(body.xmlContent)
+    if (!parsed) {
+      return reply.code(400).send({ error: 'No se pudieron extraer los datos del XML. Verifica que sea un DTE válido.' })
+    }
+
+    const existing = await prisma.purchase.findFirst({
+      where: {
+        companyId,
+        issuerRut: parsed.issuerRut,
+        folio: parsed.folio,
+        type: parsed.type,
+      },
+    })
+
+    if (existing) {
+      return reply.code(409).send({ error: 'Esta compra ya fue registrada', id: existing.id })
+    }
+
+    const purchase = await prisma.purchase.create({
+      data: {
+        companyId,
+        type: parsed.type,
+        folio: parsed.folio,
+        issuerRut: parsed.issuerRut,
+        issuerName: parsed.issuerName,
+        date: new Date(parsed.date),
+        netAmount: parsed.netAmount,
+        taxAmount: parsed.taxAmount,
+        totalAmount: parsed.totalAmount,
       },
     })
 
