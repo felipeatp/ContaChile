@@ -29,10 +29,42 @@ model Account {
   isSystem    Boolean     @default(false)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  lines       JournalLine[]
 
   @@unique([companyId, code])
   @@index([companyId])
   @@index([type])
+}
+
+model JournalEntry {
+  id          String        @id @default(cuid())
+  companyId   String
+  date        DateTime
+  description String
+  reference   String?
+  source      String
+  sourceId    String?
+  createdAt   DateTime      @default(now())
+  lines       JournalLine[]
+
+  @@index([companyId])
+  @@index([date])
+  @@index([source])
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  debit          Int          @default(0)
+  credit         Int          @default(0)
+  description    String?
+
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        Account      @relation(fields: [accountId], references: [id])
+
+  @@index([journalEntryId])
+  @@index([accountId])
 }
 
 model Company {
