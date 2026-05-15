@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Printer, ShoppingCart } from "lucide-react"
+import { Printer, ShoppingCart, Download } from "lucide-react"
 
 interface Purchase {
   id: string
@@ -61,6 +61,16 @@ export default function LibroComprasPage() {
     window.print()
   }
 
+  const handleExportCsv = () => {
+    const url = `/api/purchases-book/export?year=${year}&month=${month}`
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `LibroCompras_${year}${String(month).padStart(2, "0")}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   const monthNames = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
@@ -94,6 +104,10 @@ export default function LibroComprasPage() {
               <option key={idx + 1} value={idx + 1}>{name}</option>
             ))}
           </select>
+          <Button variant="outline" onClick={handleExportCsv}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
             Imprimir / PDF
