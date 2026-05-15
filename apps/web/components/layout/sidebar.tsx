@@ -31,6 +31,8 @@ const navItems = [
   { href: "/libro-ventas", label: "Libro Ventas", icon: BookOpen },
   { href: "/libro-compras", label: "Libro Compras", icon: ShoppingCart },
   { href: "/contabilidad/puc", label: "Plan de Cuentas", icon: BookOpen },
+  { href: "/contabilidad/libro-diario", label: "Libro Diario", icon: BookOpen },
+  { href: "/contabilidad/mayor", label: "Libro Mayor", icon: BookOpen },
   { href: "/ai", label: "Agentes IA", icon: Bot },
   { href: "/settings", label: "Configuración", icon: Settings },
 ]
