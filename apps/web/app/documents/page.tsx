@@ -92,10 +92,26 @@ export default function DocumentsPage() {
   const totalPages = data?.totalPages ?? 1
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Documentos</h1>
-        <div className="flex items-center space-x-2">
+    <div className="space-y-8 animate-fade-up">
+      {/* Masthead */}
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Ventas · Documentos</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {data?.total ?? 0} en archivo
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Archivo de{" "}
+            <em className="text-primary not-italic font-medium">DTEs emitidos</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Facturas, boletas y notas. Filtra por estado SII, tipo, período y busca por RUT, nombre o folio.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleGenerateEnvio} disabled={envioLoading}>
             {envioLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Package className="mr-2 h-4 w-4" />}
             Generar EnvioDTE
@@ -104,75 +120,83 @@ export default function DocumentsPage() {
             <Button>Emitir DTE</Button>
           </Link>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div>
-          <label className="text-sm font-medium mb-1 block">Estado</label>
-          <select
-            value={status}
-            onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
+      {/* Filtros */}
+      <section className="card-editorial p-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="eyebrow">Filtros</span>
         </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Tipo DTE</label>
-          <select
-            value={type}
-            onChange={(e) => { setType(e.target.value); setPage(1) }}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            {DTE_TYPE_OPTIONS.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Desde</label>
-          <Input
-            type="date"
-            value={from}
-            onChange={(e) => { setFrom(e.target.value); setPage(1) }}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Hasta</label>
-          <Input
-            type="date"
-            value={to}
-            onChange={(e) => { setTo(e.target.value); setPage(1) }}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Buscar</label>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Estado</label>
+            <select
+              value={status}
+              onChange={(e) => { setStatus(e.target.value); setPage(1) }}
+              className="h-10 w-full px-3 text-sm"
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Tipo DTE</label>
+            <select
+              value={type}
+              onChange={(e) => { setType(e.target.value); setPage(1) }}
+              className="h-10 w-full px-3 text-sm"
+            >
+              {DTE_TYPE_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Desde</label>
             <Input
-              placeholder="RUT, nombre o folio"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-              className="pl-9"
+              type="date"
+              value={from}
+              onChange={(e) => { setFrom(e.target.value); setPage(1) }}
             />
           </div>
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Hasta</label>
+            <Input
+              type="date"
+              value={to}
+              onChange={(e) => { setTo(e.target.value); setPage(1) }}
+            />
+          </div>
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Buscar</label>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                placeholder="RUT, nombre o folio"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                className="pl-9"
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {isLoading ? (
-        <p className="text-muted-foreground">Cargando...</p>
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
       ) : (
         <>
           <DocumentTable documents={data?.documents || []} />
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <p className="text-sm text-muted-foreground">
-                Mostrando {(page - 1) * limit + 1} - {Math.min(page * limit, data?.total ?? 0)} de {data?.total ?? 0} documentos
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-xs text-muted-foreground font-mono tabular">
+                {(page - 1) * limit + 1}–{Math.min(page * limit, data?.total ?? 0)} de {data?.total ?? 0} documentos
               </p>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
@@ -181,8 +205,8 @@ export default function DocumentsPage() {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm font-medium">
-                  Página {page} de {totalPages}
+                <span className="text-xs font-mono tabular text-muted-foreground">
+                  {page} / {totalPages}
                 </span>
                 <Button
                   variant="outline"

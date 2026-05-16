@@ -1,17 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Printer, FileText, Download } from "lucide-react"
+import { Printer, FileText, Download, Loader2 } from "lucide-react"
 
 interface DocumentItem {
   id: string
@@ -44,6 +36,25 @@ interface SalesBookResponse {
   summary: { net: number; tax: number; total: number }
 }
 
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+]
+
+const TYPE_LABEL: Record<number, string> = {
+  33: "Factura",
+  34: "F. Exenta",
+  39: "Boleta",
+  41: "B. Exenta",
+  43: "Liq.-Factura",
+  46: "F. Compra",
+  52: "Guía",
+  56: "N. Débito",
+  61: "N. Crédito",
+}
+
+const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
+
 export default function LibroVentasPage() {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
@@ -67,9 +78,7 @@ export default function LibroVentasPage() {
     fetchData()
   }, [year, month])
 
-  const handlePrint = () => {
-    window.print()
-  }
+  const handlePrint = () => window.print()
 
   const handleExportCsv = () => {
     const url = `/api/sales-book/export?year=${year}&month=${month}`
@@ -81,170 +90,171 @@ export default function LibroVentasPage() {
     document.body.removeChild(a)
   }
 
-  const monthNames = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-  ]
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4 print-header">
-        <div>
-          <h1 className="text-3xl font-bold">Libro de Ventas</h1>
-          <p className="text-muted-foreground">
-            Documentos emitidos — {monthNames[month - 1]} {year}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 no-print">
-          <select
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          >
-            {Array.from({ length: 5 }, (_, i) => today.getFullYear() - 2 + i).map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-          <select
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-          >
-            {monthNames.map((name, idx) => (
-              <option key={idx + 1} value={idx + 1}>{name}</option>
-            ))}
-          </select>
-          <Button variant="outline" onClick={handleExportCsv}>
-            <Download className="mr-2 h-4 w-4" />
-            Exportar CSV
-          </Button>
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimir / PDF
-          </Button>
-        </div>
-      </div>
-
-      <div className="print-only hidden">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-bold">Libro de Ventas</h2>
-          <p className="text-sm text-muted-foreground">
-            Período: {monthNames[month - 1]} {year}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Fecha de impresión: {new Date().toLocaleDateString("es-CL")}
-          </p>
-        </div>
-      </div>
-
-      {loading ? (
-        <p className="text-muted-foreground">Cargando...</p>
-      ) : !data || data.documents.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            <FileText className="mx-auto h-8 w-8 mb-2 opacity-50" />
-            No hay documentos de venta para el período seleccionado.
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Neto</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${data.summary.net.toLocaleString("es-CL")}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">IVA (19%)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${data.summary.tax.toLocaleString("es-CL")}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Ventas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${data.summary.total.toLocaleString("es-CL")}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalle de ventas ({data.total} documentos)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Folio</TableHead>
-                      <TableHead>RUT Receptor</TableHead>
-                      <TableHead>Razón Social</TableHead>
-                      <TableHead className="text-right">Neto</TableHead>
-                      <TableHead className="text-right">IVA</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.documents.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell>
-                          {new Date(doc.emittedAt).toLocaleDateString("es-CL")}
-                        </TableCell>
-                        <TableCell>{doc.type}</TableCell>
-                        <TableCell>{doc.folio}</TableCell>
-                        <TableCell>{doc.receiverRut}</TableCell>
-                        <TableCell>{doc.receiverName}</TableCell>
-                        <TableCell className="text-right">
-                          ${doc.totalNet.toLocaleString("es-CL")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          ${doc.totalTax.toLocaleString("es-CL")}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${doc.totalAmount.toLocaleString("es-CL")}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
-
+    <>
       <style jsx global>{`
         @media print {
-          .no-print {
-            display: none !important;
-          }
-          .print-only {
-            display: block !important;
-          }
-          body {
-            background: white;
-          }
-          .space-y-6 > * {
-            break-inside: avoid;
-          }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          body { background: white; }
         }
       `}</style>
-    </div>
+
+      <div className="space-y-8 animate-fade-up">
+        <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between print-header">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="eyebrow">Ventas · Libro</span>
+              <span className="h-px w-10 bg-foreground/20" />
+              <span className="eyebrow text-muted-foreground/60">
+                {MONTHS[month - 1]} {year}
+              </span>
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+              Libro de{" "}
+              <em className="text-primary not-italic font-medium">Ventas</em>
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Documentos emitidos del período. Exportable a CSV para tu contador y a PDF para tu archivo.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap no-print">
+            <select
+              className="h-10 px-3 text-sm"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            >
+              {Array.from({ length: 5 }, (_, i) => today.getFullYear() - 2 + i).map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <select
+              className="h-10 px-3 text-sm"
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+            >
+              {MONTHS.map((name, idx) => (
+                <option key={idx + 1} value={idx + 1}>{name}</option>
+              ))}
+            </select>
+            <Button variant="outline" onClick={handleExportCsv}>
+              <Download className="mr-1.5 h-4 w-4" />
+              CSV
+            </Button>
+            <Button variant="outline" onClick={handlePrint}>
+              <Printer className="mr-1.5 h-4 w-4" />
+              Imprimir
+            </Button>
+          </div>
+        </section>
+
+        <div className="print-only hidden">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">Libro de Ventas</h2>
+            <p className="text-sm text-muted-foreground">
+              Período: {MONTHS[month - 1]} {year}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Fecha impresión: {new Date().toLocaleDateString("es-CL")}
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center h-48">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !data || data.documents.length === 0 ? (
+          <div className="card-editorial p-12 text-center">
+            <FileText className="mx-auto h-8 w-8 mb-3 text-muted-foreground/40" />
+            <p className="font-display text-lg text-muted-foreground mb-1">
+              Sin ventas en el período
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Emite tu primer documento desde &ldquo;Emitir DTE&rdquo;.
+            </p>
+          </div>
+        ) : (
+          <>
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <span className="eyebrow">I · Resumen</span>
+                <span className="text-xs text-muted-foreground/60 font-mono">
+                  {data.total} documentos
+                </span>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <Stat label="Neto" value={fmt(data.summary.net)} tone="default" />
+                <Stat label="IVA (19 %)" value={fmt(data.summary.tax)} tone="default" />
+                <Stat label="Total ventas" value={fmt(data.summary.total)} tone="accent" />
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-end justify-between mb-4">
+                <div>
+                  <span className="eyebrow block mb-1">II · Detalle</span>
+                  <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                    Documentos emitidos
+                  </h3>
+                </div>
+              </div>
+
+              <div className="card-editorial overflow-hidden">
+                <table className="table-editorial">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th data-numeric="true">Folio</th>
+                      <th>Receptor</th>
+                      <th data-numeric="true">Neto</th>
+                      <th data-numeric="true">IVA</th>
+                      <th data-numeric="true">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.documents.map((doc) => (
+                      <tr key={doc.id}>
+                        <td className="text-muted-foreground">
+                          {new Date(doc.emittedAt).toLocaleDateString("es-CL")}
+                        </td>
+                        <td>
+                          <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-secondary px-1.5 py-0.5">
+                            {TYPE_LABEL[doc.type] ?? doc.type}
+                          </span>
+                        </td>
+                        <td data-numeric="true">{doc.folio}</td>
+                        <td>
+                          <div className="text-foreground">{doc.receiverName}</div>
+                          <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                            {doc.receiverRut}
+                          </div>
+                        </td>
+                        <td data-numeric="true">{fmt(doc.totalNet)}</td>
+                        <td data-numeric="true" className="text-muted-foreground">
+                          {fmt(doc.totalTax)}
+                        </td>
+                        <td data-numeric="true" className="font-semibold">
+                          {fmt(doc.totalAmount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={4} className="text-right font-semibold">Totales</td>
+                      <td data-numeric="true" className="font-semibold">{fmt(data.summary.net)}</td>
+                      <td data-numeric="true" className="font-semibold">{fmt(data.summary.tax)}</td>
+                      <td data-numeric="true" className="font-bold">{fmt(data.summary.total)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </>
   )
 }
