@@ -26,6 +26,7 @@ import payrollRoute from './routes/payroll'
 import alertsRoute from './routes/alerts'
 import honorariosRoute from './routes/honorarios'
 import bankRoute from './routes/bank'
+import quotesRoute from './routes/quotes'
 import './workers/dte-polling'
 import './workers/alerts'
 
@@ -104,6 +105,7 @@ app.register(payrollRoute)
 app.register(alertsRoute)
 app.register(honorariosRoute)
 app.register(bankRoute)
+app.register(quotesRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {
