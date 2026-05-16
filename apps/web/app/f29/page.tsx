@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Stat } from "@/components/ui/stat"
+import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
 
@@ -16,6 +18,8 @@ const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ]
+
+const fmt = (n: number) => `$ ${(n ?? 0).toLocaleString("es-CL")}`
 
 export default function F29Page() {
   const [data, setData] = useState<F29Data | null>(null)
@@ -38,9 +42,7 @@ export default function F29Page() {
     fetchData()
   }, [year, month])
 
-  const handlePrint = () => {
-    window.print()
-  }
+  const handlePrint = () => window.print()
 
   const handleExportCsv = () => {
     const url = `/api/f29/export?year=${year}&month=${month}`
@@ -60,95 +62,77 @@ export default function F29Page() {
     )
   }
 
+  const determinado = data?.f29["595"] ?? 0
+  const totalPagar = data?.f29["91"] ?? 0
+  const isPositive = determinado >= 0
+
   return (
     <>
       <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-area,
-          .print-area * {
-            visibility: visible;
-          }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 20px;
-          }
-          .print-header {
-            display: block !important;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 12px;
-          }
-          .print-hide {
-            display: none !important;
-          }
-          .print-card {
-            border: 1px solid #ddd;
-            margin-bottom: 16px;
-            break-inside: avoid;
-          }
-          .print-table {
-            width: 100%;
-            border-collapse: collapse;
-          }
-          .print-table th,
-          .print-table td {
-            border: 1px solid #999;
-            padding: 8px;
-            text-align: left;
-          }
-          .print-table th {
-            background: #f3f3f3;
-          }
+          body * { visibility: hidden; }
+          .print-area, .print-area * { visibility: visible; }
+          .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          .print-header { display: block !important; margin-bottom: 24px; border-bottom: 2px solid #000; padding-bottom: 12px; }
+          .print-hide { display: none !important; }
         }
       `}</style>
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between print-hide">
-          <div>
-            <h1 className="text-3xl font-bold">F29 — Declaración de IVA</h1>
-            <p className="text-muted-foreground">Preview automático de los códigos SII</p>
+      <div className="space-y-8 animate-fade-up">
+        {/* Masthead */}
+        <section className="print-hide">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="eyebrow">Período · {MONTHS[month - 1]} {year}</span>
+                <span className="h-px w-10 bg-foreground/20" />
+                <span className="eyebrow text-muted-foreground/60">Códigos SII</span>
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+                Declaración{" "}
+                <em className="text-primary not-italic font-medium">F29 · IVA</em>
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Preview automático desde ventas y compras del período.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
+                value={month}
+                onChange={(e) => setMonth(Number(e.target.value))}
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+              <select
+                className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <Button variant="outline" onClick={fetchData}>
+                <FileBarChart className="mr-1.5 h-4 w-4" />
+                Actualizar
+              </Button>
+              <Button variant="outline" onClick={handleExportCsv}>
+                <Download className="mr-1.5 h-4 w-4" />
+                CSV
+              </Button>
+              <Button variant="outline" onClick={handlePrint}>
+                <Printer className="mr-1.5 h-4 w-4" />
+                Imprimir
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <select
-              className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-            >
-              {MONTHS.map((m, i) => (
-                <option key={i + 1} value={i + 1}>{m}</option>
-              ))}
-            </select>
-            <select
-              className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-            >
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            <Button variant="outline" onClick={fetchData}>
-              <FileBarChart className="mr-2 h-4 w-4" />
-              Actualizar
-            </Button>
-            <Button variant="outline" onClick={handleExportCsv}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
-            </Button>
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimir / PDF
-            </Button>
-          </div>
-        </div>
+        </section>
 
-        <div className="print-area space-y-6">
+        <div className="print-area space-y-8">
+          {/* Print-only header */}
           <div className="print-header hidden">
             <h2 className="text-xl font-bold">F29 — Declaración de IVA</h2>
             <p className="text-sm">
@@ -159,104 +143,99 @@ export default function F29Page() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="print-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Ventas del período</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{data?.sales.count ?? 0}</div>
-                <p className="text-xs text-muted-foreground">documentos emitidos</p>
-                <div className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between"><span>Neto</span><span>${(data?.sales.neto ?? 0).toLocaleString("es-CL")}</span></div>
-                  <div className="flex justify-between"><span>IVA</span><span>${(data?.sales.iva ?? 0).toLocaleString("es-CL")}</span></div>
-                  <div className="flex justify-between font-bold"><span>Total</span><span>${(data?.sales.total ?? 0).toLocaleString("es-CL")}</span></div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* I — Métricas */}
+          <section>
+            <div className="flex items-center justify-between mb-4 print-hide">
+              <span className="eyebrow">I · Resumen</span>
+              <span className="text-xs text-muted-foreground/60 font-mono">
+                {data?.sales.count ?? 0} ventas / {data?.purchases.count ?? 0} compras
+              </span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Stat
+                label="Ventas del período"
+                value={fmt(data?.sales.total ?? 0)}
+                caption={`${data?.sales.count ?? 0} documentos · Neto ${fmt(data?.sales.neto ?? 0)}`}
+                tone="default"
+              />
+              <Stat
+                label="Compras del período"
+                value={fmt(data?.purchases.total ?? 0)}
+                caption={`${data?.purchases.count ?? 0} documentos · Neto ${fmt(data?.purchases.neto ?? 0)}`}
+                tone="default"
+              />
+              <Stat
+                label="IVA determinado"
+                value={fmt(determinado)}
+                tone={isPositive ? "negative" : "positive"}
+                caption={isPositive ? "A pagar" : "A favor"}
+                delta={`Total a pagar ${fmt(totalPagar)}`}
+              />
+            </div>
+          </section>
 
-            <Card className="print-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Compras del período</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{data?.purchases.count ?? 0}</div>
-                <p className="text-xs text-muted-foreground">documentos recibidos</p>
-                <div className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between"><span>Neto</span><span>${(data?.purchases.neto ?? 0).toLocaleString("es-CL")}</span></div>
-                  <div className="flex justify-between"><span>IVA</span><span>${(data?.purchases.iva ?? 0).toLocaleString("es-CL")}</span></div>
-                  <div className="flex justify-between font-bold"><span>Total</span><span>${(data?.purchases.total ?? 0).toLocaleString("es-CL")}</span></div>
-                </div>
-              </CardContent>
-            </Card>
+          <RuleOrnament ornament="diamond" className="print-hide" />
 
-            <Card className="print-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Resultado F29</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${(data?.f29["595"] ?? 0) >= 0 ? "text-red-600" : "text-green-600"}`}>
-                  ${(data?.f29["595"] ?? 0).toLocaleString("es-CL")}
-                </div>
-                <p className="text-xs text-muted-foreground">IVA determinado (502 - 503)</p>
-                <div className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between"><span>PPM (0.4%)</span><span>${(data?.f29["547"] ?? 0).toLocaleString("es-CL")}</span></div>
-                  <div className="flex justify-between font-bold"><span>Total a pagar</span><span>${(data?.f29["91"] ?? 0).toLocaleString("es-CL")}</span></div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="print-card">
-            <CardHeader>
-              <CardTitle>Códigos SII F29</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm print-table">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-2">Código</th>
-                      <th className="text-left py-2 px-2">Descripción</th>
-                      <th className="text-right py-2 px-2">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 px-2 font-mono">502</td>
-                      <td className="py-2 px-2">Débito fiscal (IVA ventas afectas)</td>
-                      <td className="py-2 px-2 text-right">${(data?.f29["502"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 px-2 font-mono">503</td>
-                      <td className="py-2 px-2">Crédito fiscal (IVA compras)</td>
-                      <td className="py-2 px-2 text-right">${(data?.f29["503"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 px-2 font-mono">595</td>
-                      <td className="py-2 px-2">IVA determinado (502 - 503)</td>
-                      <td className="py-2 px-2 text-right font-bold">${(data?.f29["595"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 px-2 font-mono">538</td>
-                      <td className="py-2 px-2">Remanente crédito fiscal mes anterior</td>
-                      <td className="py-2 px-2 text-right">${(data?.f29["538"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 px-2 font-mono">547</td>
-                      <td className="py-2 px-2">Pago provisional mensual (PPM)</td>
-                      <td className="py-2 px-2 text-right">${(data?.f29["547"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 px-2 font-mono">91</td>
-                      <td className="py-2 px-2">Total a pagar o devolver</td>
-                      <td className="py-2 px-2 text-right font-bold">${(data?.f29["91"] ?? 0).toLocaleString("es-CL")}</td>
-                    </tr>
-                  </tbody>
-                </table>
+          {/* II — Códigos SII */}
+          <section>
+            <div className="flex items-end justify-between mb-4 print-hide">
+              <div>
+                <span className="eyebrow block mb-1">II · Detalle</span>
+                <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                  Códigos SII del formulario
+                </h3>
               </div>
-            </CardContent>
-          </Card>
+              <span className="text-xs text-muted-foreground/60 font-mono">
+                F29 · {String(month).padStart(2, "0")}/{year}
+              </span>
+            </div>
+
+            <div className="card-editorial overflow-hidden">
+              <table className="table-editorial">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th data-numeric="true">Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="font-mono">502</td>
+                    <td>Débito fiscal (IVA ventas afectas)</td>
+                    <td data-numeric="true">{fmt(data?.f29["502"] ?? 0)}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-mono">503</td>
+                    <td>Crédito fiscal (IVA compras)</td>
+                    <td data-numeric="true">{fmt(data?.f29["503"] ?? 0)}</td>
+                  </tr>
+                  <tr className="bg-secondary/40">
+                    <td className="font-mono font-semibold text-primary">595</td>
+                    <td className="font-semibold">IVA determinado <span className="text-muted-foreground font-normal">(502 − 503)</span></td>
+                    <td data-numeric="true" className="font-semibold text-primary">{fmt(data?.f29["595"] ?? 0)}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-mono">538</td>
+                    <td>Remanente crédito fiscal mes anterior</td>
+                    <td data-numeric="true">{fmt(data?.f29["538"] ?? 0)}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-mono">547</td>
+                    <td>Pago provisional mensual (PPM)</td>
+                    <td data-numeric="true">{fmt(data?.f29["547"] ?? 0)}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td className="font-mono font-semibold">91</td>
+                    <td className="font-semibold">Total a pagar o devolver</td>
+                    <td data-numeric="true" className="font-bold text-base">{fmt(data?.f29["91"] ?? 0)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </section>
         </div>
       </div>
     </>
