@@ -191,6 +191,62 @@ model Honorario {
   @@index([type, date])
 }
 
+enum BankMovementType {
+  CREDIT
+  DEBIT
+}
+
+enum BankMovementStatus {
+  PENDING
+  SUGGESTED
+  MATCHED_DTE
+  MATCHED_PURCHASE
+  RECONCILED
+  IGNORED
+}
+
+model BankAccount {
+  id          String         @id @default(cuid())
+  companyId   String
+  externalId  String
+  institution String
+  holderName  String
+  holderId    String
+  currency    String         @default("CLP")
+  lastSyncAt  DateTime?
+  createdAt   DateTime       @default(now())
+  movements   BankMovement[]
+
+  @@unique([companyId, externalId])
+  @@index([companyId])
+}
+
+model BankMovement {
+  id                String              @id @default(cuid())
+  companyId         String
+  bankAccountId     String
+  externalId        String
+  postedAt          DateTime
+  amount            Int
+  currency          String              @default("CLP")
+  type              BankMovementType
+  description       String
+  counterpartRut    String?
+  counterpartName   String?
+  status            BankMovementStatus  @default(PENDING)
+  suggestionPayload Json?
+  matchedDocumentId String?
+  matchedPurchaseId String?
+  journalEntryId    String?
+  createdAt         DateTime            @default(now())
+
+  bankAccount       BankAccount         @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([bankAccountId, externalId])
+  @@index([companyId, status])
+  @@index([postedAt])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
