@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
@@ -7,7 +7,27 @@ import { Providers } from "./providers"
 import { ChatWidget } from "@/components/ai/chat-widget"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "900"],
+  style: ["normal", "italic"],
+  display: "swap",
+})
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+})
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: {
@@ -56,8 +76,8 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="es">
-        <body className={inter.className}>
+      <html lang="es" className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}>
+        <body className="font-sans antialiased">
           <Providers>
             <Sidebar />
             <div className="lg:pl-64">

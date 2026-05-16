@@ -4,48 +4,75 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    /* Editorial financial palette
+       Paper newsprint warm off-white, ink dark warm,
+       oxblood as primary accent, ochre as secondary.
+       Status: muted sage / rust (not vivid). */
+
+    --paper:           40 35% 96%;      /* fondo principal: papel cálido */
+    --ink:             24 18% 12%;      /* tinta cálida oscura */
+    --ochre:           36 70% 48%;      /* amarillo dorado muted */
+    --oxblood:        352 60% 32%;      /* burgundy bold accent */
+    --sage:           150 25% 35%;      /* verde muted (success) */
+    --rust:             8 70% 42%;      /* rojo terroso (error) */
+
+    --background:     var(--paper);
+    --foreground:     var(--ink);
+
+    --card:            40 30% 99%;
+    --card-foreground:        var(--ink);
+
+    --popover:         40 30% 99%;
+    --popover-foreground:     var(--ink);
+
+    --primary:                var(--oxblood);
+    --primary-foreground:     40 35% 96%;
+
+    --secondary:       38 25% 90%;
+    --secondary-foreground:   var(--ink);
+
+    --muted:           36 18% 88%;
+    --muted-foreground:24 8% 38%;
+
+    --accent:                 var(--ochre);
+    --accent-foreground:      var(--ink);
+
+    --destructive:            var(--rust);
+    --destructive-foreground: 40 35% 96%;
+
+    --border:          30 18% 82%;
+    --input:           30 18% 82%;
+    --ring:                   var(--oxblood);
+    --radius: 0.25rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --paper:           24 20% 8%;
+    --ink:             40 30% 92%;
+    --ochre:           36 55% 60%;
+    --oxblood:        352 50% 60%;
+    --sage:           150 25% 55%;
+    --rust:             8 70% 60%;
+
+    --background:     var(--paper);
+    --foreground:     var(--ink);
+    --card:            24 18% 11%;
+    --card-foreground:        var(--ink);
+    --popover:         24 18% 11%;
+    --popover-foreground:     var(--ink);
+    --primary:                var(--oxblood);
+    --primary-foreground:     40 30% 92%;
+    --secondary:       24 12% 18%;
+    --secondary-foreground:   var(--ink);
+    --muted:           24 12% 18%;
+    --muted-foreground:30 12% 60%;
+    --accent:                 var(--ochre);
+    --accent-foreground:      var(--ink);
+    --destructive:            var(--rust);
+    --destructive-foreground: 40 30% 92%;
+    --border:          24 10% 22%;
+    --input:           24 10% 22%;
+    --ring:                   var(--oxblood);
   }
 }
 
@@ -54,6 +81,70 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.018) 1px, transparent 1px),
+      radial-gradient(rgba(0, 0, 0, 0.012) 1px, transparent 1px);
+    background-size: 3px 3px, 11px 11px;
+    background-position: 0 0, 1.5px 1.5px;
+    font-feature-settings: "ss01", "cv11";
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Display titles use the serif by default at h1/h2 */
+  h1, h2 {
+    @apply font-display;
+    letter-spacing: -0.02em;
+  }
+  h3, h4 {
+    @apply font-display;
+    letter-spacing: -0.015em;
+  }
+
+  /* Tabular figures for numeric data globally inside .tabular */
+  .tabular,
+  [data-tabular="true"],
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Selection in oxblood */
+  ::selection {
+    background: hsl(var(--oxblood) / 0.18);
+    color: hsl(var(--ink));
+  }
+}
+
+@layer components {
+  /* Editorial small-caps eyebrow */
+  .eyebrow {
+    @apply text-[0.68rem] font-semibold uppercase tracking-eyebrow text-muted-foreground;
+  }
+
+  /* Decorative diamond divider */
+  .rule-ornament {
+    @apply relative flex items-center justify-center my-6;
+  }
+  .rule-ornament::before,
+  .rule-ornament::after {
+    content: '';
+    @apply flex-1 h-px bg-border;
+  }
+  .rule-ornament > * {
+    @apply px-3 text-muted-foreground;
+  }
+
+  /* Big editorial monetary number */
+  .stat-figure {
+    @apply font-mono text-3xl font-semibold tracking-tightest text-foreground;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Card variant editorial: minimal, paper-feel */
+  .card-editorial {
+    @apply rounded-sm border border-border bg-card;
   }
 }

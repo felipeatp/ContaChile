@@ -17,6 +17,14 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
+      },
+      fontFeatureSettings: {
+        tabular: '"tnum"',
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -51,11 +59,22 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Editorial palette
+        ink: 'hsl(var(--ink))',
+        paper: 'hsl(var(--paper))',
+        ochre: 'hsl(var(--ochre))',
+        oxblood: 'hsl(var(--oxblood))',
+        sage: 'hsl(var(--sage))',
+        rust: 'hsl(var(--rust))',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      letterSpacing: {
+        tightest: '-0.04em',
+        eyebrow: '0.18em',
       },
       keyframes: {
         'accordion-down': {
@@ -66,10 +85,15 @@ const config: Config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'fade-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-up': 'fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },
