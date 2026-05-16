@@ -121,6 +121,46 @@
     background: hsl(var(--oxblood) / 0.18);
     color: hsl(var(--ink));
   }
+
+  /* ── Native form elements (zero-specificity baseline)
+     Any class on the element overrides these. Used for inline
+     <input>/<select>/<textarea> across pages. */
+  input:where(:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='submit']):not([type='button'])) {
+    @apply rounded-sm border border-input bg-card transition-colors;
+  }
+  input:where(:not([type='checkbox']):not([type='radio'])):focus-visible {
+    @apply outline-none border-primary ring-1 ring-primary/30;
+  }
+  input:where([type='number']) {
+    @apply font-mono text-right;
+    font-variant-numeric: tabular-nums;
+  }
+  input:where([type='date']),
+  input:where([type='time']),
+  input:where([type='datetime-local']) {
+    @apply font-mono;
+  }
+  select:where(:not([multiple])) {
+    @apply appearance-none rounded-sm border border-input bg-card transition-colors cursor-pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-size: 14px 14px;
+    background-position: right 0.7rem center;
+    background-repeat: no-repeat;
+    padding-right: 2.2rem;
+  }
+  select:focus-visible {
+    @apply outline-none border-primary ring-1 ring-primary/30;
+  }
+  textarea {
+    @apply rounded-sm border border-input bg-card transition-colors resize-y;
+  }
+  textarea:focus-visible {
+    @apply outline-none border-primary ring-1 ring-primary/30;
+  }
+  /* Placeholders softer */
+  input::placeholder, textarea::placeholder {
+    @apply text-muted-foreground/60;
+  }
 }
 
 @layer components {
