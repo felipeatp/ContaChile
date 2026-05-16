@@ -5,6 +5,7 @@ export const DocumentItemSchema = z.object({
   description: z.string().min(1).max(1000),
   quantity: z.number().int().positive(),
   unitPrice: z.number().int().positive(),
+  productId: z.string().cuid().optional(),
 })
 
 export const ReceiverSchema = z.object({

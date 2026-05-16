@@ -5,6 +5,7 @@ import { runPipeline, extractPrivateKeyFromPfx } from '@contachile/dte'
 import { enqueuePollJob } from '../../queues/dte'
 import { createEmailService } from '../../lib/email'
 import { createSalesEntry } from '../../lib/accounting-entries'
+import { recordSalesMovements } from '../../lib/inventory-service'
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/dte/emit', async (request, reply) => {
@@ -128,6 +129,7 @@ export default async function (fastify: FastifyInstance) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.quantity * item.unitPrice,
+            productId: item.productId,
           })),
         },
         auditLogs: {
@@ -160,6 +162,29 @@ export default async function (fastify: FastifyInstance) {
         'createSalesEntry falló — DTE emitido sin asiento'
       )
     })
+
+    const hasProductIds = body.items.some((i) => i.productId)
+    if (hasProductIds && doc.companyId) {
+      const docItems = await prisma.documentItem.findMany({
+        where: { documentId: doc.id },
+        select: { id: true, productId: true, quantity: true },
+      })
+      await recordSalesMovements(
+        doc.companyId,
+        `${doc.type}-${doc.folio}`,
+        docItems.map((i) => ({
+          documentItemId: i.id,
+          productId: i.productId,
+          quantity: i.quantity,
+        })),
+        fastify.log
+      ).catch((err: Error) => {
+        fastify.log.warn(
+          { err: err.message, docId: doc.id },
+          'recordSalesMovements falló — DTE emitido sin auto-decrement de inventario'
+        )
+      })
+    }
 
     await enqueuePollJob({ documentId: doc.id, trackId, source: 'sii' })
 
