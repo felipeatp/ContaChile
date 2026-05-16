@@ -29,6 +29,9 @@ importers:
       '@contachile/dte':
         specifier: workspace:*
         version: link:../../packages/dte
+      '@contachile/fintoc-client':
+        specifier: workspace:*
+        version: link:../../packages/fintoc-client
       '@contachile/transport-acepta':
         specifier: workspace:*
         version: link:../../packages/transport-acepta
@@ -225,6 +228,18 @@ importers:
       '@types/pdfkit':
         specifier: ^0.17.6
         version: 0.17.6
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
+
+  packages/fintoc-client:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
       typescript:
         specifier: ^5.4.0
         version: 5.9.3

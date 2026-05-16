@@ -11,6 +11,7 @@
     "@contachile/ai-agents": "workspace:*",
     "@contachile/db": "workspace:*",
     "@contachile/dte": "workspace:*",
+    "@contachile/fintoc-client": "workspace:*",
     "@contachile/transport-acepta": "workspace:*",
     "@contachile/transport-sii": "workspace:*",
     "@contachile/validators": "workspace:*",
