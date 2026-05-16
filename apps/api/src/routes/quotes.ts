@@ -9,6 +9,7 @@ import {
   validateRUT,
 } from '@contachile/validators'
 import { createSalesEntry } from '../lib/accounting-entries'
+import { generateQuotePdf } from '../lib/quote-pdf'
 
 function computeItemTotals(items: Array<{ quantity: number; unitPrice: number }>) {
   const neto = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
@@ -316,5 +317,26 @@ export default async function (fastify: FastifyInstance) {
     })
 
     return reply.code(201).send({ document: doc, quote: updatedQuote })
+  })
+
+  fastify.get('/quotes/:id/pdf', async (request, reply) => {
+    const companyId = request.companyId
+    const { id } = request.params as { id: string }
+
+    const quote = await prisma.quote.findFirst({
+      where: { id, companyId },
+      include: { items: true },
+    })
+    if (!quote) return reply.code(404).send({ error: 'Cotización no encontrada' })
+
+    const company = await prisma.company.findUnique({ where: { id: companyId } })
+    if (!company) return reply.code(400).send({ error: 'Empresa no configurada' })
+
+    const pdf = await generateQuotePdf({ quote, company })
+
+    return reply
+      .header('Content-Type', 'application/pdf')
+      .header('Content-Disposition', `inline; filename="cotizacion-${quote.number}.pdf"`)
+      .send(pdf)
   })
 }
