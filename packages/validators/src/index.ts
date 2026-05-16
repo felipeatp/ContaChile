@@ -65,3 +65,16 @@ export {
   findUpcomingDueDates,
 } from './vencimientos'
 export type { VencimientoConfig, UpcomingAlert, AlertCode } from './vencimientos'
+export {
+  RETENCION_HONORARIOS_RATE,
+  calcularRetencionHonorarios,
+  CreateHonorarioSchema,
+  UpdateHonorarioSchema,
+  HonorarioListQuerySchema,
+} from './honorarios'
+export type {
+  RetencionHonorarios,
+  CreateHonorarioInput,
+  UpdateHonorarioInput,
+  HonorarioListQuery,
+} from './honorarios'
