@@ -159,6 +159,38 @@ model AlertSent {
   @@index([sentAt])
 }
 
+enum HonorarioType {
+  ISSUED
+  RECEIVED
+}
+
+enum HonorarioStatus {
+  PENDING
+  PAID
+}
+
+model Honorario {
+  id              String          @id @default(cuid())
+  companyId       String
+  type            HonorarioType
+  number          Int
+  date            DateTime
+  counterpartRut  String
+  counterpartName String
+  description     String?
+  grossAmount     Int
+  retentionRate   Decimal         @default(0.1375) @db.Decimal(5, 4)
+  retentionAmount Int
+  netAmount       Int
+  status          HonorarioStatus @default(PENDING)
+  paidAt          DateTime?
+  createdAt       DateTime        @default(now())
+
+  @@unique([companyId, type, number])
+  @@index([companyId])
+  @@index([type, date])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
