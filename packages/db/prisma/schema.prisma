@@ -146,6 +146,19 @@ model Payroll {
   @@index([status])
 }
 
+model AlertSent {
+  id         String   @id @default(cuid())
+  companyId  String
+  alertCode  String
+  dueDate    DateTime
+  daysBefore Int
+  sentAt     DateTime @default(now())
+
+  @@unique([companyId, alertCode, dueDate, daysBefore])
+  @@index([companyId])
+  @@index([sentAt])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
