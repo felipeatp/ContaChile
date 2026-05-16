@@ -247,6 +247,58 @@ model BankMovement {
   @@index([postedAt])
 }
 
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  INVOICED
+  EXPIRED
+}
+
+model Quote {
+  id                 String      @id @default(cuid())
+  companyId          String
+  number             Int
+  date               DateTime    @default(now())
+  validUntil         DateTime?
+  receiverRut        String
+  receiverName       String
+  receiverEmail      String?
+  receiverAddress    String?
+  totalNet           Int
+  totalTax           Int
+  totalAmount        Int
+  paymentMethod      String      @default("CONTADO")
+  notes              String?
+  status             QuoteStatus @default(DRAFT)
+  sentAt             DateTime?
+  acceptedAt         DateTime?
+  rejectedAt         DateTime?
+  rejectionReason    String?
+  invoicedAt         DateTime?
+  invoicedDocumentId String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  items              QuoteItem[]
+
+  @@unique([companyId, number])
+  @@index([companyId, status])
+  @@index([date])
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quoteId     String
+  description String
+  quantity    Int
+  unitPrice   Int
+  totalPrice  Int
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
 model Company {
   id                  String   @id @default(cuid())
   rut                 String   @unique
