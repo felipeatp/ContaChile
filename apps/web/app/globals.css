@@ -47,31 +47,31 @@
   }
 
   .dark {
-    --paper:           24 20% 8%;
-    --ink:             40 30% 92%;
-    --ochre:           36 55% 60%;
-    --oxblood:        352 50% 60%;
-    --sage:           150 25% 55%;
-    --rust:             8 70% 60%;
+    --paper:           24 14% 9%;        /* dark plum-warm */
+    --ink:             40 25% 90%;
+    --ochre:           36 60% 62%;
+    --oxblood:        352 60% 60%;       /* claro y vibrante en dark */
+    --sage:           150 30% 58%;
+    --rust:             8 70% 62%;
 
     --background:     var(--paper);
     --foreground:     var(--ink);
-    --card:            24 18% 11%;
+    --card:            24 14% 11%;
     --card-foreground:        var(--ink);
-    --popover:         24 18% 11%;
+    --popover:         24 14% 11%;
     --popover-foreground:     var(--ink);
     --primary:                var(--oxblood);
-    --primary-foreground:     40 30% 92%;
-    --secondary:       24 12% 18%;
+    --primary-foreground:     24 14% 9%;
+    --secondary:       24 10% 16%;
     --secondary-foreground:   var(--ink);
-    --muted:           24 12% 18%;
-    --muted-foreground:30 12% 60%;
+    --muted:           24 10% 16%;
+    --muted-foreground:30 10% 62%;
     --accent:                 var(--ochre);
-    --accent-foreground:      var(--ink);
+    --accent-foreground:      24 14% 9%;
     --destructive:            var(--rust);
-    --destructive-foreground: 40 30% 92%;
-    --border:          24 10% 22%;
-    --input:           24 10% 22%;
+    --destructive-foreground: 24 14% 9%;
+    --border:          24 8% 22%;
+    --input:           24 8% 22%;
     --ring:                   var(--oxblood);
   }
 }
@@ -88,6 +88,11 @@
     background-size: 3px 3px, 11px 11px;
     background-position: 0 0, 1.5px 1.5px;
     font-feature-settings: "ss01", "cv11";
+  }
+  .dark body {
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      radial-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px);
   }
   html {
     -webkit-font-smoothing: antialiased;

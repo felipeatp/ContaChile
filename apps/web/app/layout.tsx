@@ -76,7 +76,11 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="es" className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}>
+      <html
+        lang="es"
+        suppressHydrationWarning
+        className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}
+      >
         <body className="font-sans antialiased">
           <Providers>
             <Sidebar />

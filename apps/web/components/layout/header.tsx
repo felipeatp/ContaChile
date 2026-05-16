@@ -3,6 +3,7 @@
 import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -101,6 +102,7 @@ export function Header() {
               </span>
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
+            <ThemeToggle />
             <UserButton
               appearance={{
                 elements: {
