@@ -368,6 +368,7 @@ model DocumentItem {
   quantity    Int
   unitPrice   Int
   totalPrice  Int
+  productId   String?
 }
 
 model FolioCounter {
@@ -406,4 +407,51 @@ model Purchase {
 
   @@index([companyId])
   @@index([date])
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+}
+
+model Product {
+  id          String              @id @default(cuid())
+  companyId   String
+  code        String
+  name        String
+  description String?
+  unit        String              @default("unidad")
+  salePrice   Int
+  costPrice   Int                 @default(0)
+  stock       Int                 @default(0)
+  minStock    Int                 @default(0)
+  affectedIVA Boolean             @default(true)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  movements   InventoryMovement[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model InventoryMovement {
+  id             String                @id @default(cuid())
+  companyId      String
+  productId      String
+  type           InventoryMovementType
+  quantity       Int
+  unitCost       Int
+  reason         String
+  reference      String?
+  documentItemId String?
+  notes          String?
+  createdAt      DateTime              @default(now())
+
+  product        Product               @relation(fields: [productId], references: [id])
+
+  @@index([companyId])
+  @@index([productId])
+  @@index([createdAt])
 }
