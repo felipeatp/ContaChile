@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
 
@@ -213,57 +214,61 @@ function MovementForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-lg w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">Nuevo movimiento</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Inventario · Kardex"
+      title="Nuevo movimiento"
+      description="Registra una entrada o salida manual. Las entradas recalculan el costo promedio ponderado."
+      size="sm"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={submit} disabled={saving || quantity === 0}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Registrar movimiento'}
+          </Button>
         </div>
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="text-sm font-medium">Tipo</label>
-            <select value={type} onChange={(e) => setType(e.target.value as 'IN' | 'OUT')} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-              <option value="IN">Entrada (IN) — incrementa stock</option>
-              <option value="OUT">Salida (OUT) — disminuye stock</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Cantidad</label>
-            <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </div>
-          {type === 'IN' && (
-            <div>
-              <label className="text-sm font-medium">Costo unitario (CLP)</label>
-              <input type="number" min={0} value={unitCost} onChange={(e) => setUnitCost(Number(e.target.value))} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-              <p className="text-xs text-muted-foreground mt-1">Se recalcula costo promedio ponderado</p>
-            </div>
-          )}
-          <div>
-            <label className="text-sm font-medium">Razón</label>
-            <select value={reason} onChange={(e) => setReason(e.target.value)} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-              <option value="manual">Manual</option>
-              <option value="purchase">Compra</option>
-              <option value="adjustment">Ajuste</option>
-              <option value="return">Devolución</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Notas (opcional)</label>
-            <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </div>
-
-          {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving || quantity === 0}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Registrar movimiento'}
-            </Button>
-          </div>
+      }
+    >
+      <div className="space-y-3">
+        <div>
+          <label className="text-sm font-medium">Tipo</label>
+          <select value={type} onChange={(e) => setType(e.target.value as 'IN' | 'OUT')} className="mt-1 h-10 w-full px-3 text-sm">
+            <option value="IN">Entrada (IN) — incrementa stock</option>
+            <option value="OUT">Salida (OUT) — disminuye stock</option>
+          </select>
         </div>
+        <div>
+          <label className="text-sm font-medium">Cantidad</label>
+          <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="mt-1 h-10 w-full px-3 text-sm" />
+        </div>
+        {type === 'IN' && (
+          <div>
+            <label className="text-sm font-medium">Costo unitario (CLP)</label>
+            <input type="number" min={0} value={unitCost} onChange={(e) => setUnitCost(Number(e.target.value))} className="mt-1 h-10 w-full px-3 text-sm" />
+            <p className="text-xs text-muted-foreground mt-1">Se recalcula costo promedio ponderado</p>
+          </div>
+        )}
+        <div>
+          <label className="text-sm font-medium">Razón</label>
+          <select value={reason} onChange={(e) => setReason(e.target.value)} className="mt-1 h-10 w-full px-3 text-sm">
+            <option value="manual">Manual</option>
+            <option value="purchase">Compra</option>
+            <option value="adjustment">Ajuste</option>
+            <option value="return">Devolución</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Notas (opcional)</label>
+          <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 h-10 w-full px-3 text-sm" />
+        </div>
+
+        {error && (
+          <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2, Edit2 } from 'lucide-react'
 
@@ -213,52 +214,55 @@ function EmployeeForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">{employee ? 'Editar' : 'Nuevo'} trabajador</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Remuneraciones · Trabajadores"
+      title={`${employee ? 'Editar' : 'Nuevo'} trabajador`}
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={submit} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          </Button>
         </div>
-        <div className="p-4 grid grid-cols-2 gap-3">
-          <Input label="RUT" value={form.rut} onChange={(v) => update('rut', v)} placeholder="12.345.678-5" />
-          <Input label="Nombre completo" value={form.name} onChange={(v) => update('name', v)} />
-          <Input label="Email" value={form.email} onChange={(v) => update('email', v)} type="email" />
-          <Input label="Cargo" value={form.position} onChange={(v) => update('position', v)} />
-          <Input label="Fecha ingreso" value={form.startDate} onChange={(v) => update('startDate', v)} type="date" />
-          <SelectField label="Contrato" value={form.contractType} onChange={(v) => update('contractType', v)} options={[
-            ['INDEFINIDO', 'Indefinido'],
-            ['PLAZO_FIJO', 'Plazo fijo'],
-            ['HONORARIOS', 'Honorarios'],
-          ]} />
-          <Input label="Horas semanales" value={String(form.workHours)} onChange={(v) => update('workHours', Number(v))} type="number" />
-          <Input label="Sueldo base (CLP)" value={String(form.baseSalary)} onChange={(v) => update('baseSalary', Number(v))} type="number" />
-          <SelectField label="AFP" value={form.afp} onChange={(v) => update('afp', v)} options={AFPs.map((a) => [a, a])} />
-          <SelectField label="Salud" value={form.healthPlan} onChange={(v) => update('healthPlan', v)} options={[
-            ['FONASA', 'Fonasa'],
-            ['ISAPRE', 'Isapre'],
-          ]} />
-          {form.healthPlan === 'ISAPRE' && (
-            <Input
-              label="Monto isapre (CLP)"
-              value={String(form.healthAmount)}
-              onChange={(v) => update('healthAmount', Number(v))}
-              type="number"
-            />
-          )}
+      }
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <Input label="RUT" value={form.rut} onChange={(v) => update('rut', v)} placeholder="12.345.678-5" />
+        <Input label="Nombre completo" value={form.name} onChange={(v) => update('name', v)} />
+        <Input label="Email" value={form.email} onChange={(v) => update('email', v)} type="email" />
+        <Input label="Cargo" value={form.position} onChange={(v) => update('position', v)} />
+        <Input label="Fecha ingreso" value={form.startDate} onChange={(v) => update('startDate', v)} type="date" />
+        <SelectField label="Contrato" value={form.contractType} onChange={(v) => update('contractType', v)} options={[
+          ['INDEFINIDO', 'Indefinido'],
+          ['PLAZO_FIJO', 'Plazo fijo'],
+          ['HONORARIOS', 'Honorarios'],
+        ]} />
+        <Input label="Horas semanales" value={String(form.workHours)} onChange={(v) => update('workHours', Number(v))} type="number" />
+        <Input label="Sueldo base (CLP)" value={String(form.baseSalary)} onChange={(v) => update('baseSalary', Number(v))} type="number" />
+        <SelectField label="AFP" value={form.afp} onChange={(v) => update('afp', v)} options={AFPs.map((a) => [a, a])} />
+        <SelectField label="Salud" value={form.healthPlan} onChange={(v) => update('healthPlan', v)} options={[
+          ['FONASA', 'Fonasa'],
+          ['ISAPRE', 'Isapre'],
+        ]} />
+        {form.healthPlan === 'ISAPRE' && (
+          <Input
+            label="Monto isapre (CLP)"
+            value={String(form.healthAmount)}
+            onChange={(v) => update('healthAmount', Number(v))}
+            type="number"
+          />
+        )}
 
-          {error && (
-            <div className="col-span-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-          )}
-
-          <div className="col-span-2 flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
-            </Button>
-          </div>
-        </div>
+        {error && (
+          <div className="col-span-2 rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Stat } from '@/components/ui/stat'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
 
@@ -292,101 +293,113 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">Nueva boleta de honorarios</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Compras · Honorarios"
+      title="Nueva boleta de honorarios"
+      description="Retención automática 13,75 % sobre el monto bruto."
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={submit} disabled={saving || form.grossAmount === 0}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar boleta'}
+          </Button>
         </div>
-        <div className="p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium">Tipo</label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value as HonorarioType })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="RECEIVED">Recibida (yo contrato)</option>
-                <option value="ISSUED">Emitida (yo emito)</option>
-              </select>
+      }
+    >
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium">Tipo</label>
+            <select
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value as HonorarioType })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            >
+              <option value="RECEIVED">Recibida (yo contrato)</option>
+              <option value="ISSUED">Emitida (yo emito)</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Número</label>
+            <input
+              type="number"
+              min={1}
+              value={form.number}
+              onChange={(e) => setForm({ ...form, number: Number(e.target.value) })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Fecha</label>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">RUT contraparte</label>
+            <input
+              type="text"
+              value={form.counterpartRut}
+              onChange={(e) => setForm({ ...form, counterpartRut: e.target.value })}
+              placeholder="12.345.678-9"
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Nombre contraparte</label>
+            <input
+              type="text"
+              value={form.counterpartName}
+              onChange={(e) => setForm({ ...form, counterpartName: e.target.value })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Descripción (opcional)</label>
+            <input
+              type="text"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Monto bruto (CLP)</label>
+            <input
+              type="number"
+              min={0}
+              value={form.grossAmount}
+              onChange={(e) => setForm({ ...form, grossAmount: Number(e.target.value) })}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div className="card-editorial bg-secondary/40 p-3 text-sm">
+            <div className="eyebrow !text-[0.55rem] mb-1.5">Cálculo automático</div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Retención (13,75 %)</span>
+              <span className="font-mono tabular">{format(retention)}</span>
             </div>
-            <div>
-              <label className="text-sm font-medium">Número</label>
-              <input
-                type="number"
-                min={1}
-                value={form.number}
-                onChange={(e) => setForm({ ...form, number: Number(e.target.value) })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Fecha</label>
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">RUT contraparte</label>
-              <input
-                type="text"
-                value={form.counterpartRut}
-                onChange={(e) => setForm({ ...form, counterpartRut: e.target.value })}
-                placeholder="12.345.678-9"
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="text-sm font-medium">Nombre contraparte</label>
-              <input
-                type="text"
-                value={form.counterpartName}
-                onChange={(e) => setForm({ ...form, counterpartName: e.target.value })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="text-sm font-medium">Descripción (opcional)</label>
-              <input
-                type="text"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Monto bruto (CLP)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.grossAmount}
-                onChange={(e) => setForm({ ...form, grossAmount: Number(e.target.value) })}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div className="rounded-md bg-muted p-3 text-sm">
-              <div className="font-medium">Cálculo automático</div>
-              <div>Retención (13,75%): {format(retention)}</div>
-              <div className="font-semibold">Líquido a pagar: {format(net)}</div>
+            <div className="flex justify-between text-sm font-semibold mt-1 pt-1 border-t border-border/50">
+              <span>Líquido a pagar</span>
+              <span className="font-mono tabular">{format(net)}</span>
             </div>
           </div>
-
-          {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving || form.grossAmount === 0}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar boleta'}
-            </Button>
-          </div>
         </div>
+
+        {error && (
+          <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+            {error}
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
 
@@ -221,13 +222,24 @@ function ProductForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">{editing ? 'Editar' : 'Nuevo'} producto</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Inventario · Productos"
+      title={`${editing ? 'Editar' : 'Nuevo'} producto`}
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={submit} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          </Button>
         </div>
-        <div className="p-4 grid grid-cols-2 gap-3">
+      }
+    >
+      <div className="grid grid-cols-2 gap-3">
           <Field label="Código">
             <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
           </Field>
@@ -270,18 +282,10 @@ function ProductForm({
           </Field>
 
           {error && (
-            <div className="col-span-2 rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
+            <div className="col-span-2 rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
           )}
-
-          <div className="col-span-2 flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
-            </Button>
-          </div>
-        </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

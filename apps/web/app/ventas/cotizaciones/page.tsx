@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
 
@@ -321,13 +322,25 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">Nueva cotización</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Ventas · Cotizaciones"
+      title="Nueva cotización"
+      description="Propuesta comercial. Después podrás convertirla en factura con un clic."
+      size="lg"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={submit} disabled={saving || total === 0}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar cotización'}
+          </Button>
         </div>
-        <div className="p-4 space-y-4">
+      }
+    >
+      <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <Field label="Número">
               <input type="number" min={1} value={number} onChange={(e) => setNumber(Number(e.target.value))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
@@ -408,18 +421,10 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
           </div>
 
           {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
+            <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
           )}
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-            <Button onClick={submit} disabled={saving || total === 0}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar cotización'}
-            </Button>
-          </div>
-        </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

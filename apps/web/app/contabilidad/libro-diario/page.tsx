@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
 
@@ -180,53 +181,48 @@ function EntryDetailModal({ entry, onClose }: { entry: Entry; onClose: () => voi
   const totalDebit = entry.lines.reduce((s, l) => s + l.debit, 0)
   const totalCredit = entry.lines.reduce((s, l) => s + l.credit, 0)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-3xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">Asiento — {new Date(entry.date).toLocaleDateString('es-CL')}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Contabilidad · Libro Diario"
+      title={`Asiento · ${new Date(entry.date).toLocaleDateString('es-CL')}`}
+      description={entry.description}
+      size="lg"
+    >
+      {entry.reference && (
+        <div className="mb-3 text-xs text-muted-foreground">
+          <span className="eyebrow !text-[0.55rem] mr-2">Referencia</span>
+          <span className="font-mono">{entry.reference}</span>
         </div>
-        <div className="p-4 space-y-3">
-          <div className="text-sm">
-            <strong>Descripción:</strong> {entry.description}
-          </div>
-          {entry.reference && (
-            <div className="text-sm">
-              <strong>Referencia:</strong> {entry.reference}
-            </div>
-          )}
-          <table className="w-full text-sm border rounded">
-            <thead>
-              <tr className="border-b bg-muted">
-                <th className="text-left py-2 px-3">Código</th>
-                <th className="text-left py-2 px-3">Cuenta</th>
-                <th className="text-right py-2 px-3">Debe</th>
-                <th className="text-right py-2 px-3">Haber</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entry.lines.map((l) => (
-                <tr key={l.id} className="border-b last:border-0">
-                  <td className="py-2 px-3 font-mono">{l.account.code}</td>
-                  <td className="py-2 px-3">{l.account.name}</td>
-                  <td className="py-2 px-3 text-right font-mono">{l.debit ? format(l.debit) : '—'}</td>
-                  <td className="py-2 px-3 text-right font-mono">{l.credit ? format(l.credit) : '—'}</td>
-                </tr>
-              ))}
-              <tr className="font-semibold bg-muted/50">
-                <td colSpan={2} className="py-2 px-3 text-right">
-                  Totales
-                </td>
-                <td className="py-2 px-3 text-right font-mono">{format(totalDebit)}</td>
-                <td className="py-2 px-3 text-right font-mono">{format(totalCredit)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      )}
+      <table className="table-editorial card-editorial">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Cuenta</th>
+            <th data-numeric="true">Debe</th>
+            <th data-numeric="true">Haber</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entry.lines.map((l) => (
+            <tr key={l.id}>
+              <td className="font-mono">{l.account.code}</td>
+              <td>{l.account.name}</td>
+              <td data-numeric="true">{l.debit ? format(l.debit) : '—'}</td>
+              <td data-numeric="true">{l.credit ? format(l.credit) : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={2} className="text-right font-semibold">Totales</td>
+            <td data-numeric="true" className="font-semibold">{format(totalDebit)}</td>
+            <td data-numeric="true" className="font-semibold">{format(totalCredit)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </Modal>
   )
 }
 
@@ -313,118 +309,19 @@ function ManualEntryForm({
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="font-semibold">Nuevo asiento manual</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium">Fecha</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Referencia (opcional)</label>
-              <input
-                type="text"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Descripción</label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            />
-          </div>
-
-          <table className="w-full text-sm border rounded">
-            <thead>
-              <tr className="border-b bg-muted">
-                <th className="text-left py-2 px-3">Cuenta</th>
-                <th className="text-right py-2 px-3">Debe</th>
-                <th className="text-right py-2 px-3">Haber</th>
-                <th className="py-2 px-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l, i) => (
-                <tr key={i} className="border-b">
-                  <td className="py-2 px-3">
-                    <select
-                      value={l.accountId}
-                      onChange={(e) => updateLine(i, 'accountId', e.target.value)}
-                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-                    >
-                      <option value="">— Seleccionar —</option>
-                      {accounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.code} — {a.name}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-2 px-3">
-                    <input
-                      type="number"
-                      min={0}
-                      value={l.debit}
-                      onChange={(e) => updateLine(i, 'debit', Number(e.target.value))}
-                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right"
-                    />
-                  </td>
-                  <td className="py-2 px-3">
-                    <input
-                      type="number"
-                      min={0}
-                      value={l.credit}
-                      onChange={(e) => updateLine(i, 'credit', Number(e.target.value))}
-                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right"
-                    />
-                  </td>
-                  <td className="py-2 px-3 text-right">
-                    {lines.length > 2 && (
-                      <Button variant="ghost" size="sm" onClick={() => removeLine(i)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              <tr className={`font-semibold ${balanced ? 'bg-green-50' : 'bg-yellow-50'}`}>
-                <td className="py-2 px-3">
-                  Totales {balanced ? '✓ cuadra' : `(diferencia ${format(Math.abs(diff))})`}
-                </td>
-                <td className="py-2 px-3 text-right font-mono">{format(totalDebit)}</td>
-                <td className="py-2 px-3 text-right font-mono">{format(totalCredit)}</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-
+    <Modal
+      open={true}
+      onClose={onClose}
+      eyebrow="Contabilidad · Libro Diario"
+      title="Nuevo asiento manual"
+      description="Cada asiento debe cuadrar: la suma del debe debe ser igual a la del haber."
+      size="xl"
+      footer={
+        <div className="flex justify-between items-center gap-2">
           <Button variant="outline" size="sm" onClick={addLine}>
             <Plus className="mr-1 h-3 w-3" /> Agregar línea
           </Button>
-
-          {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
-          )}
-
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2">
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
             </Button>
@@ -433,7 +330,109 @@ function ManualEntryForm({
             </Button>
           </div>
         </div>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium">Fecha</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Referencia (opcional)</label>
+            <input
+              type="text"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              className="mt-1 h-10 w-full px-3 text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Descripción</label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="mt-1 h-10 w-full px-3 text-sm"
+          />
+        </div>
+
+        <table className="table-editorial card-editorial">
+          <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th data-numeric="true">Debe</th>
+              <th data-numeric="true">Haber</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((l, i) => (
+              <tr key={i}>
+                <td>
+                  <select
+                    value={l.accountId}
+                    onChange={(e) => updateLine(i, 'accountId', e.target.value)}
+                    className="h-9 w-full px-2 text-sm"
+                  >
+                    <option value="">— Seleccionar —</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.code} — {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min={0}
+                    value={l.debit}
+                    onChange={(e) => updateLine(i, 'debit', Number(e.target.value))}
+                    className="h-9 w-full px-2 text-sm"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min={0}
+                    value={l.credit}
+                    onChange={(e) => updateLine(i, 'credit', Number(e.target.value))}
+                    className="h-9 w-full px-2 text-sm"
+                  />
+                </td>
+                <td className="text-right">
+                  {lines.length > 2 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeLine(i)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className={balanced ? 'text-sage' : 'text-ochre'}>
+              <td className="font-semibold">
+                Totales {balanced ? '· cuadra' : `· diferencia ${format(Math.abs(diff))}`}
+              </td>
+              <td data-numeric="true" className="font-semibold">{format(totalDebit)}</td>
+              <td data-numeric="true" className="font-semibold">{format(totalCredit)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        {error && (
+          <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }
