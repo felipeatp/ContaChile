@@ -6,20 +6,42 @@ export interface SendDocumentAcceptedParams {
   receiverEmail: string
 }
 
+export interface SendDueAlertParams {
+  recipientEmail: string
+  recipientName: string
+  label: string
+  description: string
+  dueDate: Date
+  daysUntil: number
+  link: string
+}
+
 export interface EmailService {
   sendDocumentAccepted(params: SendDocumentAcceptedParams): Promise<void>
   sendDocumentEmitted(params: SendDocumentAcceptedParams): Promise<void>
+  sendDueAlert(params: SendDueAlertParams): Promise<void>
+}
+
+function formatDate(d: Date): string {
+  return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 export class StubEmailService implements EmailService {
-  public calls: Array<{ method: string; params: SendDocumentAcceptedParams }> = []
+  public calls: Array<{ method: string; params: Record<string, unknown> }> = []
 
   async sendDocumentAccepted(params: SendDocumentAcceptedParams): Promise<void> {
-    this.calls.push({ method: 'sendDocumentAccepted', params })
+    this.calls.push({ method: 'sendDocumentAccepted', params: { ...params } })
   }
 
   async sendDocumentEmitted(params: SendDocumentAcceptedParams): Promise<void> {
-    this.calls.push({ method: 'sendDocumentEmitted', params })
+    this.calls.push({ method: 'sendDocumentEmitted', params: { ...params } })
+  }
+
+  async sendDueAlert(params: SendDueAlertParams): Promise<void> {
+    this.calls.push({
+      method: 'sendDueAlert',
+      params: { ...params, dueDate: params.dueDate.toISOString() },
+    })
   }
 }
 
@@ -63,6 +85,29 @@ export class ResendEmailService implements EmailService {
         <p>Estimado/a <strong>${params.receiverName}</strong>,</p>
         <p>Se ha emitido su ${tipoLabel} N° <strong>${params.folio}</strong>.</p>
         <p>Le notificaremos cuando sea aceptada por el SII.</p>
+        <hr/>
+        <p><small>Este es un correo automático enviado por ContaChile.</small></p>
+      `,
+    })
+  }
+
+  async sendDueAlert(params: SendDueAlertParams): Promise<void> {
+    const appUrl = process.env.APP_URL || 'http://localhost:3000'
+    const urgency =
+      params.daysUntil <= 0
+        ? `vencido hace ${Math.abs(params.daysUntil)} día(s)`
+        : `vence en ${params.daysUntil} día(s)`
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: params.recipientEmail,
+      subject: `⏰ ${params.label} - ${formatDate(params.dueDate)}`,
+      html: `
+        <h2>Recordatorio de vencimiento</h2>
+        <p>Hola <strong>${params.recipientName}</strong>,</p>
+        <p>Te recordamos que <strong>${params.label}</strong> ${urgency} (${formatDate(params.dueDate)}).</p>
+        <p>${params.description}</p>
+        <p><a href="${appUrl}${params.link}" style="display:inline-block;padding:10px 16px;background:#0f172a;color:white;border-radius:6px;text-decoration:none;">Ir a ${params.label}</a></p>
         <hr/>
         <p><small>Este es un correo automático enviado por ContaChile.</small></p>
       `,
