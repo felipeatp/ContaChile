@@ -23,6 +23,7 @@ import ledgerRoute from './routes/accounting/ledger'
 import reportsRoute from './routes/accounting/reports'
 import employeesRoute from './routes/employees'
 import payrollRoute from './routes/payroll'
+import alertsRoute from './routes/alerts'
 import './workers/dte-polling'
 import './workers/alerts'
 
@@ -98,6 +99,7 @@ app.register(ledgerRoute)
 app.register(reportsRoute)
 app.register(employeesRoute)
 app.register(payrollRoute)
+app.register(alertsRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {
