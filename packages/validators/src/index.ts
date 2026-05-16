@@ -78,3 +78,10 @@ export type {
   UpdateHonorarioInput,
   HonorarioListQuery,
 } from './honorarios'
+export {
+  QuoteItemSchema,
+  CreateQuoteSchema,
+  UpdateQuoteSchema,
+  QuoteListQuerySchema,
+} from './quotes'
+export type { CreateQuoteInput, UpdateQuoteInput, QuoteListQuery } from './quotes'
