@@ -9,6 +9,7 @@ const PUC = {
   REMUNERACIONES_POR_PAGAR: '2115',
   INGRESOS_VENTAS: '4100',
   GASTOS_PERSONAL: '5100',
+  HONORARIOS: '5101',
   GASTOS_DIVERSOS: '5220',
 }
 
@@ -197,6 +198,53 @@ export async function createPayrollEntry(
             credit: payroll.impuesto + cotizaciones,
             description: 'Impuesto único + cotizaciones empleado',
           },
+        ],
+      },
+    },
+  })
+}
+
+export async function createHonorarioEntry(
+  honorario: {
+    id: string
+    companyId: string
+    number: number
+    date: Date
+    counterpartName: string
+    grossAmount: number
+    retentionAmount: number
+    netAmount: number
+  },
+  logger?: Logger
+) {
+  const codes = [PUC.HONORARIOS, PUC.IMPUESTOS_POR_PAGAR, PUC.PROVEEDORES]
+  const ids = await findAccountIds(honorario.companyId, codes)
+  if (!ids) {
+    logger?.warn(
+      { honorarioId: honorario.id, missingCodes: codes },
+      'Asiento automático de honorario omitido: cuentas PUC no encontradas'
+    )
+    return null
+  }
+
+  return prisma.journalEntry.create({
+    data: {
+      companyId: honorario.companyId,
+      date: honorario.date,
+      description: `BHE recibida N° ${honorario.number} - ${honorario.counterpartName}`,
+      reference: `BHE-${honorario.number}`,
+      source: 'honorario',
+      sourceId: honorario.id,
+      lines: {
+        create: [
+          { accountId: ids[PUC.HONORARIOS], debit: honorario.grossAmount, credit: 0 },
+          {
+            accountId: ids[PUC.IMPUESTOS_POR_PAGAR],
+            debit: 0,
+            credit: honorario.retentionAmount,
+            description: 'Retención honorarios 13,75%',
+          },
+          { accountId: ids[PUC.PROVEEDORES], debit: 0, credit: honorario.netAmount },
         ],
       },
     },
