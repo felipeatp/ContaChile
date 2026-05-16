@@ -26,6 +26,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/emit", label: "Emitir DTE", icon: PlusCircle },
+  { href: "/ventas/cotizaciones", label: "Cotizaciones", icon: FileText },
   { href: "/purchases", label: "Compras", icon: ShoppingCart },
   { href: "/honorarios", label: "Honorarios", icon: ShoppingCart },
   { href: "/f29", label: "F29", icon: FileBarChart },
