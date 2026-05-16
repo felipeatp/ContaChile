@@ -85,3 +85,13 @@ export {
   QuoteListQuerySchema,
 } from './quotes'
 export type { CreateQuoteInput, UpdateQuoteInput, QuoteListQuery } from './quotes'
+export {
+  CreateProductSchema,
+  UpdateProductSchema,
+  InventoryMovementSchema,
+} from './inventory'
+export type {
+  CreateProductInput,
+  UpdateProductInput,
+  InventoryMovementInput,
+} from './inventory'
