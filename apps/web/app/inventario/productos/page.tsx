@@ -56,89 +56,119 @@ export default function ProductosPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Productos</h1>
-          <p className="text-sm text-muted-foreground">Catálogo con stock, costo promedio ponderado y alertas.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Inventario · Catálogo</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {products.length} productos
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Catálogo de{' '}
+            <em className="text-primary not-italic font-medium">productos</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Stock, costo promedio ponderado y alertas de mínimo. Las salidas se descuentan automáticamente al emitir DTE.
+          </p>
         </div>
         <Button onClick={() => { setEditing(null); setFormOpen(true) }}>
           <Plus className="mr-2 h-4 w-4" /> Nuevo producto
         </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-3 p-4">
+      <section className="card-editorial p-5 flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[240px]">
           <input
             type="text"
-            placeholder="Buscar por nombre o código..."
+            placeholder="Buscar por nombre o código…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm min-w-[260px]"
+            className="h-10 w-full px-3 text-sm"
           />
-          <Button variant="outline" onClick={handleSearch}>Buscar</Button>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={showInactive}
-              onChange={(e) => setShowInactive(e.target.checked)}
-            />
-            Mostrar inactivos
-          </label>
-        </CardContent>
-      </Card>
+        </div>
+        <Button variant="outline" onClick={handleSearch}>Buscar</Button>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => setShowInactive(e.target.checked)}
+          />
+          Mostrar inactivos
+        </label>
+      </section>
 
-      <Card>
-        <CardContent className="p-0">
+      <section>
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <span className="eyebrow block mb-1">I · Listado</span>
+            <h3 className="font-display text-2xl font-semibold tracking-tightest">
+              Productos registrados
+            </h3>
+          </div>
+        </div>
+
+        <div className="card-editorial overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : products.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin productos.</p>
+            <div className="p-12 text-center">
+              <p className="font-display text-lg text-muted-foreground mb-1">
+                Sin productos
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                Registra el primero con &ldquo;Nuevo producto&rdquo;.
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="table-editorial">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">Código</th>
-                    <th className="text-left py-2 px-3">Nombre</th>
-                    <th className="text-left py-2 px-3">Unidad</th>
-                    <th className="text-right py-2 px-3">Costo</th>
-                    <th className="text-right py-2 px-3">Venta</th>
-                    <th className="text-right py-2 px-3">Stock</th>
-                    <th className="text-right py-2 px-3">Mínimo</th>
-                    <th className="text-left py-2 px-3">Estado</th>
-                    <th className="py-2 px-3"></th>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Unidad</th>
+                    <th data-numeric="true">Costo</th>
+                    <th data-numeric="true">Venta</th>
+                    <th data-numeric="true">Stock</th>
+                    <th data-numeric="true">Mínimo</th>
+                    <th>Estado</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.map((p) => {
                     const low = p.minStock > 0 && p.stock <= p.minStock
                     return (
-                      <tr key={p.id} className="border-b last:border-0">
-                        <td className="py-2 px-3 font-mono text-xs">{p.code}</td>
-                        <td className="py-2 px-3">
+                      <tr key={p.id}>
+                        <td className="font-mono text-xs">{p.code}</td>
+                        <td>
                           <div>{p.name}</div>
                           {p.description && <div className="text-xs text-muted-foreground">{p.description}</div>}
                         </td>
-                        <td className="py-2 px-3">{p.unit}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(p.costPrice)}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(p.salePrice)}</td>
-                        <td className={`py-2 px-3 text-right font-mono font-semibold ${low ? 'text-destructive' : ''}`}>
-                          {p.stock}
-                          {low && <AlertTriangle className="inline h-3 w-3 ml-1" />}
+                        <td className="text-muted-foreground">{p.unit}</td>
+                        <td data-numeric="true">{format(p.costPrice)}</td>
+                        <td data-numeric="true">{format(p.salePrice)}</td>
+                        <td data-numeric="true" className={`font-semibold ${low ? 'text-rust' : ''}`}>
+                          <span className="inline-flex items-center gap-1">
+                            {low && <AlertTriangle className="h-3 w-3" />}
+                            {p.stock}
+                          </span>
                         </td>
-                        <td className="py-2 px-3 text-right font-mono">{p.minStock}</td>
-                        <td className="py-2 px-3">
+                        <td data-numeric="true" className="text-muted-foreground">{p.minStock}</td>
+                        <td>
                           {p.isActive ? (
-                            <span className="text-xs rounded bg-green-100 text-green-800 px-2 py-0.5">Activo</span>
+                            <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-sage/15 text-sage px-1.5 py-0.5">Activo</span>
                           ) : (
-                            <span className="text-xs rounded bg-muted text-muted-foreground px-2 py-0.5">Inactivo</span>
+                            <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-muted text-muted-foreground px-1.5 py-0.5">Inactivo</span>
                           )}
                         </td>
-                        <td className="py-2 px-3 text-right">
+                        <td className="text-right">
                           {p.isActive && (
                             <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)}>
                               <Trash2 className="h-4 w-4" />
@@ -152,8 +182,8 @@ export default function ProductosPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {formOpen && (
         <ProductForm

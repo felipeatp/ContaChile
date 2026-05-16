@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
@@ -56,36 +57,46 @@ export default function MovimientosPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Movimientos de inventario</h1>
-          <p className="text-sm text-muted-foreground">Kardex por producto: entradas (IN) y salidas (OUT).</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Inventario · Kardex</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {products.length} productos
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Movimientos de{' '}
+            <em className="text-primary not-italic font-medium">inventario</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Kardex por producto: entradas (IN) recalculan costo promedio ponderado; salidas (OUT) usan snapshot.
+          </p>
         </div>
         <Button onClick={() => setFormOpen(true)} disabled={!selectedId}>
           <Plus className="mr-2 h-4 w-4" /> Nuevo movimiento
         </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Seleccionar producto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <select
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm min-w-[300px]"
-          >
-            <option value="">— Selecciona un producto —</option>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.code} — {p.name} (stock: {p.stock})
-              </option>
-            ))}
-          </select>
-        </CardContent>
-      </Card>
+      <section className="card-editorial p-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="eyebrow">Selección</span>
+        </div>
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="h-10 px-3 text-sm min-w-[320px]"
+        >
+          <option value="">— Selecciona un producto —</option>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.code} — {p.name} (stock: {p.stock})
+            </option>
+          ))}
+        </select>
+      </section>
 
       {loading ? (
         <div className="flex items-center justify-center h-48">
@@ -93,69 +104,98 @@ export default function MovimientosPage() {
         </div>
       ) : data ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Stock actual</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{data.product.stock} {data.product.unit}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Costo promedio</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.product.costPrice)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Valor inventario</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.product.stock * data.product.costPrice)}</div></CardContent>
-            </Card>
-          </div>
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <span className="eyebrow">I · Estado actual</span>
+              <span className="text-xs text-muted-foreground/60 font-mono">
+                {data.product.code} · {data.product.name}
+              </span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <Stat label="Stock actual" value={`${data.product.stock} ${data.product.unit}`} tone="default" />
+              <Stat label="Costo promedio" value={format(data.product.costPrice)} tone="default" />
+              <Stat
+                label="Valor inventario"
+                value={format(data.product.stock * data.product.costPrice)}
+                tone="accent"
+              />
+            </div>
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Kardex — {data.product.code} {data.product.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <span className="eyebrow block mb-1">II · Kardex</span>
+                <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                  Movimientos del producto
+                </h3>
+              </div>
+              <span className="text-xs text-muted-foreground/60 font-mono">
+                {data.movements.length} líneas
+              </span>
+            </div>
+
+            <div className="card-editorial overflow-hidden">
               {data.movements.length === 0 ? (
-                <p className="p-6 text-sm text-muted-foreground">Sin movimientos.</p>
+                <div className="p-12 text-center">
+                  <p className="font-display text-lg text-muted-foreground mb-1">
+                    Sin movimientos
+                  </p>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="table-editorial">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2 px-3">Fecha</th>
-                        <th className="text-left py-2 px-3">Tipo</th>
-                        <th className="text-right py-2 px-3">Cantidad</th>
-                        <th className="text-right py-2 px-3">Costo unit.</th>
-                        <th className="text-right py-2 px-3">Valor</th>
-                        <th className="text-left py-2 px-3">Razón</th>
-                        <th className="text-left py-2 px-3">Referencia</th>
-                        <th className="text-right py-2 px-3">Saldo</th>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th data-numeric="true">Cantidad</th>
+                        <th data-numeric="true">Costo unit.</th>
+                        <th data-numeric="true">Valor</th>
+                        <th>Razón</th>
+                        <th>Referencia</th>
+                        <th data-numeric="true">Saldo</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.movements.map((m) => (
-                        <tr key={m.id} className="border-b last:border-0">
-                          <td className="py-2 px-3">{new Date(m.createdAt).toLocaleDateString('es-CL')}</td>
-                          <td className="py-2 px-3">
-                            <span className={`text-xs rounded px-2 py-0.5 ${m.type === 'IN' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <tr key={m.id}>
+                          <td className="text-muted-foreground">{new Date(m.createdAt).toLocaleDateString('es-CL')}</td>
+                          <td>
+                            <span
+                              className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-1.5 py-0.5 ${
+                                m.type === 'IN'
+                                  ? 'bg-sage/15 text-sage'
+                                  : 'bg-rust/15 text-rust'
+                              }`}
+                            >
                               {m.type}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-right font-mono">{m.quantity}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(m.unitCost)}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(m.value)}</td>
-                          <td className="py-2 px-3 text-xs">{m.reason}</td>
-                          <td className="py-2 px-3 font-mono text-xs">{m.reference || '—'}</td>
-                          <td className="py-2 px-3 text-right font-mono font-semibold">{m.balance}</td>
+                          <td data-numeric="true">{m.quantity}</td>
+                          <td data-numeric="true">{format(m.unitCost)}</td>
+                          <td data-numeric="true">{format(m.value)}</td>
+                          <td className="text-xs text-muted-foreground">{m.reason}</td>
+                          <td className="font-mono text-xs text-muted-foreground">{m.reference || '—'}</td>
+                          <td data-numeric="true" className="font-semibold">{m.balance}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">Selecciona un producto para ver su kardex.</p>
+        <div className="card-editorial p-12 text-center">
+          <p className="font-display text-lg text-muted-foreground mb-1">
+            Selecciona un producto
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Elige cualquier producto del catálogo para ver su kardex.
+          </p>
+        </div>
       )}
 
       {formOpen && selectedId && (

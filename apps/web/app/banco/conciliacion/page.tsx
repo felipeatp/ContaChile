@@ -146,52 +146,74 @@ export default function ConciliacionPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Conciliación Bancaria</h1>
-          <p className="text-sm text-muted-foreground">Sincroniza movimientos y concilia con asientos del libro diario.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Tesorería · Conciliación</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {movements.length} movimientos
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Conciliación{' '}
+            <em className="text-primary not-italic font-medium">bancaria</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sincroniza movimientos desde el banco, busca match automático con DTEs/Compras o pídele a la IA que sugiera un asiento.
+          </p>
         </div>
         <Button onClick={handleSync} disabled={syncing}>
           {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
           Sincronizar
         </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Cuentas bancarias</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <span className="eyebrow">I · Cuentas bancarias</span>
+        </div>
+        <div className="card-editorial p-5">
           {accounts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aún no hay cuentas. Haz clic en "Sincronizar" para conectar.</p>
+            <p className="text-sm text-muted-foreground">
+              Aún no hay cuentas. Haz clic en &ldquo;Sincronizar&rdquo; para conectar (modo simulador activo).
+            </p>
           ) : (
             <div className="space-y-2">
               {accounts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded border p-3 text-sm">
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between border-b border-border/60 last:border-0 pb-2 last:pb-0 text-sm"
+                >
                   <div>
                     <div className="font-medium">{a.institution}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {a.holderName} • {a.holderId} • {a.currency}
+                    <div className="text-xs text-muted-foreground font-mono">
+                      {a.holderName} · {a.holderId} · {a.currency}
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[0.65rem] font-mono text-muted-foreground/60 tabular">
                     Última sync: {a.lastSyncAt ? new Date(a.lastSyncAt).toLocaleString('es-CL') : 'nunca'}
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm">Movimientos</CardTitle>
+      <section>
+        <div className="flex items-end justify-between mb-3">
+          <div>
+            <span className="eyebrow block mb-1">II · Movimientos</span>
+            <h3 className="font-display text-2xl font-semibold tracking-tightest">
+              Cartola bancaria
+            </h3>
+          </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as Status | '')}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-9 px-3 text-sm"
           >
             <option value="">Todos</option>
             <option value="PENDING">Pendientes</option>
@@ -201,32 +223,37 @@ export default function ConciliacionPage() {
             <option value="RECONCILED">Conciliados</option>
             <option value="IGNORED">Ignorados</option>
           </select>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+
+        <div className="card-editorial overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : movements.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin movimientos en este filtro.</p>
+            <div className="p-12 text-center">
+              <p className="font-display text-lg text-muted-foreground mb-1">
+                Sin movimientos en este filtro
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="table-editorial">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">Fecha</th>
-                    <th className="text-left py-2 px-3">Descripción</th>
-                    <th className="text-left py-2 px-3">Contraparte</th>
-                    <th className="text-right py-2 px-3">Monto</th>
-                    <th className="text-left py-2 px-3">Estado</th>
-                    <th className="py-2 px-3"></th>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Contraparte</th>
+                    <th data-numeric="true">Monto</th>
+                    <th>Estado</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {movements.map((m) => (
-                    <tr key={m.id} className="border-b last:border-0">
-                      <td className="py-2 px-3">{new Date(m.postedAt).toLocaleDateString('es-CL')}</td>
-                      <td className="py-2 px-3">
+                    <tr key={m.id}>
+                      <td className="text-muted-foreground">{new Date(m.postedAt).toLocaleDateString('es-CL')}</td>
+                      <td>
                         <div>{m.description}</div>
                         {m.suggestionPayload && (
                           <div className="text-xs text-blue-700">
@@ -295,8 +322,8 @@ export default function ConciliacionPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {reconcileMovement && (
         <ReconcileModal
