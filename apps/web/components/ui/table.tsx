@@ -6,7 +6,7 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className="relative w-full overflow-auto border border-border bg-card">
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
@@ -20,7 +20,11 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn("[&_tr]:border-b [&_tr]:border-border bg-paper/50", className)}
+    {...props}
+  />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -42,7 +46,10 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+    className={cn(
+      "border-t border-border bg-secondary/30 font-medium [&>tr]:last:border-b-0",
+      className
+    )}
     {...props}
   />
 ))
@@ -55,7 +62,12 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "group relative border-b border-border/60 transition-colors hover:bg-secondary/30 data-[state=selected]:bg-secondary/40",
+      // Left accent bar that appears on hover/selected
+      "[&>td:first-child]:relative",
+      "[&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-0.5 [&>td:first-child]:before:bg-primary [&>td:first-child]:before:opacity-0 [&>td:first-child]:before:transition-opacity",
+      "group-hover:[&>td:first-child]:before:opacity-100",
+      "data-[state=selected]:[&>td:first-child]:before:opacity-100",
       className
     )}
     {...props}
@@ -70,7 +82,10 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      // Eyebrow caps style for column headers
+      "h-10 px-4 text-left align-middle text-[0.65rem] font-semibold uppercase tracking-eyebrow text-muted-foreground/80 [&:has([role=checkbox])]:pr-0",
+      // Right-aligned + tabular when marked numeric
+      "data-[numeric=true]:text-right data-[numeric=true]:tabular-nums data-[numeric=true]:font-mono data-[numeric=true]:!tracking-normal data-[numeric=true]:!normal-case",
       className
     )}
     {...props}
@@ -84,7 +99,11 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      "px-4 py-3 align-middle [&:has([role=checkbox])]:pr-0",
+      "data-[numeric=true]:text-right data-[numeric=true]:font-mono data-[numeric=true]:tabular-nums",
+      className
+    )}
     {...props}
   />
 ))
