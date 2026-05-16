@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useCreateAccount, useUpdateAccount, Account } from '@/hooks/use-accounts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
+import { Loader2 } from 'lucide-react'
 
 export function AccountForm({
   open,
@@ -33,8 +34,8 @@ export function AccountForm({
     }
   }, [editAccount, open])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!code.trim() || !name.trim()) return
 
     if (editAccount) {
@@ -60,26 +61,36 @@ export function AccountForm({
   const isPending = create.isPending || update.isPending
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{editAccount ? 'Editar cuenta' : 'Nueva cuenta'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal
+      open={open}
+      onClose={onClose}
+      eyebrow="Contabilidad · Plan de Cuentas"
+      title={editAccount ? 'Editar cuenta' : 'Nueva cuenta'}
+      description="Las cuentas del PUC base no se pueden eliminar pero sí editar la descripción."
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
+            Cancelar
+          </Button>
+          <Button onClick={() => handleSubmit()} disabled={isPending || !code.trim() || !name.trim()}>
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          </Button>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-sm font-medium">Código</label>
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Ej: 5115" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Nombre</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Capacitación" />
           </div>
           <div>
             <label className="text-sm font-medium">Tipo</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as Account['type'])}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="mt-1 h-10 w-full px-3 text-sm"
             >
               <option value="ACTIVO">Activo</option>
               <option value="PASIVO">Pasivo</option>
@@ -89,15 +100,16 @@ export function AccountForm({
               <option value="COSTO">Costo</option>
             </select>
           </div>
-          <div>
-            <label className="text-sm font-medium">Descripción</label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Opcional" />
-          </div>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'Guardando...' : 'Guardar'}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Nombre</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Capacitación" />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Descripción</label>
+          <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Opcional" />
+        </div>
+      </form>
+    </Modal>
   )
 }

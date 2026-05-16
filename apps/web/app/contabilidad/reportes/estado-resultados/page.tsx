@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Stat } from '@/components/ui/stat'
+import { RuleOrnament } from '@/components/ui/rule-ornament'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer } from 'lucide-react'
 
 type AccountRow = { accountId: string; code: string; name: string; value: number }
-
 type Section = { total: number; rows: AccountRow[] }
 
 type Response = {
@@ -30,6 +30,8 @@ function defaultTo() {
   return last.toISOString().slice(0, 10)
 }
 
+const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
+
 export default function EstadoResultadosPage() {
   const [from, setFrom] = useState(defaultFrom())
   const [to, setTo] = useState(defaultTo())
@@ -50,38 +52,52 @@ export default function EstadoResultadosPage() {
       .finally(() => setLoading(false))
   }, [from, to])
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
+  const isProfit = data ? data.utilidadEjercicio >= 0 : true
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Estado de Resultados</h1>
-          <p className="text-sm text-muted-foreground">Pérdidas y ganancias del período.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Contabilidad · Reportes</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {from} → {to}
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Estado de{' '}
+            <em className="text-primary not-italic font-medium">Resultados</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ingresos − Costos − Gastos = Utilidad del ejercicio.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 px-3 text-sm"
           />
-          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground/40 text-xs">—</span>
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 px-3 text-sm"
           />
           <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimir / PDF
+            <Printer className="mr-1.5 h-4 w-4" />
+            Imprimir
           </Button>
         </div>
-      </div>
+      </section>
 
       {error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</div>
+        <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          {error}
+        </div>
       )}
 
       {loading ? (
@@ -90,101 +106,120 @@ export default function EstadoResultadosPage() {
         </div>
       ) : data ? (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Ingresos</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.ingresos.total)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Costos</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.costos.total)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Gastos</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.gastos.total)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{data.utilidadEjercicio >= 0 ? 'Utilidad' : 'Pérdida'}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${data.utilidadEjercicio < 0 ? 'text-destructive' : 'text-green-600'}`}>
-                  {format(Math.abs(data.utilidadEjercicio))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <span className="eyebrow">I · Resumen</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <Stat label="Ingresos" value={fmt(data.ingresos.total)} tone="positive" />
+              <Stat label="Costos" value={fmt(data.costos.total)} tone="default" />
+              <Stat label="Gastos" value={fmt(data.gastos.total)} tone="default" />
+              <Stat
+                label={isProfit ? 'Utilidad ejercicio' : 'Pérdida ejercicio'}
+                value={fmt(Math.abs(data.utilidadEjercicio))}
+                tone={isProfit ? 'accent' : 'negative'}
+              />
+            </div>
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{data.from} → {data.to}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
+          <RuleOrnament ornament="diamond" />
+
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <span className="eyebrow block mb-1">II · Detalle</span>
+                <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                  Por cuenta
+                </h3>
+              </div>
+            </div>
+
+            <div className="card-editorial overflow-hidden">
+              <table className="table-editorial">
                 <tbody>
                   <SectionRows title="Ingresos" section={data.ingresos} sign="+" />
-                  <tr className="border-y font-semibold bg-muted/30">
+                  <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Ingresos</td>
-                    <td className="py-2 px-3 text-right font-mono">{format(data.ingresos.total)}</td>
+                    <td data-numeric="true">{fmt(data.ingresos.total)}</td>
                   </tr>
 
                   <SectionRows title="Costos" section={data.costos} sign="-" />
-                  <tr className="border-y font-semibold bg-muted/30">
+                  <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Costos</td>
-                    <td className="py-2 px-3 text-right font-mono">{format(data.costos.total)}</td>
+                    <td data-numeric="true">{fmt(data.costos.total)}</td>
                   </tr>
 
-                  <tr className="border-y font-semibold">
-                    <td className="py-2 px-3" colSpan={2}>Utilidad Bruta (Ingresos − Costos)</td>
-                    <td className="py-2 px-3 text-right font-mono">{format(data.utilidadBruta)}</td>
+                  <tr className="font-semibold border-y-2 border-foreground/20">
+                    <td className="py-2 px-3" colSpan={2}>
+                      Utilidad bruta <span className="text-muted-foreground font-normal">(Ingresos − Costos)</span>
+                    </td>
+                    <td data-numeric="true">{fmt(data.utilidadBruta)}</td>
                   </tr>
 
                   <SectionRows title="Gastos" section={data.gastos} sign="-" />
-                  <tr className="border-y font-semibold bg-muted/30">
+                  <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Gastos</td>
-                    <td className="py-2 px-3 text-right font-mono">{format(data.gastos.total)}</td>
-                  </tr>
-
-                  <tr className={`border-y font-bold ${data.utilidadEjercicio < 0 ? 'bg-red-50' : 'bg-green-50'}`}>
-                    <td className="py-3 px-3" colSpan={2}>
-                      {data.utilidadEjercicio >= 0 ? 'Utilidad del Ejercicio' : 'Pérdida del Ejercicio'}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono">{format(data.utilidadEjercicio)}</td>
+                    <td data-numeric="true">{fmt(data.gastos.total)}</td>
                   </tr>
                 </tbody>
+                <tfoot>
+                  <tr className={isProfit ? 'bg-sage/10' : 'bg-rust/10'}>
+                    <td className="py-3 px-3 font-bold" colSpan={2}>
+                      {isProfit ? 'Utilidad del Ejercicio' : 'Pérdida del Ejercicio'}
+                    </td>
+                    <td
+                      data-numeric="true"
+                      className={`text-base font-bold ${isProfit ? 'text-sage' : 'text-rust'}`}
+                    >
+                      {fmt(data.utilidadEjercicio)}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </>
       ) : null}
     </div>
   )
 }
 
-function SectionRows({ title, section, sign }: { title: string; section: Section; sign: '+' | '-' }) {
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
+function SectionRows({
+  title,
+  section,
+  sign,
+}: {
+  title: string
+  section: Section
+  sign: '+' | '-'
+}) {
   if (section.rows.length === 0) {
     return (
       <>
-        <tr className="border-b bg-muted/50">
-          <td colSpan={3} className="py-2 px-3 font-semibold">{title}</td>
+        <tr>
+          <td colSpan={3} className="py-2 px-3 font-semibold eyebrow !text-[0.6rem] !text-foreground">{title}</td>
         </tr>
-        <tr className="border-b text-muted-foreground">
-          <td colSpan={3} className="py-2 px-6 italic">(Sin movimientos)</td>
+        <tr>
+          <td colSpan={3} className="py-2 px-6 italic text-muted-foreground/60 text-xs">
+            (Sin movimientos)
+          </td>
         </tr>
       </>
     )
   }
   return (
     <>
-      <tr className="border-b bg-muted/50">
-        <td colSpan={3} className="py-2 px-3 font-semibold">{title}</td>
+      <tr>
+        <td colSpan={3} className="py-2 px-3 font-semibold eyebrow !text-[0.6rem] !text-foreground">{title}</td>
       </tr>
       {section.rows.map((r) => (
-        <tr key={r.accountId} className="border-b last:border-0">
-          <td className="py-2 px-6 font-mono">{r.code}</td>
-          <td className="py-2 px-3">{r.name}</td>
-          <td className="py-2 px-3 text-right font-mono">{sign}{format(r.value)}</td>
+        <tr key={r.accountId}>
+          <td className="py-1.5 px-6 font-mono text-xs">{r.code}</td>
+          <td className="py-1.5 px-3 text-sm">{r.name}</td>
+          <td data-numeric="true" className="py-1.5">
+            <span className="text-muted-foreground/60 mr-0.5">{sign}</span>
+            {fmt(r.value)}
+          </td>
         </tr>
       ))}
     </>
