@@ -1,12 +1,19 @@
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { Bot, X, Send, Square, Trash2, ChevronDown } from 'lucide-react'
+import { Bot, X, Send, Square, Trash2, ChevronDown, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useConsultor } from '@/hooks/use-consultor'
 import { Button } from '@/components/ui/button'
 
-function MessageBubble({
+/**
+ * Editorial chat widget — diseño de transcript, no de bubbles tipo iMessage.
+ *
+ * Cada mensaje es una "entrada" con eyebrow (rol) + barra de acento a la
+ * izquierda + texto. El conjunto se lee como un diálogo impreso.
+ */
+
+function MessageEntry({
   role,
   content,
   isStreaming,
@@ -18,41 +25,44 @@ function MessageBubble({
   const isUser = role === 'user'
 
   return (
-    <div className={cn('flex gap-2 text-sm', isUser ? 'flex-row-reverse' : 'flex-row')}>
-      {/* Avatar */}
-      <div
-        className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-          isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-muted text-muted-foreground border'
-        )}
-      >
-        {isUser ? 'Tú' : <Bot className="h-4 w-4" />}
+    <div
+      className={cn(
+        'group relative pl-3 pr-1 py-1',
+        // Barra de acento vertical a la izquierda
+        'before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5',
+        isUser ? 'before:bg-primary' : 'before:bg-foreground/30'
+      )}
+    >
+      <div className="flex items-baseline gap-2 mb-1">
+        <span
+          className={cn(
+            'eyebrow !text-[0.55rem]',
+            isUser ? 'text-primary' : 'text-foreground/70'
+          )}
+        >
+          {isUser ? 'Tú' : 'Consultor'}
+        </span>
+        <span className="text-[0.6rem] font-mono text-muted-foreground/40">
+          {new Date().toLocaleTimeString('es-CL', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
       </div>
-
-      {/* Bubble */}
-      <div
-        className={cn(
-          'max-w-[80%] rounded-2xl px-3 py-2 leading-relaxed',
-          isUser
-            ? 'bg-primary text-primary-foreground rounded-tr-sm'
-            : 'bg-muted text-foreground rounded-tl-sm'
-        )}
-      >
+      <div className="text-sm leading-relaxed text-foreground">
         {content ? (
           <p className="whitespace-pre-wrap break-words">{content}</p>
         ) : (
           isStreaming && (
-            <span className="flex gap-1 py-1">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-current [animation-delay:0ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-current [animation-delay:150ms]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-current [animation-delay:300ms]" />
+            <span className="inline-flex gap-1 py-1">
+              <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:0ms]" />
+              <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:150ms]" />
+              <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:300ms]" />
             </span>
           )
         )}
         {isStreaming && content && (
-          <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current opacity-70" />
+          <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-primary opacity-80" />
         )}
       </div>
     </div>
@@ -69,18 +79,23 @@ const SUGGESTIONS = [
 export function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
-  const { messages, isLoading, error, sendMessage, clearMessages, stopStreaming } = useConsultor()
+  const {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    clearMessages,
+    stopStreaming,
+  } = useConsultor()
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-scroll al último mensaje
   useEffect(() => {
     if (open) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages, open])
 
-  // Focus input al abrir
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100)
@@ -107,76 +122,69 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Panel de chat */}
+      {/* Panel */}
       <div
         className={cn(
-          'fixed bottom-20 right-4 z-50 flex flex-col rounded-2xl border bg-background shadow-2xl transition-all duration-300',
+          'fixed bottom-20 right-4 z-50 flex flex-col rounded-sm border border-border bg-paper transition-all duration-300',
+          'shadow-[0_24px_64px_-16px_hsl(var(--ink)/0.25)]',
           open
-            ? 'w-[360px] h-[520px] opacity-100 translate-y-0'
+            ? 'w-[380px] h-[560px] opacity-100 translate-y-0'
             : 'w-0 h-0 opacity-0 translate-y-4 pointer-events-none overflow-hidden'
         )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between rounded-t-2xl border-b bg-primary px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary-foreground" />
-            <div>
-              <p className="text-sm font-semibold text-primary-foreground">Consultor Tributario</p>
-              <p className="text-xs text-primary-foreground/70">IA especialista en impuestos CL</p>
+        {/* Header — newspaper-column-style */}
+        <div className="border-b border-border bg-card px-5 pt-4 pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="eyebrow !text-[0.55rem]">
+                  Sección · Consultoría
+                </span>
+                <span className="h-px w-6 bg-foreground/20" />
+                <span className="flex items-center gap-1 text-[0.55rem] uppercase tracking-eyebrow text-sage font-semibold">
+                  <span className="block h-1.5 w-1.5 rounded-full bg-sage animate-pulse" />
+                  En línea
+                </span>
+              </div>
+              <h3 className="font-display text-base font-semibold leading-tight tracking-tightest">
+                Consultor{' '}
+                <em className="text-primary not-italic font-medium">
+                  Tributario
+                </em>
+              </h3>
+              <p className="text-[0.65rem] text-muted-foreground/70 mt-0.5">
+                IA especialista en tributación chilena
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {messages.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={clearMessages}
-                className="h-7 w-7 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                title="Limpiar conversación"
+            <div className="flex items-center gap-1 shrink-0">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearMessages}
+                  className="h-7 w-7 inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                  title="Limpiar conversación"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="h-7 w-7 inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+                title="Cerrar"
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="h-7 w-7 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Transcript */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-center gap-4 pb-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <Bot className="h-7 w-7 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Consultor Tributario IA</p>
-                <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">
-                  Pregúntame sobre IVA, F29, DTE o cualquier duda tributaria chilena.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => handleSuggestion(s)}
-                    className="rounded-xl border px-3 py-2 text-xs text-left hover:bg-accent transition-colors"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <EmptyState onPick={handleSuggestion} />
           ) : (
             <>
               {messages.map((msg) => (
-                <MessageBubble
+                <MessageEntry
                   key={msg.id}
                   role={msg.role}
                   content={msg.content}
@@ -184,26 +192,29 @@ export function ChatWidget() {
                 />
               ))}
               {error && (
-                <p className="text-xs text-destructive text-center bg-destructive/10 rounded-lg px-3 py-2">
+                <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                   {error}
-                </p>
+                </div>
               )}
               <div ref={bottomRef} />
             </>
           )}
         </div>
 
-        {/* Input */}
-        <div className="border-t p-3">
-          <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+        {/* Composer */}
+        <form
+          onSubmit={handleSubmit}
+          className="border-t border-border bg-card px-3 py-3"
+        >
+          <div className="flex gap-2 items-end">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu pregunta tributaria..."
+              placeholder="Escribe tu consulta tributaria..."
               rows={1}
-              className="flex-1 resize-none rounded-xl border bg-muted px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[38px] max-h-[120px]"
+              className="flex-1 resize-none border border-input rounded-sm bg-paper px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 min-h-[38px] max-h-[120px] transition-colors"
               style={{ height: 'auto' }}
               onInput={(e) => {
                 const t = e.currentTarget
@@ -220,7 +231,7 @@ export function ChatWidget() {
                 className="h-[38px] w-[38px] shrink-0"
                 title="Detener"
               >
-                <Square className="h-4 w-4" />
+                <Square className="h-3.5 w-3.5" />
               </Button>
             ) : (
               <Button
@@ -228,29 +239,85 @@ export function ChatWidget() {
                 size="icon"
                 disabled={!input.trim()}
                 className="h-[38px] w-[38px] shrink-0"
+                title="Enviar"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-3.5 w-3.5" />
               </Button>
             )}
-          </form>
-          <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-            IA orientativa — confirma con tu contador
+          </div>
+          <p className="mt-2 text-center text-[0.6rem] font-mono uppercase tracking-eyebrow text-muted-foreground/60">
+            IA orientativa · Confirma con tu contador
           </p>
-        </div>
+        </form>
       </div>
 
-      {/* Botón flotante */}
+      {/* FAB — editorial square with monogram + accent dot */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          'fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300',
-          'bg-primary text-primary-foreground hover:scale-105 active:scale-95',
-          open && 'rotate-180'
+          'group fixed bottom-4 right-4 z-50 inline-flex h-12 w-12 items-center justify-center',
+          'rounded-sm border-2 border-foreground bg-paper transition-all duration-200',
+          'shadow-[0_8px_24px_-4px_hsl(var(--ink)/0.18)] hover:shadow-[0_12px_28px_-4px_hsl(var(--ink)/0.28)]',
+          'hover:-translate-y-px active:translate-y-0',
+          open && 'bg-foreground'
         )}
         aria-label="Abrir Consultor Tributario IA"
       >
-        {open ? <X className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
+        {open ? (
+          <X className="h-5 w-5 text-background" />
+        ) : (
+          <>
+            <Bot
+              className="h-5 w-5 text-foreground group-hover:text-primary transition-colors"
+              strokeWidth={2}
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 bg-primary border border-paper" />
+          </>
+        )}
       </button>
     </>
+  )
+}
+
+function EmptyState({ onPick }: { onPick: (text: string) => void }) {
+  return (
+    <div className="flex flex-col gap-5 px-2 pt-3">
+      <div>
+        <div className="inline-flex h-10 w-10 items-center justify-center border border-foreground bg-paper mb-3 relative">
+          <Bot className="h-5 w-5 text-foreground" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
+        </div>
+        <h4 className="font-display text-lg font-semibold tracking-tightest leading-tight mb-1">
+          ¿En qué te asesoro hoy?
+        </h4>
+        <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
+          Consultas sobre IVA, F29, DTE, retenciones y obligaciones tributarias chilenas.
+        </p>
+      </div>
+
+      <div>
+        <span className="eyebrow !text-[0.55rem] block mb-2">
+          Sugerencias
+        </span>
+        <ul className="space-y-1.5">
+          {SUGGESTIONS.map((s, i) => (
+            <li key={s}>
+              <button
+                onClick={() => onPick(s)}
+                className="group/sug w-full text-left px-2 py-1.5 -mx-2 text-xs flex items-center gap-2 hover:bg-secondary/40 rounded-sm transition-colors"
+              >
+                <span className="font-mono text-[0.55rem] text-muted-foreground/60 tabular tracking-tight w-4">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="flex-1 text-foreground/85 group-hover/sug:text-foreground transition-colors">
+                  {s}
+                </span>
+                <ArrowUpRight className="h-3 w-3 text-muted-foreground/40 group-hover/sug:text-primary group-hover/sug:translate-x-0.5 group-hover/sug:-translate-y-0.5 transition-all" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   )
 }
