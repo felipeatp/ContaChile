@@ -24,6 +24,7 @@ import reportsRoute from './routes/accounting/reports'
 import employeesRoute from './routes/employees'
 import payrollRoute from './routes/payroll'
 import './workers/dte-polling'
+import './workers/alerts'
 
 const app = Fastify({ logger: true })
 
