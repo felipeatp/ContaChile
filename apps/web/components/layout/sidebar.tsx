@@ -38,6 +38,7 @@ const navItems = [
   { href: "/contabilidad/reportes/balance-comprobacion", label: "Balance Comprobación", icon: FileBarChart },
   { href: "/contabilidad/reportes/estado-resultados", label: "Estado Resultados", icon: FileBarChart },
   { href: "/contabilidad/reportes/balance-general", label: "Balance General", icon: FileBarChart },
+  { href: "/banco/conciliacion", label: "Conciliación Bancaria", icon: BookOpen },
   { href: "/remuneraciones/trabajadores", label: "Trabajadores", icon: Users },
   { href: "/remuneraciones/liquidaciones", label: "Liquidaciones", icon: Users },
   { href: "/remuneraciones/exportaciones", label: "PreviRed/DDJJ", icon: Users },
