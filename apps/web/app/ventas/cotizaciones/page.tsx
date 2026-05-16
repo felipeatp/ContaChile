@@ -38,12 +38,12 @@ const STATUS_LABEL: Record<Status, string> = {
 }
 
 const STATUS_COLOR: Record<Status, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  SENT: 'bg-blue-100 text-blue-800',
-  ACCEPTED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  INVOICED: 'bg-purple-100 text-purple-800',
-  EXPIRED: 'bg-yellow-100 text-yellow-800',
+  DRAFT: "bg-muted text-muted-foreground",
+  SENT: "bg-ochre/15 text-ochre",
+  ACCEPTED: "bg-sage/15 text-sage",
+  REJECTED: "bg-rust/15 text-rust",
+  INVOICED: "bg-primary/10 text-primary",
+  EXPIRED: "bg-muted text-muted-foreground/70",
 }
 
 export default function CotizacionesPage() {
@@ -116,26 +116,29 @@ export default function CotizacionesPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Cotizaciones</h1>
-          <p className="text-sm text-muted-foreground">Crea cotizaciones, gestiona estados y convierte a factura con un clic.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Ventas · Cotizaciones</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {quotes.length} en cartera
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Propuestas{" "}
+            <em className="text-primary not-italic font-medium">comerciales</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Borrador → Enviada → Aceptada → Factura. Un clic para convertir.
+          </p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nueva cotización
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <div className="flex items-center gap-2">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as '' | Status)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            onChange={(e) => setStatusFilter(e.target.value as "" | Status)}
+            className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
           >
             <option value="">Todas</option>
             <option value="DRAFT">Borrador</option>
@@ -145,59 +148,78 @@ export default function CotizacionesPage() {
             <option value="INVOICED">Facturada</option>
             <option value="EXPIRED">Vencida</option>
           </select>
-        </CardContent>
-      </Card>
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Nueva cotización
+          </Button>
+        </div>
+      </section>
 
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : quotes.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin cotizaciones.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">N°</th>
-                    <th className="text-left py-2 px-3">Fecha</th>
-                    <th className="text-left py-2 px-3">Cliente</th>
-                    <th className="text-right py-2 px-3">Total</th>
-                    <th className="text-left py-2 px-3">Estado</th>
-                    <th className="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {quotes.map((q) => (
-                    <tr key={q.id} className="border-b last:border-0">
-                      <td className="py-2 px-3 font-mono">{q.number}</td>
-                      <td className="py-2 px-3">{new Date(q.date).toLocaleDateString('es-CL')}</td>
-                      <td className="py-2 px-3">
-                        <div>{q.receiverName}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{q.receiverRut}</div>
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono">{format(q.totalAmount)}</td>
-                      <td className="py-2 px-3">
-                        <span className={`text-xs rounded px-2 py-0.5 ${STATUS_COLOR[q.status]}`}>{STATUS_LABEL[q.status]}</span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <div className="flex gap-1 justify-end items-center">
-                          <a
-                            href={`/api/quotes/${q.id}/pdf`}
-                            target="_blank"
-                            rel="noopener"
-                            className="inline-flex items-center justify-center rounded-md h-8 px-2 text-xs hover:bg-muted"
-                            title="Descargar PDF"
-                          >
-                            <FileDown className="h-4 w-4" />
-                          </a>
-                          {q.status === 'DRAFT' && (
-                            <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'send')} title="Enviar">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          )}
+      <div className="card-editorial overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-48">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : quotes.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="font-display text-lg text-muted-foreground mb-1">
+              Sin cotizaciones
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Crea la primera con el botón &ldquo;Nueva cotización&rdquo;.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-editorial">
+              <thead>
+                <tr>
+                  <th data-numeric="true">N°</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th data-numeric="true">Total</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((q) => (
+                  <tr key={q.id}>
+                    <td data-numeric="true" className="text-foreground font-semibold">
+                      {q.number}
+                    </td>
+                    <td className="text-muted-foreground">
+                      {new Date(q.date).toLocaleDateString("es-CL")}
+                    </td>
+                    <td>
+                      <div className="text-foreground">{q.receiverName}</div>
+                      <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                        {q.receiverRut}
+                      </div>
+                    </td>
+                    <td data-numeric="true" className="font-semibold">
+                      {format(q.totalAmount)}
+                    </td>
+                    <td>
+                      <span className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-2 py-1 ${STATUS_COLOR[q.status]}`}>
+                        {STATUS_LABEL[q.status]}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex gap-1 justify-end items-center">
+                        <a
+                          href={`/api/quotes/${q.id}/pdf`}
+                          target="_blank"
+                          rel="noopener"
+                          className="inline-flex items-center justify-center rounded-sm h-8 px-2 text-xs hover:bg-secondary transition-colors"
+                          title="Descargar PDF"
+                        >
+                          <FileDown className="h-4 w-4" />
+                        </a>
+                        {q.status === "DRAFT" && (
+                          <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, "send")} title="Enviar">
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        )}
                           {(q.status === 'DRAFT' || q.status === 'SENT') && (
                             <>
                               <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'accept')} title="Aceptar">
@@ -226,8 +248,7 @@ export default function CotizacionesPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
       {formOpen && (
         <QuoteForm

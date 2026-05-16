@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
 
@@ -72,26 +73,29 @@ export default function HonorariosPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Boletas de Honorarios</h1>
-          <p className="text-sm text-muted-foreground">Emitidas y recibidas con retención 13,75%.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Compras · Honorarios</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              Retención 13,75 %
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Boletas{' '}
+            <em className="text-primary not-italic font-medium">de honorarios</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Emitidas y recibidas. Cálculo automático de retención y asiento contable.
+          </p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nueva boleta
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <select
             value={type}
             onChange={(e) => setType(e.target.value as '' | HonorarioType)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
           >
             <option value="">Todas</option>
             <option value="ISSUED">Emitidas</option>
@@ -100,7 +104,7 @@ export default function HonorariosPage() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
           >
             {Array.from({ length: 6 }, (_, i) => today.getFullYear() - i).map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -109,83 +113,120 @@ export default function HonorariosPage() {
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 rounded-sm border border-input bg-background px-3 text-sm"
           >
             {MONTHS.map((m, i) => (
               <option key={i} value={i}>{m}</option>
             ))}
           </select>
-        </CardContent>
-      </Card>
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Nueva boleta
+          </Button>
+        </div>
+      </section>
 
       {data && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Emitidas (bruto)</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{format(data.totals.issuedGross)}</div>
-              <p className="text-xs text-muted-foreground">Retención: {format(data.totals.issuedRetention)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Recibidas (bruto)</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{format(data.totals.receivedGross)}</div>
-              <p className="text-xs text-muted-foreground">Retención: {format(data.totals.receivedRetention)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Total Retenciones</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {format(data.totals.issuedRetention + data.totals.receivedRetention)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <span className="eyebrow">I · Resumen del período</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Stat
+              label="Emitidas · bruto"
+              value={format(data.totals.issuedGross)}
+              caption={`Retención ${format(data.totals.issuedRetention)}`}
+              tone="default"
+            />
+            <Stat
+              label="Recibidas · bruto"
+              value={format(data.totals.receivedGross)}
+              caption={`Retención ${format(data.totals.receivedRetention)}`}
+              tone="default"
+            />
+            <Stat
+              label="Retenciones totales"
+              value={format(data.totals.issuedRetention + data.totals.receivedRetention)}
+              tone="accent"
+              caption="13,75 % sobre montos brutos"
+            />
+          </div>
+        </section>
       )}
 
-      <Card>
-        <CardContent className="p-0">
+      <section>
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <span className="eyebrow block mb-1">II · Detalle</span>
+            <h3 className="font-display text-2xl font-semibold tracking-tightest">
+              Boletas registradas
+            </h3>
+          </div>
+          <span className="text-xs text-muted-foreground/60 font-mono">
+            {data?.honorarios.length ?? 0} boletas
+          </span>
+        </div>
+
+        <div className="card-editorial overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !data || data.honorarios.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin boletas en el período.</p>
+            <div className="p-12 text-center">
+              <p className="font-display text-lg text-muted-foreground mb-1">
+                Sin boletas en el período
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                Registra la primera con &ldquo;Nueva boleta&rdquo;.
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="table-editorial">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">Fecha</th>
-                    <th className="text-left py-2 px-3">Tipo</th>
-                    <th className="text-left py-2 px-3">N°</th>
-                    <th className="text-left py-2 px-3">Contraparte</th>
-                    <th className="text-right py-2 px-3">Bruto</th>
-                    <th className="text-right py-2 px-3">Retención</th>
-                    <th className="text-right py-2 px-3">Líquido</th>
-                    <th className="py-2 px-3"></th>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>N°</th>
+                    <th>Contraparte</th>
+                    <th data-numeric="true">Bruto</th>
+                    <th data-numeric="true">Retención</th>
+                    <th data-numeric="true">Líquido</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.honorarios.map((h) => (
-                    <tr key={h.id} className="border-b last:border-0">
-                      <td className="py-2 px-3">{new Date(h.date).toLocaleDateString('es-CL')}</td>
-                      <td className="py-2 px-3">
-                        <span className={`text-xs rounded px-2 py-0.5 ${h.type === 'ISSUED' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                    <tr key={h.id}>
+                      <td className="text-muted-foreground">
+                        {new Date(h.date).toLocaleDateString('es-CL')}
+                      </td>
+                      <td>
+                        <span
+                          className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-2 py-1 ${
+                            h.type === 'ISSUED'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-ochre/15 text-ochre'
+                          }`}
+                        >
                           {h.type === 'ISSUED' ? 'Emitida' : 'Recibida'}
                         </span>
                       </td>
-                      <td className="py-2 px-3 font-mono">{h.number}</td>
-                      <td className="py-2 px-3">
-                        <div>{h.counterpartName}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{h.counterpartRut}</div>
+                      <td className="font-mono">{h.number}</td>
+                      <td>
+                        <div className="text-foreground">{h.counterpartName}</div>
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">
+                          {h.counterpartRut}
+                        </div>
                       </td>
-                      <td className="py-2 px-3 text-right font-mono">{format(h.grossAmount)}</td>
-                      <td className="py-2 px-3 text-right font-mono">{format(h.retentionAmount)}</td>
-                      <td className="py-2 px-3 text-right font-mono font-semibold">{format(h.netAmount)}</td>
-                      <td className="py-2 px-3 text-right">
+                      <td data-numeric="true">{format(h.grossAmount)}</td>
+                      <td data-numeric="true" className="text-muted-foreground">
+                        {format(h.retentionAmount)}
+                      </td>
+                      <td data-numeric="true" className="font-semibold">
+                        {format(h.netAmount)}
+                      </td>
+                      <td className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(h.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -196,13 +237,16 @@ export default function HonorariosPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {formOpen && (
         <HonorarioForm
           onClose={() => setFormOpen(false)}
-          onSaved={() => { setFormOpen(false); fetchData() }}
+          onSaved={() => {
+            setFormOpen(false)
+            fetchData()
+          }}
         />
       )}
     </div>
