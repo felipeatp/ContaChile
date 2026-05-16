@@ -1,6 +1,7 @@
 "use client"
 
 import { Stat } from "@/components/ui/stat"
+import { AnimatedFigure } from "@/components/ui/animated-figure"
 import { FileCheck, FileClock, FileX, FileText } from "lucide-react"
 import { Document } from "@/types"
 
@@ -50,15 +51,18 @@ export function StatsCards({ documents }: StatsCardsProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, i) => (
+      {stats.map((stat) => (
         <Stat
           key={stat.label}
           label={stat.label}
-          value={String(stat.value).padStart(2, "0")}
+          value={
+            <AnimatedFigure
+              value={stat.value}
+              format={(n) => String(Math.round(n)).padStart(2, "0")}
+            />
+          }
           tone={stat.tone}
           icon={stat.icon}
-          style={{ animationDelay: `${i * 60}ms` }}
-          className="animate-fade-up"
         />
       ))}
     </div>
