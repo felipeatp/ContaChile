@@ -7,20 +7,21 @@ import { EmitDocumentSchema, calcularIVA, calcularTotal } from "@contachile/vali
 import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select } from "@/components/ui/select"
+import { Field } from "@/components/ui/field"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AlertCircle, CheckCircle2, Loader2, Trash2, Plus, Send, Building2 } from "lucide-react"
 
 const DTE_TYPES = [
-  { value: 33, label: "33 - Factura Electrónica", desc: "Venta de bienes o servicios" },
-  { value: 34, label: "34 - Factura Exenta", desc: "Operaciones no afectas a IVA" },
-  { value: 39, label: "39 - Boleta Electrónica", desc: "Venta a consumidor final" },
-  { value: 41, label: "41 - Boleta Exenta", desc: "Operaciones exentas a consumidor final" },
-  { value: 43, label: "43 - Liquidación-Factura", desc: "Compra de productos agrícolas" },
-  { value: 46, label: "46 - Factura de Compra", desc: "Compra a no obligados a facturar" },
-  { value: 52, label: "52 - Guía de Despacho", desc: "Traslado de mercaderías" },
-  { value: 56, label: "56 - Nota de Débito", desc: "Aumento en el valor de una factura" },
-  { value: 61, label: "61 - Nota de Crédito", desc: "Disminución o anulación de una factura" },
+  { value: 33, label: "Factura electrónica", desc: "Venta de bienes o servicios" },
+  { value: 34, label: "Factura exenta", desc: "Operaciones no afectas a IVA" },
+  { value: 39, label: "Boleta electrónica", desc: "Venta a consumidor final" },
+  { value: 41, label: "Boleta exenta", desc: "Operaciones exentas a consumidor final" },
+  { value: 43, label: "Liquidación-Factura", desc: "Compra de productos agrícolas" },
+  { value: 46, label: "Factura de compra", desc: "Compra a no obligados a facturar" },
+  { value: 52, label: "Guía de despacho", desc: "Traslado de mercaderías" },
+  { value: 56, label: "Nota de débito", desc: "Aumento en el valor de una factura" },
+  { value: 61, label: "Nota de crédito", desc: "Disminución o anulación de una factura" },
 ]
 
 function formatRUT(rut: string): string {
@@ -40,6 +41,8 @@ function formatRUT(rut: string): string {
   }
   return formatted + "-" + dv
 }
+
+const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
 
 export function EmitForm() {
   const [mode, setMode] = useState<"direct" | "bridge">("direct")
@@ -117,9 +120,7 @@ export function EmitForm() {
             }
           }
         })
-        .catch(() => {
-          // ignore fetch errors
-        })
+        .catch(() => {})
     }
   }, [creditNoteId, form])
 
@@ -148,9 +149,7 @@ export function EmitForm() {
             }
           }
         })
-        .catch(() => {
-          // ignore fetch errors
-        })
+        .catch(() => {})
     }
   }, [duplicateId, form])
 
@@ -211,89 +210,78 @@ export function EmitForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      {/* Mode selector */}
-      <div className="flex items-center space-x-4">
-        <Button
-          type="button"
-          variant={mode === "direct" ? "default" : "outline"}
+    <form onSubmit={onSubmit} className="space-y-8">
+      <div className="card-editorial p-1 flex">
+        <ModeTab
+          active={mode === "direct"}
           onClick={() => setMode("direct")}
-          className="flex-1"
-        >
-          <Send className="mr-2 h-4 w-4" />
-          Emisión Directa
-        </Button>
-        <Button
-          type="button"
-          variant={mode === "bridge" ? "default" : "outline"}
+          icon={<Send className="h-4 w-4" />}
+          label="Emisión directa"
+        />
+        <ModeTab
+          active={mode === "bridge"}
           onClick={() => setMode("bridge")}
-          className="flex-1"
-        >
-          <Building2 className="mr-2 h-4 w-4" />
-          Bridge (Acepta)
-        </Button>
+          icon={<Building2 className="h-4 w-4" />}
+          label="Bridge · Acepta"
+        />
       </div>
 
-      {/* Document type */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tipo de Documento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {DTE_TYPES.map((type) => (
+      <Section eyebrow="I · Tipo de documento" title="¿Qué emites?">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {DTE_TYPES.map((type) => {
+            const selected = currentType === type.value
+            return (
               <label
                 key={type.value}
-                className={`flex flex-col p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                  currentType === type.value
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground/30"
+                className={`group cursor-pointer rounded-sm border p-3 transition-all ${
+                  selected
+                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                    : "border-border hover:border-foreground/30"
                 }`}
               >
                 <input
                   type="radio"
                   name="type"
                   value={type.value}
-                  checked={currentType === type.value}
+                  checked={selected}
                   onChange={() => form.setValue("type", type.value, { shouldValidate: true })}
                   className="sr-only"
                 />
-                <span className="font-medium text-sm">{type.label}</span>
-                <span className="text-xs text-muted-foreground mt-1">{type.desc}</span>
+                <div className="flex items-baseline justify-between gap-2 mb-1">
+                  <span className={`eyebrow ${selected ? "!text-primary" : ""}`}>
+                    Tipo {type.value}
+                  </span>
+                  {selected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                </div>
+                <p className="font-display text-sm font-semibold tracking-tight">{type.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{type.desc}</p>
               </label>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            )
+          })}
+        </div>
+      </Section>
 
-      {/* Receiver */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Receptor</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <Section eyebrow="II · Receptor" title="Cliente del documento">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Field label="RUT" error={form.formState.errors.receiver?.rut?.message as string | undefined}>
             <div className="relative">
-              <label className="text-sm font-medium">RUT</label>
               <Input
                 {...form.register("receiver.rut")}
                 placeholder="76.123.456-7"
                 onBlur={handleRutBlur}
-                onFocus={() => rutValue?.length >= 3 && receiverSuggestions.length > 0 && setShowSuggestions(true)}
+                onFocus={() => (rutValue?.length ?? 0) >= 3 && receiverSuggestions.length > 0 && setShowSuggestions(true)}
                 className={form.formState.errors.receiver?.rut ? "border-destructive" : ""}
               />
               {suggestionsLoading && (
-                <div className="absolute right-3 top-8">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
+                <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
               )}
               {showSuggestions && receiverSuggestions.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full rounded-md border bg-background shadow-lg">
+                <div className="absolute z-10 mt-1 w-full rounded-sm border border-border bg-card shadow-lg">
                   {receiverSuggestions.map((s) => (
                     <button
                       key={s.rut}
                       type="button"
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors first:rounded-t-sm last:rounded-b-sm"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         form.setValue("receiver.rut", formatRUT(s.rut), { shouldValidate: true })
@@ -304,94 +292,72 @@ export function EmitForm() {
                         setShowSuggestions(false)
                       }}
                     >
-                      <span className="font-medium">{formatRUT(s.rut)}</span>
+                      <span className="font-mono text-xs font-medium">{formatRUT(s.rut)}</span>
                       <span className="text-muted-foreground ml-2">{s.name}</span>
                     </button>
                   ))}
                 </div>
               )}
-              {form.formState.errors.receiver?.rut && (
-                <div className="flex items-center mt-1 text-sm text-destructive">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {form.formState.errors.receiver.rut.message}
-                </div>
-              )}
             </div>
-            <div>
-              <label className="text-sm font-medium">Nombre / Razón Social</label>
-              <Input
-                {...form.register("receiver.name")}
-                placeholder="Razón social"
-                className={form.formState.errors.receiver?.name ? "border-destructive" : ""}
-              />
-              {form.formState.errors.receiver?.name && (
-                <div className="flex items-center mt-1 text-sm text-destructive">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  {form.formState.errors.receiver.name.message}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-sm font-medium">Dirección</label>
-              <Input {...form.register("receiver.address")} placeholder="Dirección completa" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Comuna</label>
-              <Input {...form.register("receiver.commune")} placeholder="Santiago" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-sm font-medium">Ciudad</label>
-              <Input {...form.register("receiver.city")} placeholder="Santiago" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Email (opcional)</label>
-              <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" type="email" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </Field>
+          <Field label="Razón social" error={form.formState.errors.receiver?.name?.message as string | undefined}>
+            <Input
+              {...form.register("receiver.name")}
+              placeholder="Razón social"
+              className={form.formState.errors.receiver?.name ? "border-destructive" : ""}
+            />
+          </Field>
+          <Field label="Dirección">
+            <Input {...form.register("receiver.address")} placeholder="Dirección completa" />
+          </Field>
+          <Field label="Comuna">
+            <Input {...form.register("receiver.commune")} placeholder="Santiago" />
+          </Field>
+          <Field label="Ciudad">
+            <Input {...form.register("receiver.city")} placeholder="Santiago" />
+          </Field>
+          <Field label="Email" hint="opcional">
+            <Input {...form.register("receiver.email" as never)} placeholder="receptor@empresa.cl" type="email" />
+          </Field>
+        </div>
+      </Section>
 
-      {/* Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Items</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Section eyebrow="III · Items" title="Detalle del documento">
+        <div className="space-y-3">
           {fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-12 gap-3 items-end p-3 rounded-lg border bg-muted/30">
-              <div className="col-span-12 md:col-span-5">
-                <label className="text-sm font-medium">Descripción</label>
-                <Input
-                  {...form.register(`items.${index}.description`)}
-                  placeholder="Producto o servicio"
-                />
+            <div key={field.id} className="grid grid-cols-12 gap-3 items-end rounded-sm border border-border/60 bg-secondary/30 p-3">
+              <div className="col-span-12 md:col-span-6">
+                <Field label="Descripción">
+                  <Input
+                    {...form.register(`items.${index}.description`)}
+                    placeholder="Producto o servicio"
+                  />
+                </Field>
               </div>
               <div className="col-span-4 md:col-span-2">
-                <label className="text-sm font-medium">Cant.</label>
-                <Input
-                  type="number"
-                  {...form.register(`items.${index}.quantity`, { valueAsNumber: true })}
-                />
+                <Field label="Cantidad">
+                  <Input
+                    type="number"
+                    {...form.register(`items.${index}.quantity`, { valueAsNumber: true })}
+                  />
+                </Field>
               </div>
               <div className="col-span-5 md:col-span-3">
-                <label className="text-sm font-medium">Precio unitario</label>
-                <Input
-                  type="number"
-                  {...form.register(`items.${index}.unitPrice`, { valueAsNumber: true })}
-                />
+                <Field label="Precio unitario">
+                  <Input
+                    type="number"
+                    {...form.register(`items.${index}.unitPrice`, { valueAsNumber: true })}
+                  />
+                </Field>
               </div>
-              <div className="col-span-3 md:col-span-2">
+              <div className="col-span-3 md:col-span-1 flex justify-end">
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="ghost"
                   size="sm"
                   onClick={() => remove(index)}
                   disabled={fields.length === 1}
-                  className="w-full"
+                  title="Eliminar"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -402,79 +368,120 @@ export function EmitForm() {
             type="button"
             variant="outline"
             onClick={() => append({ description: "", quantity: 1, unitPrice: 0 })}
-            className="w-full"
           >
             <Plus className="mr-2 h-4 w-4" />
             Agregar item
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Payment method */}
-      <div className="flex items-center space-x-4">
-        <div className="w-full md:w-auto">
-          <label className="text-sm font-medium">Método de pago</label>
-          <select
-            {...form.register("paymentMethod")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="CONTADO">Contado</option>
-            <option value="CREDITO">Crédito</option>
-          </select>
         </div>
+      </Section>
+
+      <Section eyebrow="IV · Pago y totales" title="Forma y monto">
+        <div className="grid gap-6 md:grid-cols-2 items-start">
+          <Field label="Método de pago">
+            <Select {...form.register("paymentMethod")}>
+              <option value="CONTADO">Contado</option>
+              <option value="CREDITO">Crédito</option>
+            </Select>
+          </Field>
+
+          <div className="card-editorial p-5 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">Neto</span>
+              <span className="font-mono tabular-nums text-sm">{fmt(totals.neto)}</span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">IVA · 19 %</span>
+              <span className="font-mono tabular-nums text-sm">{fmt(totals.tax)}</span>
+            </div>
+            <div className="h-px bg-border/60" />
+            <div className="flex items-baseline justify-between">
+              <span className="eyebrow">Total</span>
+              <span className="stat-figure text-2xl">{fmt(totals.total)}</span>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Button type="submit" disabled={isPending} size="lg">
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Emitiendo…
+            </>
+          ) : mode === "direct" ? (
+            "Emitir DTE"
+          ) : (
+            "Emitir vía Acepta"
+          )}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          El folio se asigna en la generación. El XML se firma con tu certificado y se envía al SII.
+        </p>
       </div>
 
-      {/* Totals */}
-      <Card className="bg-muted/50">
-        <CardHeader>
-          <CardTitle>Totales</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Neto</span>
-            <span className="font-medium">${totals.neto.toLocaleString("es-CL")}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">IVA (19%)</span>
-            <span className="font-medium">${totals.tax.toLocaleString("es-CL")}</span>
-          </div>
-          <div className="border-t pt-2 flex justify-between text-lg font-bold">
-            <span>Total</span>
-            <span>${totals.total.toLocaleString("es-CL")}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Submit */}
-      <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Emitiendo...
-          </>
-        ) : mode === "direct" ? (
-          "Emitir DTE"
-        ) : (
-          "Emitir vía Acepta"
-        )}
-      </Button>
-
       {isSuccess && (
-        <div className="flex items-center p-4 rounded-lg bg-green-50 text-green-700">
-          <CheckCircle2 className="h-5 w-5 mr-2" />
+        <div className="flex items-center gap-3 rounded-sm border border-sage/30 bg-sage/5 p-4 text-sage">
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
           <p className="text-sm">
-            Documento emitido correctamente. Folio: {successData?.folio ?? "N/A"}
+            Documento emitido. Folio:{' '}
+            <span className="font-mono font-semibold">{successData?.folio ?? "N/A"}</span>
           </p>
         </div>
       )}
       {isError && (
-        <div className="flex items-center p-4 rounded-lg bg-destructive/10 text-destructive">
-          <AlertCircle className="h-5 w-5 mr-2" />
-          <p className="text-sm">
-            Error al emitir: {error?.message}
-          </p>
+        <div className="flex items-center gap-3 rounded-sm border border-destructive/40 bg-destructive/5 p-4 text-destructive">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <p className="text-sm">Error al emitir: {error?.message}</p>
         </div>
       )}
     </form>
+  )
+}
+
+function ModeTab({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex-1 inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors ${
+        active
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  )
+}
+
+function Section({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="space-y-4">
+      <div>
+        <span className="eyebrow block mb-1">{eyebrow}</span>
+        <h3 className="font-display text-xl font-semibold tracking-tightest">{title}</h3>
+      </div>
+      {children}
+    </section>
   )
 }
