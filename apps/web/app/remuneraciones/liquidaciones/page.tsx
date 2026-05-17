@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { Loader2, Play, FileDown, CheckCircle2 } from 'lucide-react'
 
@@ -72,7 +72,7 @@ export default function LiquidacionesPage() {
         setMessage(`Error: ${result.error || 'desconocido'}`)
         return
       }
-      setMessage(`Generadas: ${result.generated} | Saltadas: ${result.skipped}`)
+      setMessage(`Generadas: ${result.generated} · Saltadas: ${result.skipped}`)
       fetchData()
     } finally {
       setGenerating(false)
@@ -90,21 +90,31 @@ export default function LiquidacionesPage() {
   }
 
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
+  const totalDescuentos = data ? data.totals.afp + data.totals.salud + data.totals.cesantia + data.totals.impuesto : 0
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Liquidaciones de sueldo</h1>
-          <p className="text-sm text-muted-foreground">
-            {MONTHS[month - 1]} {year}
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Remuneraciones · Liquidaciones</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {data?.payrolls.length ?? 0} ítems
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            {MONTHS[month - 1]}{' '}
+            <em className="text-primary not-italic font-medium">{year}</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Cotizaciones AFP/salud/cesantía, impuesto único progresivo y líquido. Al aprobar se genera el asiento 5100/2115/2110.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
             {Array.from({ length: 6 }, (_, i) => today.getFullYear() - i).map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -113,7 +123,6 @@ export default function LiquidacionesPage() {
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
             {MONTHS.map((m, i) => (
               <option key={i} value={i + 1}>{m}</option>
@@ -124,10 +133,12 @@ export default function LiquidacionesPage() {
             Generar mes
           </Button>
         </div>
-      </div>
+      </section>
 
       {message && (
-        <div className="rounded-lg bg-muted px-4 py-2 text-sm">{message}</div>
+        <div className="rounded-sm border border-foreground/10 bg-secondary px-4 py-2.5 text-xs text-foreground/80">
+          {message}
+        </div>
       )}
 
       {loading ? (
@@ -136,74 +147,71 @@ export default function LiquidacionesPage() {
         </div>
       ) : data ? (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Total Bruto</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.totals.bruto)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Total Descuentos</CardTitle></CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {format(data.totals.afp + data.totals.salud + data.totals.cesantia + data.totals.impuesto)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Impuesto Único</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.totals.impuesto)}</div></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Total Líquido</CardTitle></CardHeader>
-              <CardContent><div className="text-2xl font-bold">{format(data.totals.liquido)}</div></CardContent>
-            </Card>
-          </div>
+          <section className="grid gap-4 md:grid-cols-4">
+            <Stat label="Bruto" value={format(data.totals.bruto)} tone="default" />
+            <Stat label="Descuentos" value={format(totalDescuentos)} tone="negative" caption="AFP + salud + cesantía + impuesto" />
+            <Stat label="Impuesto único" value={format(data.totals.impuesto)} tone="warning" />
+            <Stat label="Líquido a pagar" value={format(data.totals.liquido)} tone="positive" />
+          </section>
 
-          <Card>
-            <CardContent className="p-0">
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <span className="eyebrow block mb-1">I · Detalle por trabajador</span>
+                <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                  Liquidaciones del período
+                </h3>
+              </div>
+            </div>
+
+            <div className="card-editorial overflow-hidden">
               {data.payrolls.length === 0 ? (
-                <div className="p-6 text-center">
-                  <p className="text-sm text-muted-foreground">No hay liquidaciones para este período.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Hacé clic en "Generar mes" para crear las liquidaciones de los trabajadores activos.</p>
+                <div className="p-12 text-center">
+                  <p className="font-display text-lg text-muted-foreground mb-1">
+                    Sin liquidaciones para este período
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Pulsa &ldquo;Generar mes&rdquo; para crear las liquidaciones de los trabajadores activos.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="table-editorial">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2 px-3">Trabajador</th>
-                        <th className="text-left py-2 px-3">RUT</th>
-                        <th className="text-left py-2 px-3">AFP</th>
-                        <th className="text-right py-2 px-3">Bruto</th>
-                        <th className="text-right py-2 px-3">AFP</th>
-                        <th className="text-right py-2 px-3">Salud</th>
-                        <th className="text-right py-2 px-3">Impuesto</th>
-                        <th className="text-right py-2 px-3">Líquido</th>
-                        <th className="text-left py-2 px-3">Estado</th>
-                        <th className="py-2 px-3"></th>
+                      <tr>
+                        <th>Trabajador</th>
+                        <th>RUT</th>
+                        <th>AFP</th>
+                        <th data-numeric="true">Bruto</th>
+                        <th data-numeric="true">AFP</th>
+                        <th data-numeric="true">Salud</th>
+                        <th data-numeric="true">Impuesto</th>
+                        <th data-numeric="true">Líquido</th>
+                        <th>Estado</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.payrolls.map((p) => (
-                        <tr key={p.id} className="border-b last:border-0">
-                          <td className="py-2 px-3">{p.employee.name}</td>
-                          <td className="py-2 px-3 font-mono text-xs">{p.employee.rut}</td>
-                          <td className="py-2 px-3">{p.employee.afp}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(p.bruto)}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(p.afp)}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(p.salud)}</td>
-                          <td className="py-2 px-3 text-right font-mono">{format(p.impuesto)}</td>
-                          <td className="py-2 px-3 text-right font-mono font-semibold">{format(p.liquido)}</td>
-                          <td className="py-2 px-3">
+                        <tr key={p.id}>
+                          <td>{p.employee.name}</td>
+                          <td className="font-mono text-xs">{p.employee.rut}</td>
+                          <td className="text-muted-foreground">{p.employee.afp}</td>
+                          <td data-numeric="true">{format(p.bruto)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{format(p.afp)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{format(p.salud)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{format(p.impuesto)}</td>
+                          <td data-numeric="true" className="font-semibold">{format(p.liquido)}</td>
+                          <td>
                             <StatusBadge status={p.status} />
                           </td>
-                          <td className="py-2 px-3">
+                          <td>
                             <div className="flex gap-1 justify-end">
                               <a
                                 href={`/api/payroll/item/${p.id}/pdf`}
                                 target="_blank"
                                 rel="noopener"
-                                className="inline-flex items-center justify-center rounded-md h-8 px-2 text-xs hover:bg-muted"
+                                className="inline-flex items-center justify-center rounded-sm h-8 w-8 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                                 title="Descargar PDF"
                               >
                                 <FileDown className="h-4 w-4" />
@@ -217,33 +225,42 @@ export default function LiquidacionesPage() {
                           </td>
                         </tr>
                       ))}
-                      <tr className="font-semibold bg-muted/50">
-                        <td colSpan={3} className="py-2 px-3 text-right">Totales</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(data.totals.bruto)}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(data.totals.afp)}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(data.totals.salud)}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(data.totals.impuesto)}</td>
-                        <td className="py-2 px-3 text-right font-mono">{format(data.totals.liquido)}</td>
+                      <tr className="bg-secondary/60 font-semibold">
+                        <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Totales</td>
+                        <td data-numeric="true">{format(data.totals.bruto)}</td>
+                        <td data-numeric="true">{format(data.totals.afp)}</td>
+                        <td data-numeric="true">{format(data.totals.salud)}</td>
+                        <td data-numeric="true">{format(data.totals.impuesto)}</td>
+                        <td data-numeric="true">{format(data.totals.liquido)}</td>
                         <td colSpan={2}></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </>
       ) : null}
     </div>
   )
 }
 
+const STATUS_TONE: Record<'DRAFT' | 'APPROVED' | 'PAID', string> = {
+  DRAFT: 'bg-ochre/15 text-ochre',
+  APPROVED: 'bg-primary/10 text-primary',
+  PAID: 'bg-sage/15 text-sage',
+}
+const STATUS_LABEL: Record<'DRAFT' | 'APPROVED' | 'PAID', string> = {
+  DRAFT: 'Borrador',
+  APPROVED: 'Aprobado',
+  PAID: 'Pagado',
+}
+
 function StatusBadge({ status }: { status: 'DRAFT' | 'APPROVED' | 'PAID' }) {
-  const colors = {
-    DRAFT: 'bg-yellow-100 text-yellow-800',
-    APPROVED: 'bg-blue-100 text-blue-800',
-    PAID: 'bg-green-100 text-green-800',
-  }
-  const labels = { DRAFT: 'Borrador', APPROVED: 'Aprobado', PAID: 'Pagado' }
-  return <span className={`text-xs rounded px-2 py-0.5 ${colors[status]}`}>{labels[status]}</span>
+  return (
+    <span className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-1.5 py-0.5 ${STATUS_TONE[status]}`}>
+      {STATUS_LABEL[status]}
+    </span>
+  )
 }
