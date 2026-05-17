@@ -1,5 +1,5 @@
 import { prisma } from '@contachile/db'
-import { streamAgent, runAgent, AgentTool } from '../base-agent'
+import { streamAgent, runAgent, streamAgentWithTools, AgentTool, type AgentEvent } from '../base-agent'
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import {
@@ -7,6 +7,7 @@ import {
   calcularRetencionHonorarios,
   calcularLiquidacion,
 } from '@contachile/validators'
+import { buildContextSnapshot } from '../context'
 
 const SYSTEM_PROMPT = `Eres el Consultor Tributario IA de ContaChile, especialista en impuestos y contabilidad chilena.
 
@@ -312,5 +313,38 @@ export async function runConsultorWithTools(
     model: 'claude-sonnet-4-6',
     maxTokens: 2048,
     onToolCall: (name, input) => executeConsultorTool(companyId, name, input),
+  })
+}
+
+const TOOL_USAGE_GUIDE = `
+
+## USO DE HERRAMIENTAS
+- Si te preguntan por un documento puntual (folio, RUT o cliente), usa find_documents.
+- Si te piden datos de un mes diferente al actual o más detalle del mes en curso, usa get_monthly_summary.
+- Para cálculos sobre montos específicos (IVA, retención honorarios, líquido), usa calculate_tax.
+- Para preguntas generales o si la respuesta está en el snapshot, contesta directo sin tools.`
+
+/**
+ * Consultor con contexto del tenant + tool use + streaming.
+ * Inyecta un snapshot markdown del tenant en el system prompt y habilita
+ * las tools de consulta. Retorna un ReadableStream de AgentEvent
+ * (text deltas + indicadores de tool calls).
+ */
+export async function streamConsultorWithContext(
+  companyId: string,
+  messages: ConsultorMessage[]
+): Promise<ReadableStream<AgentEvent>> {
+  const snapshot = await buildContextSnapshot(companyId)
+  const enrichedSystemPrompt = `${SYSTEM_PROMPT}\n\n${snapshot}${TOOL_USAGE_GUIDE}`
+  const anthropicMessages = wrapUserContent(messages)
+
+  return streamAgentWithTools({
+    systemPrompt: enrichedSystemPrompt,
+    messages: anthropicMessages,
+    tools: TOOLS,
+    onToolCall: (name, input) => executeConsultorTool(companyId, name, input),
+    model: 'claude-sonnet-4-6',
+    maxTokens: 2048,
+    maxIterations: 5,
   })
 }
