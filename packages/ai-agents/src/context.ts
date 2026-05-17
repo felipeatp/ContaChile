@@ -87,7 +87,11 @@ export async function buildContextSnapshot(companyId: string): Promise<string> {
 
     lines.push('')
     lines.push('### Próxima obligación')
-    lines.push(`- F29 vence el ${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]} (en ${f29Days} día${f29Days === 1 ? '' : 's'}).`)
+    if (f29Days === 0) {
+      lines.push(`- F29 vence hoy (${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]}).`)
+    } else {
+      lines.push(`- F29 vence el ${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]} (en ${f29Days} día${f29Days === 1 ? '' : 's'}).`)
+    }
 
     return lines.join('\n')
   } catch (err) {

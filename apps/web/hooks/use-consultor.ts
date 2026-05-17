@@ -70,6 +70,7 @@ export function useConsultor() {
       const decoder = new TextDecoder()
       let accumulated = ''
       let streamErrored = false
+      let streamDone = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -81,7 +82,10 @@ export function useConsultor() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const data = line.slice(6).trim()
-          if (data === '[DONE]') break
+          if (data === '[DONE]') {
+            streamDone = true
+            break
+          }
 
           try {
             const parsed = JSON.parse(data) as {
@@ -129,6 +133,8 @@ export function useConsultor() {
             // ignorar chunks mal formados
           }
         }
+
+        if (streamDone) break
       }
 
       // Marcar como completo; si no llegó contenido, eliminar el mensaje vacío

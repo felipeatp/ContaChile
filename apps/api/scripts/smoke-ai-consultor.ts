@@ -11,7 +11,7 @@
  *   apps/api/node_modules/.bin/tsx.CMD apps/api/scripts/smoke-ai-consultor.ts
  */
 
-import { PrismaClient } from '../../../packages/db/generated/client'
+import { PrismaClient } from '@contachile/db'
 
 const prisma = new PrismaClient()
 const COMPANY_ID = 'dev-test-company'

@@ -9,6 +9,7 @@ beforeAll(async () => {
   // Clean
   await prisma.documentItem.deleteMany({ where: { document: { companyId: COMPANY_ID } } })
   await prisma.document.deleteMany({ where: { companyId: COMPANY_ID } })
+  await prisma.purchase.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.employee.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.company.deleteMany({ where: { id: COMPANY_ID } })
 
@@ -51,6 +52,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.document.deleteMany({ where: { companyId: COMPANY_ID } })
+  await prisma.purchase.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.employee.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.company.deleteMany({ where: { id: COMPANY_ID } })
   await prisma.$disconnect()

@@ -86,6 +86,11 @@ export default async function (fastify: FastifyInstance) {
       'X-Accel-Buffering': 'no',
     })
 
+    // Heartbeat para forzar flush de headers antes del snapshot (que puede
+    // tomar 50-200ms de queries). Algunos proxies cierran conexiones sin
+    // primer byte rápido. Comment-only SSE (:) — el cliente lo ignora.
+    reply.raw.write(': ok\n\n')
+
     if (injectionDetected) {
       reply.raw.write(`data: ${JSON.stringify({ text: 'Lo siento, no puedo procesar ese tipo de solicitud. Estoy aquí para ayudarte con consultas tributarias chilenas.' })}\n\n`)
       reply.raw.write('data: [DONE]\n\n')
