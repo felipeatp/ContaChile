@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
+import { Field } from "@/components/ui/field"
 import { Button } from "@/components/ui/button"
-import { Building2, Mail, Phone, MapPin, User, Loader2, FileKey } from "lucide-react"
+import { Building2, Mail, Phone, MapPin, User, Loader2, FileKey, CheckCircle2 } from "lucide-react"
 
 interface Company {
   id: string
@@ -121,229 +122,253 @@ export default function SettingsPage() {
     )
   }
 
+  const isError = message?.toLowerCase().includes("error")
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Configuración</h1>
-        <p className="text-muted-foreground">Administra la información de tu empresa y preferencias</p>
-      </div>
+    <div className="space-y-8 animate-fade-up">
+      <section className="max-w-2xl">
+        <div className="flex items-center gap-3 mb-3">
+          <span className="eyebrow">Sistema · Configuración</span>
+          <span className="h-px w-10 bg-foreground/20" />
+          <span className="eyebrow text-muted-foreground/60">
+            {company?.siiCertified ? "Certificado SII" : "Pre-certificación"}
+          </span>
+        </div>
+        <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+          Datos de tu{' '}
+          <em className="text-primary not-italic font-medium">empresa</em>
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Información tributaria que aparece en los DTE, preferencias por defecto y certificado digital para firma XML.
+        </p>
+      </section>
 
       {message && (
-        <div className={`rounded-lg px-4 py-2 text-sm ${message.includes("Error") ? "bg-destructive/10 text-destructive" : "bg-green-100 text-green-800"}`}>
+        <div className={`rounded-sm border px-3 py-2 text-xs ${isError ? "border-destructive/30 bg-destructive/5 text-destructive" : "border-sage/30 bg-sage/5 text-sage"}`}>
           {message}
         </div>
       )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Company info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="mr-2 h-5 w-5" />
-              Información de la empresa
-            </CardTitle>
-            <CardDescription>Datos que aparecen en tus documentos tributarios</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">RUT</label>
-                <Input
-                  placeholder="76.123.456-7"
-                  value={company?.rut ?? ""}
-                  onChange={(e) => handleChange("rut", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Nombre / Razón Social</label>
-                <Input
-                  placeholder="Empresa SpA"
-                  value={company?.name ?? ""}
-                  onChange={(e) => handleChange("name", e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Giro</label>
+        <SectionCard
+          eyebrow="I · Empresa"
+          title="Información tributaria"
+          description="Datos que aparecen en tus documentos electrónicos."
+          icon={<Building2 className="h-5 w-5 text-muted-foreground/70" />}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="RUT">
+              <Input
+                placeholder="76.123.456-7"
+                value={company?.rut ?? ""}
+                onChange={(e) => handleChange("rut", e.target.value)}
+              />
+            </Field>
+            <Field label="Razón social">
+              <Input
+                placeholder="Empresa SpA"
+                value={company?.name ?? ""}
+                onChange={(e) => handleChange("name", e.target.value)}
+              />
+            </Field>
+            <Field label="Giro" className="col-span-2">
               <Input
                 placeholder="Actividad económica"
                 value={company?.giro ?? ""}
                 onChange={(e) => handleChange("giro", e.target.value)}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Dirección</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="Av. Principal 123"
-                    value={company?.address ?? ""}
-                    onChange={(e) => handleChange("address", e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Comuna</label>
+            </Field>
+            <Field label="Dirección">
+              <div className="relative">
+                <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60" />
                 <Input
-                  placeholder="Santiago"
-                  value={company?.commune ?? ""}
-                  onChange={(e) => handleChange("commune", e.target.value)}
+                  className="pl-9"
+                  placeholder="Av. Principal 123"
+                  value={company?.address ?? ""}
+                  onChange={(e) => handleChange("address", e.target.value)}
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Ciudad</label>
+            </Field>
+            <Field label="Comuna">
+              <Input
+                placeholder="Santiago"
+                value={company?.commune ?? ""}
+                onChange={(e) => handleChange("commune", e.target.value)}
+              />
+            </Field>
+            <Field label="Ciudad">
+              <Input
+                placeholder="Santiago"
+                value={company?.city ?? ""}
+                onChange={(e) => handleChange("city", e.target.value)}
+              />
+            </Field>
+            <Field label="Actividad económica" hint="Acteco">
+              <Input
+                placeholder="620200"
+                value={company?.economicActivity ?? ""}
+                onChange={(e) => handleChange("economicActivity", e.target.value)}
+              />
+            </Field>
+            <Field label="Teléfono">
+              <div className="relative">
+                <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60" />
                 <Input
-                  placeholder="Santiago"
-                  value={company?.city ?? ""}
-                  onChange={(e) => handleChange("city", e.target.value)}
+                  className="pl-9"
+                  placeholder="+56 2 1234 5678"
+                  value={company?.phone ?? ""}
+                  onChange={(e) => handleChange("phone", e.target.value)}
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Actividad Económica (Acteco)</label>
+            </Field>
+            <Field label="Email">
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground/60" />
                 <Input
-                  placeholder="620200"
-                  value={company?.economicActivity ?? ""}
-                  onChange={(e) => handleChange("economicActivity", e.target.value)}
+                  className="pl-9"
+                  placeholder="contacto@empresa.cl"
+                  value={company?.email ?? ""}
+                  onChange={(e) => handleChange("email", e.target.value)}
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Teléfono</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="+56 2 1234 5678"
-                    value={company?.phone ?? ""}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="contacto@empresa.cl"
-                    value={company?.email ?? ""}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
+            </Field>
+          </div>
+          <div className="pt-2">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar cambios
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
 
-        {/* User profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5" />
-              Perfil de usuario
-            </CardTitle>
-            <CardDescription>Configuración de tu cuenta</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Nombre</label>
-              <Input placeholder="Tu nombre" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Email</label>
-              <Input type="email" placeholder="tu@email.com" />
-            </div>
-            <Button disabled>Actualizar perfil</Button>
-          </CardContent>
-        </Card>
+        <SectionCard
+          eyebrow="II · Cuenta"
+          title="Perfil de usuario"
+          description="Configuración personal de tu sesión."
+          icon={<User className="h-5 w-5 text-muted-foreground/70" />}
+        >
+          <div className="space-y-3">
+            <Field label="Nombre">
+              <Input placeholder="Tu nombre" disabled />
+            </Field>
+            <Field label="Email">
+              <Input type="email" placeholder="tu@email.com" disabled />
+            </Field>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Pronto disponible. Mientras tanto, gestiona desde tu proveedor de identidad.
+          </p>
+        </SectionCard>
 
-        {/* DTE Preferences */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferencias de DTE</CardTitle>
-            <CardDescription>Configuración por defecto para nuevos documentos</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Método de pago por defecto</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        <SectionCard
+          eyebrow="III · DTE"
+          title="Preferencias por defecto"
+          description="Valores que se preseleccionan al emitir un nuevo documento."
+        >
+          <div className="space-y-3">
+            <Field label="Método de pago por defecto">
+              <Select
                 value={company?.defaultPaymentMethod ?? "CONTADO"}
                 onChange={(e) => handleChange("defaultPaymentMethod", e.target.value)}
               >
                 <option value="CONTADO">Contado</option>
                 <option value="CREDITO">Crédito</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Tipo de documento por defecto</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              </Select>
+            </Field>
+            <Field label="Tipo de documento por defecto">
+              <Select
                 value={company?.defaultDocumentType ?? 33}
                 onChange={(e) => handleChange("defaultDocumentType", Number(e.target.value))}
               >
-                <option value={33}>33 - Factura Electrónica</option>
-                <option value={39}>39 - Boleta Electrónica</option>
-                <option value={61}>61 - Nota de Crédito</option>
-              </select>
-            </div>
+                <option value={33}>33 — Factura electrónica</option>
+                <option value={39}>39 — Boleta electrónica</option>
+                <option value={61}>61 — Nota de crédito</option>
+              </Select>
+            </Field>
+          </div>
+          <div className="pt-2">
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar preferencias
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
 
-        {/* Certificates */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileKey className="mr-2 h-5 w-5" />
-              Certificado digital
-            </CardTitle>
-            <CardDescription>Gestiona tu certificado para firma de DTE</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+        <SectionCard
+          eyebrow="IV · Firma electrónica"
+          title="Certificado digital"
+          description="Tu .pfx/.p12 se almacena cifrado con AES-256."
+          icon={<FileKey className="h-5 w-5 text-muted-foreground/70" />}
+        >
+          {company?.certEncrypted && (
+            <div className="flex items-center gap-2 text-xs text-sage">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="font-medium">Certificado cargado</span>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Field label="Archivo de certificado" hint=".pfx o .p12">
               <input
                 type="file"
                 accept=".pfx,.p12"
                 onChange={(e) => setCertFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-sm file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-xs file:font-medium file:uppercase file:tracking-eyebrow file:text-background hover:file:bg-foreground/90"
               />
+            </Field>
+            <Field label="Contraseña del certificado" hint="opcional">
               <Input
                 type="password"
-                placeholder="Contraseña del certificado (opcional)"
+                placeholder="••••••"
                 value={certPassword}
                 onChange={(e) => setCertPassword(e.target.value)}
               />
-              <Button
-                variant="outline"
-                onClick={handleCertUpload}
-                disabled={!certFile || certLoading}
-              >
-                {certLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Subir certificado
-              </Button>
-            </div>
-            {company?.certEncrypted && (
-              <p className="text-xs text-green-600">✓ Certificado cargado</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Tu certificado se almacena cifrado con AES-256. La clave de cifrado se gestiona de forma segura.
-            </p>
-          </CardContent>
-        </Card>
+            </Field>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              onClick={handleCertUpload}
+              disabled={!certFile || certLoading}
+            >
+              {certLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Subir certificado
+            </Button>
+          </div>
+        </SectionCard>
       </div>
     </div>
+  )
+}
+
+function SectionCard({
+  eyebrow,
+  title,
+  description,
+  icon,
+  children,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <article className="card-editorial p-6 space-y-5">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <span className="eyebrow">{eyebrow}</span>
+          <h3 className="font-display text-xl font-semibold tracking-tightest mt-1">
+            {title}
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        </div>
+        {icon}
+      </header>
+      <div className="h-px bg-border/60" />
+      <div className="space-y-4">{children}</div>
+    </article>
   )
 }
