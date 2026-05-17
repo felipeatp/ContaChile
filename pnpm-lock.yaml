@@ -184,9 +184,15 @@ importers:
       '@contachile/db':
         specifier: workspace:*
         version: link:../db
+      '@contachile/validators':
+        specifier: workspace:*
+        version: link:../validators
       openai:
         specifier: ^4.0.0
-        version: 4.104.0
+        version: 4.104.0(zod@3.25.76)
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -3315,7 +3321,7 @@ packages:
       mimic-fn: 4.0.0
     dev: true
 
-  /openai@4.104.0:
+  /openai@4.104.0(zod@3.25.76):
     resolution: {integrity: sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==}
     hasBin: true
     peerDependencies:
@@ -3334,6 +3340,7 @@ packages:
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
       node-fetch: 2.7.0
+      zod: 3.25.76
     transitivePeerDependencies:
       - encoding
     dev: false

@@ -13,14 +13,22 @@ import { Button } from '@/components/ui/button'
  * izquierda + texto. El conjunto se lee como un diálogo impreso.
  */
 
+const TOOL_LABELS: Record<string, string> = {
+  find_documents: 'Buscando documentos',
+  get_monthly_summary: 'Resumiendo el mes',
+  calculate_tax: 'Calculando impuesto',
+}
+
 function MessageEntry({
   role,
   content,
   isStreaming,
+  toolStatus,
 }: {
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
+  toolStatus?: { name: string; running: boolean }
 }) {
   const isUser = role === 'user'
 
@@ -28,7 +36,6 @@ function MessageEntry({
     <div
       className={cn(
         'group relative pl-3 pr-1 py-1',
-        // Barra de acento vertical a la izquierda
         'before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5',
         isUser ? 'before:bg-primary' : 'before:bg-foreground/30'
       )}
@@ -49,11 +56,23 @@ function MessageEntry({
           })}
         </span>
       </div>
+
+      {toolStatus?.running && (
+        <div className="inline-flex items-center gap-2 mb-1.5 px-2 py-0.5 rounded-sm bg-secondary/40 text-[0.65rem] font-medium text-foreground/70">
+          <span className="inline-flex gap-0.5">
+            <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:0ms]" />
+            <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:150ms]" />
+            <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:300ms]" />
+          </span>
+          <span>{TOOL_LABELS[toolStatus.name] ?? 'Consultando datos'}…</span>
+        </div>
+      )}
+
       <div className="text-sm leading-relaxed text-foreground">
         {content ? (
           <p className="whitespace-pre-wrap break-words">{content}</p>
         ) : (
-          isStreaming && (
+          isStreaming && !toolStatus?.running && (
             <span className="inline-flex gap-1 py-1">
               <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:0ms]" />
               <span className="h-1 w-1 animate-bounce rounded-full bg-foreground/50 [animation-delay:150ms]" />
@@ -189,6 +208,7 @@ export function ChatWidget() {
                   role={msg.role}
                   content={msg.content}
                   isStreaming={msg.isStreaming}
+                  toolStatus={msg.toolStatus}
                 />
               ))}
               {error && (

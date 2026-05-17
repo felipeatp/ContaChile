@@ -7,6 +7,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
+  toolStatus?: { name: string; running: boolean }
 }
 
 export function useConsultor() {
@@ -69,6 +70,7 @@ export function useConsultor() {
       const decoder = new TextDecoder()
       let accumulated = ''
       let streamErrored = false
+      let streamDone = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -80,12 +82,19 @@ export function useConsultor() {
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const data = line.slice(6).trim()
-          if (data === '[DONE]') break
+          if (data === '[DONE]') {
+            streamDone = true
+            break
+          }
 
           try {
-            const parsed = JSON.parse(data) as { text?: string; error?: string }
+            const parsed = JSON.parse(data) as {
+              text?: string
+              error?: string
+              tool?: string
+              status?: 'running' | 'done' | 'error'
+            }
 
-            // El servidor mandó un error vía SSE
             if (parsed.error) {
               streamErrored = true
               setError(parsed.error)
@@ -93,12 +102,29 @@ export function useConsultor() {
               return
             }
 
+            if (parsed.tool && parsed.status) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? {
+                        ...m,
+                        toolStatus:
+                          parsed.status === 'running'
+                            ? { name: parsed.tool!, running: true }
+                            : undefined,
+                      }
+                    : m
+                )
+              )
+              continue
+            }
+
             if (parsed.text) {
               accumulated += parsed.text
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
-                    ? { ...m, content: accumulated, isStreaming: true }
+                    ? { ...m, content: accumulated, isStreaming: true, toolStatus: undefined }
                     : m
                 )
               )
@@ -107,6 +133,8 @@ export function useConsultor() {
             // ignorar chunks mal formados
           }
         }
+
+        if (streamDone) break
       }
 
       // Marcar como completo; si no llegó contenido, eliminar el mensaje vacío

@@ -172,7 +172,7 @@ Expected: matches the declaration line.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/ai-agents/src/base-agent.ts packages/ai-agents/dist/
+git add packages/ai-agents/src/base-agent.ts
 git commit -m "feat(ai-agents): add streamAgentWithTools with tool_use loop
 
 Anthropic SDK streaming with tools support. Iterates over chunks for
@@ -435,7 +435,7 @@ Expected: 2 tests PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add packages/ai-agents/src/context.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/ apps/api/tests/ai-context.test.ts
+git add packages/ai-agents/src/context.ts packages/ai-agents/src/index.ts apps/api/tests/ai-context.test.ts
 git commit -m "feat(ai-agents): add buildContextSnapshot
 
 Generates markdown snapshot of current tenant context (company,
@@ -591,6 +591,7 @@ const TOOLS: AgentTool[] = [
         amount: { type: 'number', description: 'Monto base en CLP' },
         afp: { type: 'string', enum: ['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO'], description: 'Requerido para sueldo_liquido' },
         healthPlan: { type: 'string', enum: ['FONASA', 'ISAPRE'], description: 'Requerido para sueldo_liquido' },
+        contractType: { type: 'string', enum: ['INDEFINIDO', 'PLAZO_FIJO', 'HONORARIOS'], description: 'Opcional para sueldo_liquido. Default INDEFINIDO (incluye seguro cesantía).' },
       },
       required: ['kind', 'amount'],
     },
@@ -618,6 +619,7 @@ const CalculateTaxSchema = z.object({
   amount: z.number().nonnegative(),
   afp: z.enum(['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO']).optional(),
   healthPlan: z.enum(['FONASA', 'ISAPRE']).optional(),
+  contractType: z.enum(['INDEFINIDO', 'PLAZO_FIJO', 'HONORARIOS']).optional(),
 })
 
 // ─── Executor ─────────────────────────────────────────────────────────────────
@@ -648,14 +650,14 @@ export async function executeConsultorTool(
         }),
         prisma.purchase.findMany({
           where: { companyId, date: { gte: from, lt: to } },
-          select: { totalNet: true, totalTax: true, totalAmount: true },
+          select: { netAmount: true, taxAmount: true, totalAmount: true },
         }),
       ])
       const accepted = docs.filter(d => d.status === 'ACCEPTED')
       const ventasNeto = accepted.reduce((s, d) => s + d.totalNet, 0)
       const ivaDebito = accepted.reduce((s, d) => s + d.totalTax, 0)
-      const comprasNeto = purchases.reduce((s, p) => s + p.totalNet, 0)
-      const ivaCredito = purchases.reduce((s, p) => s + p.totalTax, 0)
+      const comprasNeto = purchases.reduce((s, p) => s + p.netAmount, 0)
+      const ivaCredito = purchases.reduce((s, p) => s + p.taxAmount, 0)
 
       return {
         periodo: `${month.toString().padStart(2, '0')}/${year}`,
@@ -724,7 +726,7 @@ export async function executeConsultorTool(
     case 'calculate_tax': {
       const parsed = CalculateTaxSchema.safeParse(input)
       if (!parsed.success) return { error: 'Argumentos inválidos para calculate_tax' }
-      const { kind, amount, afp, healthPlan } = parsed.data
+      const { kind, amount, afp, healthPlan, contractType } = parsed.data
       if (kind === 'iva') {
         const iva = calcularIVA(amount)
         return { neto: amount, iva, total: amount + iva, nota: 'IVA 19% redondeado hacia abajo' }
@@ -737,15 +739,21 @@ export async function executeConsultorTool(
         if (!afp || !healthPlan) {
           return { error: 'sueldo_liquido requiere afp y healthPlan' }
         }
-        const liq = calcularLiquidacion({ baseSalary: amount, afp, healthPlan })
+        const liq = calcularLiquidacion({
+          baseSalary: amount,
+          afp,
+          healthPlan,
+          contractType: contractType ?? 'INDEFINIDO',
+        })
         return {
-          bruto: amount,
-          afp_descuento: liq.afpAmount,
-          salud_descuento: liq.healthAmount,
-          cesantia_descuento: liq.cesantiaAmount,
-          impuesto_unico: liq.taxAmount,
+          bruto: liq.bruto,
+          afp_descuento: liq.afp,
+          salud_descuento: liq.salud,
+          cesantia_descuento: liq.cesantia,
+          base_imponible: liq.baseImponible,
+          impuesto_unico: liq.impuesto,
           liquido: liq.liquido,
-          nota: 'Cálculo orientativo; topes y créditos no incluidos.',
+          nota: 'Cálculo orientativo; topes legales no incluidos.',
         }
       }
       return { error: `Tipo de cálculo no soportado: ${kind}` }
@@ -804,7 +812,7 @@ Expected: TODOS los tests PASS (8 tests: 2 de snapshot + 8 de tools = ~10 totale
 - [ ] **Step 8: Commit**
 
 ```bash
-git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/ apps/api/tests/ai-context.test.ts
+git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts apps/api/tests/ai-context.test.ts
 git commit -m "feat(ai-agents): replace consultor tools with get_monthly_summary, find_documents, calculate_tax
 
 executeConsultorTool centraliza la ejecución scoped por companyId.
@@ -883,7 +891,7 @@ Expected: silent success.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/
+git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts
 git commit -m "feat(ai-agents): add streamConsultorWithContext
 
 Wrapper que combina snapshot + tools + streaming. Sustituye al chat
