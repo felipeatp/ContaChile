@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
@@ -26,6 +25,11 @@ type Entry = {
 
 type Account = { id: string; code: string; name: string; isActive: boolean }
 
+const SOURCE_TONE: Record<Entry['source'], string> = {
+  manual: 'bg-secondary text-foreground/80',
+  dte: 'bg-primary/10 text-primary',
+  purchase: 'bg-sage/15 text-sage',
+}
 const SOURCE_LABEL: Record<Entry['source'], string> = {
   manual: 'Manual',
   dte: 'DTE',
@@ -74,92 +78,117 @@ export default function LibroDiarioPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Libro Diario</h1>
-          <p className="text-sm text-muted-foreground">Asientos contables cronológicos.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Contabilidad · Libro Diario</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {entries.length} {entries.length === 1 ? 'asiento' : 'asientos'}
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Asientos{' '}
+            <em className="text-primary not-italic font-medium">cronológicos</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Toda partida doble: DTE emitidos, compras registradas y movimientos manuales. Cada asiento debe cuadrar debe = haber.
+          </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Nuevo asiento manual
         </Button>
-      </div>
+      </section>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
+      <section className="card-editorial p-5 flex flex-wrap items-end gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold uppercase tracking-eyebrow text-foreground/70">Desde</label>
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold uppercase tracking-eyebrow text-foreground/70">Hasta</label>
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[0.65rem] font-semibold uppercase tracking-eyebrow text-foreground/70">Fuente</label>
           <select
             value={source}
             onChange={(e) => setSource(e.target.value as '' | 'manual' | 'dte' | 'purchase')}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
-            <option value="">Todas las fuentes</option>
+            <option value="">Todas</option>
             <option value="manual">Manual</option>
             <option value="dte">DTE</option>
             <option value="purchase">Compra</option>
           </select>
-        </CardContent>
-      </Card>
+        </div>
+        {(from || to || source) && (
+          <Button variant="ghost" size="sm" onClick={() => { setFrom(''); setTo(''); setSource('') }}>
+            Limpiar
+          </Button>
+        )}
+      </section>
 
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : entries.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin asientos en el período.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">Fecha</th>
-                    <th className="text-left py-2 px-3">Descripción</th>
-                    <th className="text-left py-2 px-3">Referencia</th>
-                    <th className="text-left py-2 px-3">Fuente</th>
-                    <th className="text-right py-2 px-3">Total</th>
-                    <th className="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((e) => {
-                    const total = e.lines.reduce((s, l) => s + l.debit, 0)
-                    return (
-                      <tr key={e.id} className="border-b last:border-0">
-                        <td className="py-2 px-3">{new Date(e.date).toLocaleDateString('es-CL')}</td>
-                        <td className="py-2 px-3">{e.description}</td>
-                        <td className="py-2 px-3 font-mono text-xs">{e.reference || '—'}</td>
-                        <td className="py-2 px-3">
-                          <span className="text-xs rounded bg-muted px-2 py-0.5">{SOURCE_LABEL[e.source]}</span>
-                        </td>
-                        <td className="py-2 px-3 text-right font-mono">{format(total)}</td>
-                        <td className="py-2 px-3 text-right">
-                          <Button variant="ghost" size="sm" onClick={() => setDetailEntry(e)}>Ver</Button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="card-editorial overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-48">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="font-display text-lg text-muted-foreground mb-1">
+              Sin asientos en el período
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Ajusta los filtros o crea un asiento manual con &ldquo;Nuevo asiento manual&rdquo;.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-editorial">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Referencia</th>
+                  <th>Fuente</th>
+                  <th data-numeric="true">Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((e) => {
+                  const total = e.lines.reduce((s, l) => s + l.debit, 0)
+                  return (
+                    <tr key={e.id}>
+                      <td className="font-mono text-xs">{new Date(e.date).toLocaleDateString('es-CL')}</td>
+                      <td>{e.description}</td>
+                      <td className="font-mono text-xs text-muted-foreground">{e.reference || '—'}</td>
+                      <td>
+                        <span className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-1.5 py-0.5 ${SOURCE_TONE[e.source]}`}>
+                          {SOURCE_LABEL[e.source]}
+                        </span>
+                      </td>
+                      <td data-numeric="true" className="font-semibold">{format(total)}</td>
+                      <td className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => setDetailEntry(e)}>Ver</Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {detailEntry && <EntryDetailModal entry={detailEntry} onClose={() => setDetailEntry(null)} />}
       {formOpen && (
