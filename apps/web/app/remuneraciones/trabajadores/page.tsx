@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus, X, Trash2, Edit2 } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
@@ -67,11 +66,23 @@ export default function TrabajadoresPage() {
   const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Trabajadores</h1>
-          <p className="text-sm text-muted-foreground">Ficha y contrato de empleados.</p>
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Remuneraciones · Personal</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">
+              {employees.length} {showInactive ? 'totales' : 'activos'}
+            </span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            Ficha de{' '}
+            <em className="text-primary not-italic font-medium">trabajadores</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Datos personales, contrato, AFP y plan de salud. La generación mensual de liquidaciones lee de aquí.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
@@ -80,75 +91,82 @@ export default function TrabajadoresPage() {
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
             />
-            Mostrar inactivos
+            Inactivos
           </label>
           <Button onClick={() => { setEditing(null); setFormOpen(true) }}>
             <Plus className="mr-2 h-4 w-4" /> Nuevo trabajador
           </Button>
         </div>
-      </div>
+      </section>
 
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : employees.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">Sin trabajadores registrados.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-3">RUT</th>
-                    <th className="text-left py-2 px-3">Nombre</th>
-                    <th className="text-left py-2 px-3">Cargo</th>
-                    <th className="text-left py-2 px-3">Contrato</th>
-                    <th className="text-left py-2 px-3">AFP</th>
-                    <th className="text-right py-2 px-3">Sueldo</th>
-                    <th className="text-left py-2 px-3">Estado</th>
-                    <th className="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((e) => (
-                    <tr key={e.id} className="border-b last:border-0">
-                      <td className="py-2 px-3 font-mono text-xs">{e.rut}</td>
-                      <td className="py-2 px-3">{e.name}</td>
-                      <td className="py-2 px-3">{e.position}</td>
-                      <td className="py-2 px-3">
-                        <span className="text-xs rounded bg-muted px-2 py-0.5">{CONTRACT_LABEL[e.contractType]}</span>
-                      </td>
-                      <td className="py-2 px-3">{e.afp}</td>
-                      <td className="py-2 px-3 text-right font-mono">{format(e.baseSalary)}</td>
-                      <td className="py-2 px-3">
-                        {e.isActive ? (
-                          <span className="text-xs rounded bg-green-100 text-green-800 px-2 py-0.5">Activo</span>
-                        ) : (
-                          <span className="text-xs rounded bg-muted text-muted-foreground px-2 py-0.5">Inactivo</span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="sm" onClick={() => { setEditing(e); setFormOpen(true) }}>
-                            <Edit2 className="h-4 w-4" />
+      <div className="card-editorial overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-48">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : employees.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="font-display text-lg text-muted-foreground mb-1">
+              Sin trabajadores registrados
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Registra el primero con &ldquo;Nuevo trabajador&rdquo;.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table-editorial">
+              <thead>
+                <tr>
+                  <th>RUT</th>
+                  <th>Nombre</th>
+                  <th>Cargo</th>
+                  <th>Contrato</th>
+                  <th>AFP</th>
+                  <th data-numeric="true">Sueldo</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((e) => (
+                  <tr key={e.id}>
+                    <td className="font-mono text-xs">{e.rut}</td>
+                    <td>{e.name}</td>
+                    <td className="text-muted-foreground">{e.position}</td>
+                    <td>
+                      <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-secondary px-1.5 py-0.5">
+                        {CONTRACT_LABEL[e.contractType]}
+                      </span>
+                    </td>
+                    <td className="text-muted-foreground">{e.afp}</td>
+                    <td data-numeric="true" className="font-semibold">{format(e.baseSalary)}</td>
+                    <td>
+                      {e.isActive ? (
+                        <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-sage/15 text-sage px-1.5 py-0.5">Activo</span>
+                      ) : (
+                        <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-muted text-muted-foreground px-1.5 py-0.5">Inactivo</span>
+                      )}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex gap-1 justify-end">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditing(e); setFormOpen(true) }}>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        {e.isActive && (
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(e.id)}>
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                          {e.isActive && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(e.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {formOpen && (
         <EmployeeForm
