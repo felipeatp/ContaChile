@@ -26,12 +26,26 @@ export interface AgentStreamConfig extends Omit<AgentConfig, 'userMessage'> {
   messages: Anthropic.MessageParam[]
 }
 
+export interface AgentStreamConfigWithTools extends AgentStreamConfig {
+  tools: AgentTool[]
+  onToolCall: (toolName: string, input: unknown) => unknown | Promise<unknown>
+  maxIterations?: number
+}
+
+export type AgentEvent =
+  | { kind: 'text'; value: string }
+  | { kind: 'tool'; name: string; status: 'running' | 'done' | 'error' }
+
 // ─── Clientes ────────────────────────────────────────────────────────────────
 
 const anthropicClient = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   ...(process.env.ANTHROPIC_BASE_URL && { baseURL: process.env.ANTHROPIC_BASE_URL }),
 })
+
+// Permite sobreescribir el modelo Anthropic (incluso si el llamante pasó uno)
+// vía env var. Útil para apuntar a endpoints Anthropic-compatible como Kimi.
+const ANTHROPIC_MODEL_OVERRIDE = process.env.ANTHROPIC_MODEL || ''
 
 // Cliente OpenAI-compatible (NVIDIA NIM, etc.)
 const openaiCompatClient = new OpenAI({
@@ -57,7 +71,8 @@ function extractText(content: Anthropic.ContentBlock[]): string {
 // ─── Streaming ───────────────────────────────────────────────────────────────
 
 function streamAnthropic(config: AgentStreamConfig): ReadableStream<string> {
-  const { systemPrompt, messages, model = 'claude-sonnet-4-6', maxTokens = 4096 } = config
+  const { systemPrompt, messages, maxTokens = 4096 } = config
+  const model = ANTHROPIC_MODEL_OVERRIDE || config.model || 'claude-sonnet-4-6'
 
   return new ReadableStream<string>({
     async start(controller) {
@@ -147,10 +162,10 @@ export async function runAgent(config: AgentConfig): Promise<string> {
     systemPrompt,
     userMessage,
     tools = [],
-    model = 'claude-haiku-4-5',
     maxTokens = 4096,
     onToolCall,
   } = config
+  const model = ANTHROPIC_MODEL_OVERRIDE || config.model || 'claude-haiku-4-5'
 
   const messages: Anthropic.MessageParam[] = [{ role: 'user', content: userMessage }]
 
@@ -202,4 +217,107 @@ export async function runAgent(config: AgentConfig): Promise<string> {
 
     return extractText(response.content)
   }
+}
+
+/**
+ * Stream agente Anthropic con tool use loop completo.
+ * Emite eventos AgentEvent: chunks de texto + indicadores de tool calls.
+ *
+ * Solo disponible con proveedor 'anthropic' (incluye endpoints
+ * Anthropic-compatible como Kimi for Coding).
+ */
+export function streamAgentWithTools(
+  config: AgentStreamConfigWithTools
+): ReadableStream<AgentEvent> {
+  const model = ANTHROPIC_MODEL_OVERRIDE || config.model || 'claude-sonnet-4-6'
+  const maxTokens = config.maxTokens ?? 4096
+  const maxIterations = config.maxIterations ?? 5
+
+  return new ReadableStream<AgentEvent>({
+    async start(controller) {
+      let messages: Anthropic.MessageParam[] = [...config.messages]
+      let iterations = 0
+
+      try {
+        while (iterations < maxIterations) {
+          iterations++
+
+          const stream = anthropicClient.messages.stream({
+            model,
+            max_tokens: maxTokens,
+            system: config.systemPrompt,
+            tools: config.tools as Anthropic.Tool[],
+            messages,
+          })
+
+          for await (const chunk of stream) {
+            if (
+              chunk.type === 'content_block_start' &&
+              chunk.content_block.type === 'tool_use'
+            ) {
+              controller.enqueue({
+                kind: 'tool',
+                name: chunk.content_block.name,
+                status: 'running',
+              })
+            } else if (
+              chunk.type === 'content_block_delta' &&
+              chunk.delta.type === 'text_delta'
+            ) {
+              controller.enqueue({ kind: 'text', value: chunk.delta.text })
+            }
+          }
+
+          const final = await stream.finalMessage()
+          const toolUses = final.content.filter(
+            (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
+          )
+
+          if (final.stop_reason !== 'tool_use' || toolUses.length === 0) {
+            controller.close()
+            return
+          }
+
+          const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
+            toolUses.map(async (tu) => {
+              try {
+                const result = await config.onToolCall(tu.name, tu.input)
+                controller.enqueue({ kind: 'tool', name: tu.name, status: 'done' })
+                return {
+                  type: 'tool_result' as const,
+                  tool_use_id: tu.id,
+                  content:
+                    typeof result === 'string' ? result : JSON.stringify(result),
+                }
+              } catch (err) {
+                controller.enqueue({ kind: 'tool', name: tu.name, status: 'error' })
+                return {
+                  type: 'tool_result' as const,
+                  tool_use_id: tu.id,
+                  content: JSON.stringify({
+                    error: err instanceof Error ? err.message : String(err),
+                  }),
+                  is_error: true,
+                }
+              }
+            })
+          )
+
+          messages.push(
+            { role: 'assistant', content: final.content },
+            { role: 'user', content: toolResults }
+          )
+        }
+
+        controller.enqueue({
+          kind: 'text',
+          value:
+            '\n\n(He alcanzado el límite de consultas para esta pregunta. ¿Podrías reformularla?)',
+        })
+        controller.close()
+      } catch (err) {
+        controller.error(err)
+      }
+    },
+  })
 }
