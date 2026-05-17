@@ -273,6 +273,18 @@ export function streamAgentWithTools(
             (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
           )
 
+          // Si el modelo se quedó sin tokens (con o sin tool_use parcial),
+          // avisar al usuario en vez de cerrar silencioso.
+          if (final.stop_reason === 'max_tokens') {
+            controller.enqueue({
+              kind: 'text',
+              value:
+                '\n\n(La respuesta se cortó por límite de tokens. Si necesitas más detalle, pregúntame con un foco más específico.)',
+            })
+            controller.close()
+            return
+          }
+
           if (final.stop_reason !== 'tool_use' || toolUses.length === 0) {
             controller.close()
             return

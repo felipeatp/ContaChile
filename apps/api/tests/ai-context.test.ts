@@ -2,6 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { PrismaClient } from '@contachile/db'
 import { buildContextSnapshot, executeConsultorTool } from '@contachile/ai-agents'
 
+// Cliente dedicado para el test. Importar el singleton de @contachile/db
+// causa que $disconnect() en afterAll mate también el cliente usado por
+// los módulos importados (consultor.ts, context.ts) y el worker de vitest
+// crashea en cleanup. Mantener uno aparte.
 const prisma = new PrismaClient()
 const COMPANY_ID = 'test-ai-context-company'
 
