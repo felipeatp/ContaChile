@@ -172,7 +172,7 @@ Expected: matches the declaration line.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/ai-agents/src/base-agent.ts packages/ai-agents/dist/
+git add packages/ai-agents/src/base-agent.ts
 git commit -m "feat(ai-agents): add streamAgentWithTools with tool_use loop
 
 Anthropic SDK streaming with tools support. Iterates over chunks for
@@ -435,7 +435,7 @@ Expected: 2 tests PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add packages/ai-agents/src/context.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/ apps/api/tests/ai-context.test.ts
+git add packages/ai-agents/src/context.ts packages/ai-agents/src/index.ts apps/api/tests/ai-context.test.ts
 git commit -m "feat(ai-agents): add buildContextSnapshot
 
 Generates markdown snapshot of current tenant context (company,
@@ -804,7 +804,7 @@ Expected: TODOS los tests PASS (8 tests: 2 de snapshot + 8 de tools = ~10 totale
 - [ ] **Step 8: Commit**
 
 ```bash
-git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/ apps/api/tests/ai-context.test.ts
+git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts apps/api/tests/ai-context.test.ts
 git commit -m "feat(ai-agents): replace consultor tools with get_monthly_summary, find_documents, calculate_tax
 
 executeConsultorTool centraliza la ejecución scoped por companyId.
@@ -883,7 +883,7 @@ Expected: silent success.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts packages/ai-agents/dist/
+git add packages/ai-agents/src/agents/consultor.ts packages/ai-agents/src/index.ts
 git commit -m "feat(ai-agents): add streamConsultorWithContext
 
 Wrapper que combina snapshot + tools + streaming. Sustituye al chat
