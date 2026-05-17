@@ -3,14 +3,6 @@
 import Link from "next/link"
 import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { FileCode2, Download } from "lucide-react"
 
@@ -57,53 +49,60 @@ function handleDownloadPDF(doc: Document) {
 }
 
 export function DocumentTable({ documents }: DocumentTableProps) {
+  if (documents.length === 0) {
+    return (
+      <div className="card-editorial p-12 text-center">
+        <p className="font-display text-lg text-muted-foreground mb-1">
+          Sin documentos
+        </p>
+        <p className="text-xs text-muted-foreground/70">
+          Ajusta los filtros o emite tu primer DTE.
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Folio</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Receptor</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {documents.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground">
-                No hay documentos
-              </TableCell>
-            </TableRow>
-          ) : (
-            documents.map((doc) => (
-              <TableRow key={doc.id}>
-                <TableCell>
+    <div className="card-editorial overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="table-editorial">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Tipo</th>
+              <th>Receptor</th>
+              <th data-numeric="true">Total</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc) => (
+              <tr key={doc.id}>
+                <td className="font-mono">
                   <Link
                     href={`/documents/${doc.id}`}
-                    className="font-medium hover:underline"
+                    className="font-medium underline-offset-4 hover:underline"
                   >
                     {doc.folio}
                   </Link>
-                </TableCell>
-                <TableCell>{doc.type}</TableCell>
-                <TableCell>{doc.receiverName}</TableCell>
-                <TableCell>${doc.totalAmount.toLocaleString("es-CL")}</TableCell>
-                <TableCell>
+                </td>
+                <td className="text-muted-foreground">{doc.type}</td>
+                <td>{doc.receiverName}</td>
+                <td data-numeric="true" className="font-semibold">${doc.totalAmount.toLocaleString("es-CL")}</td>
+                <td>
                   <StatusBadge status={doc.status} />
-                </TableCell>
-                <TableCell>
+                </td>
+                <td className="font-mono text-xs text-muted-foreground">
                   {new Date(doc.emittedAt).toLocaleDateString("es-CL")}
-                </TableCell>
-                <TableCell className="text-right">
+                </td>
+                <td className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
                       title="Descargar XML"
                       onClick={() => handleDownloadXML(doc)}
                     >
@@ -112,19 +111,19 @@ export function DocumentTable({ documents }: DocumentTableProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
                       title="Descargar PDF"
                       onClick={() => handleDownloadPDF(doc)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
