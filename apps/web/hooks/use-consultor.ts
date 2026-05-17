@@ -71,6 +71,7 @@ export function useConsultor() {
       let accumulated = ''
       let streamErrored = false
       let streamDone = false
+      let toolWasUsed = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -103,6 +104,7 @@ export function useConsultor() {
             }
 
             if (parsed.tool && parsed.status) {
+              if (parsed.status === 'running') toolWasUsed = true
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
@@ -137,10 +139,32 @@ export function useConsultor() {
         if (streamDone) break
       }
 
-      // Marcar como completo; si no llegó contenido, eliminar el mensaje vacío
+      // Marcar como completo. Reglas:
+      // - Si llegó texto: limpiar isStreaming.
+      // - Si NO llegó texto pero se invocó al menos una tool: mantener la
+      //   burbuja con un mensaje de fallback (la tool corrió pero el modelo
+      //   no produjo respuesta textual). Mejor UX que borrar todo y mostrar
+      //   "El modelo no devolvió respuesta".
+      // - Si no llegó texto y tampoco hubo tools: era una respuesta vacía
+      //   genuina → borrar la burbuja y mostrar error.
       if (accumulated.trim().length === 0) {
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId))
-        if (!streamErrored) setError('El modelo no devolvió respuesta')
+        if (toolWasUsed && !streamErrored) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? {
+                    ...m,
+                    content: 'Consulté los datos pero no obtuve una respuesta clara. ¿Puedes reformular la pregunta?',
+                    isStreaming: false,
+                    toolStatus: undefined,
+                  }
+                : m
+            )
+          )
+        } else {
+          setMessages((prev) => prev.filter((m) => m.id !== assistantId))
+          if (!streamErrored) setError('El modelo no devolvió respuesta')
+        }
       } else {
         setMessages((prev) =>
           prev.map((m) =>
