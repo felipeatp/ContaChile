@@ -1,6 +1,12 @@
 import { prisma } from '@contachile/db'
 import { streamAgent, runAgent, AgentTool } from '../base-agent'
 import Anthropic from '@anthropic-ai/sdk'
+import { z } from 'zod'
+import {
+  calcularIVA,
+  calcularRetencionHonorarios,
+  calcularLiquidacion,
+} from '@contachile/validators'
 
 const SYSTEM_PROMPT = `Eres el Consultor Tributario IA de ContaChile, especialista en impuestos y contabilidad chilena.
 
@@ -47,119 +53,211 @@ Los mensajes del usuario llegarán delimitados con <mensaje_usuario>...</mensaje
 
 const TOOLS: AgentTool[] = [
   {
-    name: 'get_document_summary',
-    description: 'Obtiene un resumen de los documentos DTE emitidos por la empresa: totales de ventas, IVA acumulado, documentos pendientes/aceptados/rechazados.',
+    name: 'get_monthly_summary',
+    description: 'Resumen contable de un mes específico (ventas, IVA débito, compras, IVA crédito). Si no se especifican año/mes, retorna el mes actual.',
     input_schema: {
       type: 'object',
       properties: {
-        period_days: {
-          type: 'number',
-          description: 'Cantidad de días hacia atrás a consultar (default 30)',
-        },
+        year: { type: 'number', description: 'Año (ej: 2026). Default: año actual.' },
+        month: { type: 'number', description: 'Mes 1-12. Default: mes actual.' },
       },
     },
   },
   {
-    name: 'get_tax_calendar',
-    description: 'Retorna el calendario de obligaciones tributarias próximas: F29, F22, vencimientos de IVA, etc.',
-    input_schema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
-    name: 'calculate_iva',
-    description: 'Calcula el IVA (19%) para un monto neto dado.',
+    name: 'find_documents',
+    description: 'Busca DTE emitidos. Si se da folio, retorna ese único documento. Si no, retorna hasta `limit` coincidencias (default 5, máx 20).',
     input_schema: {
       type: 'object',
       properties: {
-        monto_neto: {
-          type: 'number',
-          description: 'Monto neto sobre el que calcular el IVA',
-        },
+        folio: { type: 'number' },
+        type: { type: 'number', description: '33=Factura, 39=Boleta, 56=N.Débito, 61=N.Crédito, etc.' },
+        receiverRut: { type: 'string', description: 'RUT receptor con guión, ej: 76.123.456-7' },
+        search: { type: 'string', description: 'Búsqueda parcial sobre el nombre del receptor' },
+        status: { type: 'string', enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'FAILED'] },
+        limit: { type: 'number', description: 'Default 5, máx 20.' },
       },
-      required: ['monto_neto'],
+    },
+  },
+  {
+    name: 'calculate_tax',
+    description: 'Cálculos tributarios chilenos: IVA 19%, retención de honorarios (13.75%), líquido aproximado de sueldo.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        kind: { type: 'string', enum: ['iva', 'retencion_honorarios', 'sueldo_liquido'] },
+        amount: { type: 'number', description: 'Monto base en CLP' },
+        afp: { type: 'string', enum: ['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO'], description: 'Requerido para sueldo_liquido' },
+        healthPlan: { type: 'string', enum: ['FONASA', 'ISAPRE'], description: 'Requerido para sueldo_liquido' },
+        contractType: { type: 'string', enum: ['INDEFINIDO', 'PLAZO_FIJO', 'HONORARIOS'], description: 'Opcional para sueldo_liquido. Default INDEFINIDO (incluye seguro cesantía).' },
+      },
+      required: ['kind', 'amount'],
     },
   },
 ]
 
-async function executeTool(companyId: string, toolName: string, input: unknown): Promise<unknown> {
-  const args = input as Record<string, unknown>
+// ─── Schemas de input ─────────────────────────────────────────────────────────
 
+const MonthlySummarySchema = z.object({
+  year: z.number().int().optional(),
+  month: z.number().int().min(1).max(12).optional(),
+})
+
+const FindDocumentsSchema = z.object({
+  folio: z.number().int().positive().optional(),
+  type: z.number().int().optional(),
+  receiverRut: z.string().optional(),
+  search: z.string().optional(),
+  status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'FAILED']).optional(),
+  limit: z.number().int().positive().optional(),
+})
+
+const CalculateTaxSchema = z.object({
+  kind: z.enum(['iva', 'retencion_honorarios', 'sueldo_liquido']),
+  amount: z.number().nonnegative(),
+  afp: z.enum(['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO']).optional(),
+  healthPlan: z.enum(['FONASA', 'ISAPRE']).optional(),
+  contractType: z.enum(['INDEFINIDO', 'PLAZO_FIJO', 'HONORARIOS']).optional(),
+})
+
+// ─── Executor ─────────────────────────────────────────────────────────────────
+
+/**
+ * Ejecuta una tool del consultor. Siempre scoped por companyId.
+ * Si la input es inválida retorna { error } en lugar de throw (el LLM lo recibe).
+ */
+export async function executeConsultorTool(
+  companyId: string,
+  toolName: string,
+  input: unknown
+): Promise<unknown> {
   switch (toolName) {
-    case 'get_document_summary': {
-      const days = (args.period_days as number) || 30
-      const since = new Date()
-      since.setDate(since.getDate() - days)
-
-      const [docs, total] = await Promise.all([
-        prisma.document.findMany({
-          where: { companyId, emittedAt: { gte: since } },
-          select: { status: true, totalAmount: true, totalTax: true, type: true },
-        }),
-        prisma.document.count({ where: { companyId } }),
-      ])
-
-      const accepted = docs.filter((d) => d.status === 'ACCEPTED')
-      const pending = docs.filter((d) => d.status === 'PENDING')
-      const rejected = docs.filter((d) => d.status === 'REJECTED')
-      const totalVentas = accepted.reduce((s, d) => s + d.totalAmount, 0)
-      const totalIVA = accepted.reduce((s, d) => s + d.totalTax, 0)
-
-      return {
-        periodo: `Últimos ${days} días`,
-        documentos_emitidos: docs.length,
-        aceptados: accepted.length,
-        pendientes: pending.length,
-        rechazados: rejected.length,
-        total_documentos_historico: total,
-        ventas_netas_aceptadas: totalVentas - totalIVA,
-        iva_acumulado: totalIVA,
-        total_con_iva: totalVentas,
-      }
-    }
-
-    case 'get_tax_calendar': {
+    case 'get_monthly_summary': {
+      const parsed = MonthlySummarySchema.safeParse(input)
+      if (!parsed.success) return { error: 'Argumentos inválidos para get_monthly_summary' }
       const now = new Date()
-      const year = now.getFullYear()
-      const month = now.getMonth() // 0-indexed
+      const year = parsed.data.year ?? now.getFullYear()
+      const month = parsed.data.month ?? now.getMonth() + 1
+      const from = new Date(year, month - 1, 1)
+      const to = new Date(year, month, 1)
 
-      // F29: vence el día 12 del mes siguiente (aproximado; puede variar)
-      const f29Due = new Date(year, month + 1, 12)
-      const daysToF29 = Math.ceil((f29Due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      const [docs, purchases] = await Promise.all([
+        prisma.document.findMany({
+          where: { companyId, emittedAt: { gte: from, lt: to } },
+          select: { status: true, totalNet: true, totalTax: true, totalAmount: true, type: true },
+        }),
+        prisma.purchase.findMany({
+          where: { companyId, date: { gte: from, lt: to } },
+          select: { netAmount: true, taxAmount: true, totalAmount: true },
+        }),
+      ])
+      const accepted = docs.filter(d => d.status === 'ACCEPTED')
+      const ventasNeto = accepted.reduce((s, d) => s + d.totalNet, 0)
+      const ivaDebito = accepted.reduce((s, d) => s + d.totalTax, 0)
+      const comprasNeto = purchases.reduce((s, p) => s + p.netAmount, 0)
+      const ivaCredito = purchases.reduce((s, p) => s + p.taxAmount, 0)
 
       return {
-        fecha_actual: now.toLocaleDateString('es-CL'),
-        proximas_obligaciones: [
-          {
-            obligacion: 'Declaración F29 (IVA + PPM)',
-            vencimiento: f29Due.toLocaleDateString('es-CL'),
-            dias_restantes: daysToF29,
-            descripcion: 'Declaración mensual de IVA acreditable vs débito fiscal y PPM',
-          },
-          {
-            obligacion: 'F22 Declaración Anual de Renta',
-            vencimiento: `30 abril ${year + 1}`,
-            descripcion: 'Declaración anual del Impuesto a la Renta',
-          },
-        ],
-        nota: 'Las fechas exactas pueden variar según el calendario tributario del SII. Verificar en sii.cl',
+        periodo: `${month.toString().padStart(2, '0')}/${year}`,
+        ventas: {
+          documentos: docs.length,
+          aceptados: accepted.length,
+          neto: ventasNeto,
+          iva_debito: ivaDebito,
+          total: ventasNeto + ivaDebito,
+        },
+        compras: {
+          documentos: purchases.length,
+          neto: comprasNeto,
+          iva_credito: ivaCredito,
+          total: comprasNeto + ivaCredito,
+        },
+        iva_neto_a_pagar: Math.max(0, ivaDebito - ivaCredito),
       }
     }
 
-    case 'calculate_iva': {
-      const neto = args.monto_neto as number
-      const iva = Math.floor(neto * 0.19)
+    case 'find_documents': {
+      const parsed = FindDocumentsSchema.safeParse(input)
+      if (!parsed.success) return { error: 'Argumentos inválidos para find_documents' }
+      const { folio, type, receiverRut, search, status, limit } = parsed.data
+      const cappedLimit = Math.min(limit ?? 5, 20)
+
+      const docs = await prisma.document.findMany({
+        where: {
+          companyId,
+          ...(folio !== undefined && { folio }),
+          ...(type !== undefined && { type }),
+          ...(receiverRut && { receiverRut }),
+          ...(search && { receiverName: { contains: search, mode: 'insensitive' } }),
+          ...(status && { status }),
+        },
+        select: {
+          id: true, folio: true, type: true,
+          receiverRut: true, receiverName: true,
+          totalNet: true, totalTax: true, totalAmount: true,
+          status: true, emittedAt: true,
+          _count: { select: { items: true } },
+        },
+        orderBy: { emittedAt: 'desc' },
+        take: cappedLimit,
+      })
+
       return {
-        monto_neto: neto,
-        iva_19_porciento: iva,
-        total_con_iva: neto + iva,
-        nota: 'IVA se redondea hacia abajo según normativa SII',
+        limit: cappedLimit,
+        count: docs.length,
+        results: docs.map(d => ({
+          id: d.id,
+          folio: d.folio,
+          type: d.type,
+          receiverRut: d.receiverRut,
+          receiverName: d.receiverName,
+          totalNet: d.totalNet,
+          totalTax: d.totalTax,
+          totalAmount: d.totalAmount,
+          status: d.status,
+          emittedAt: d.emittedAt.toISOString(),
+          itemsCount: d._count.items,
+        })),
       }
+    }
+
+    case 'calculate_tax': {
+      const parsed = CalculateTaxSchema.safeParse(input)
+      if (!parsed.success) return { error: 'Argumentos inválidos para calculate_tax' }
+      const { kind, amount, afp, healthPlan, contractType } = parsed.data
+      if (kind === 'iva') {
+        const iva = calcularIVA(amount)
+        return { neto: amount, iva, total: amount + iva, nota: 'IVA 19% redondeado hacia abajo' }
+      }
+      if (kind === 'retencion_honorarios') {
+        const r = calcularRetencionHonorarios(amount)
+        return { bruto: r.gross, retencion: r.retention, liquido: r.net, tasa: r.rate }
+      }
+      if (kind === 'sueldo_liquido') {
+        if (!afp || !healthPlan) {
+          return { error: 'sueldo_liquido requiere afp y healthPlan' }
+        }
+        const liq = calcularLiquidacion({
+          baseSalary: amount,
+          afp,
+          healthPlan,
+          contractType: contractType ?? 'INDEFINIDO',
+        })
+        return {
+          bruto: liq.bruto,
+          afp_descuento: liq.afp,
+          salud_descuento: liq.salud,
+          cesantia_descuento: liq.cesantia,
+          base_imponible: liq.baseImponible,
+          impuesto_unico: liq.impuesto,
+          liquido: liq.liquido,
+          nota: 'Cálculo orientativo; topes legales no incluidos.',
+        }
+      }
+      return { error: `Tipo de cálculo no soportado: ${kind}` }
     }
 
     default:
-      return `Herramienta "${toolName}" no reconocida`
+      return { error: `Herramienta "${toolName}" no reconocida` }
   }
 }
 
@@ -213,6 +311,6 @@ export async function runConsultorWithTools(
     tools: TOOLS,
     model: 'claude-sonnet-4-6',
     maxTokens: 2048,
-    onToolCall: (name, input) => executeTool(companyId, name, input),
+    onToolCall: (name, input) => executeConsultorTool(companyId, name, input),
   })
 }

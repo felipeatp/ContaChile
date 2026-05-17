@@ -7,7 +7,7 @@ export type {
   AgentEvent,
 } from './base-agent'
 
-export { streamConsultor, runConsultorWithTools } from './agents/consultor'
+export { streamConsultor, runConsultorWithTools, executeConsultorTool } from './agents/consultor'
 export type { ConsultorMessage } from './agents/consultor'
 
 export { clasificarTransaccion, clasificarLote } from './agents/clasificador'
