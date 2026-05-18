@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ThemeProvider } from "next-themes"
 import { useState } from "react"
+import { SidebarStateProvider } from "@/components/layout/sidebar-state-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
@@ -15,7 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        {children}
+        <SidebarStateProvider>{children}</SidebarStateProvider>
       </QueryClientProvider>
     </ThemeProvider>
   )

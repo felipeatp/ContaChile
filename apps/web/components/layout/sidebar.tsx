@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -24,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { useSidebarState } from "@/components/layout/sidebar-state-provider"
 
 type NavItem = {
   href: string
@@ -204,15 +204,19 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
 }
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { collapsed, mobileOpen, setMobileOpen, toggleCollapsed } =
+    useSidebarState()
 
   return (
     <>
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Abrir menú de navegación"
+            >
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -227,6 +231,7 @@ export function Sidebar() {
           "hidden lg:flex fixed left-0 top-0 h-screen flex-col border-r border-border bg-paper transition-all duration-300 z-40",
           collapsed ? "w-16" : "w-64"
         )}
+        aria-label="Navegación principal"
       >
         <SidebarContent collapsed={collapsed} />
 
@@ -234,8 +239,10 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={toggleCollapsed}
             className="w-full"
+            aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+            aria-expanded={!collapsed}
           >
             {collapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -245,13 +252,6 @@ export function Sidebar() {
           </Button>
         </div>
       </aside>
-
-      <div
-        className={cn(
-          "hidden lg:block transition-all duration-300",
-          collapsed ? "lg:ml-16" : "lg:ml-64"
-        )}
-      />
     </>
   )
 }
