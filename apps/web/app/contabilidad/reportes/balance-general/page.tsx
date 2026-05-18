@@ -5,6 +5,7 @@ import { Stat } from '@/components/ui/stat'
 import { RuleOrnament } from '@/components/ui/rule-ornament'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, AlertTriangle } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type AccountRow = { accountId: string; code: string; name: string; value: number }
 type Section = { total: number; rows: AccountRow[] }
@@ -18,8 +19,6 @@ type Response = {
   totalPasivoPatrimonio: number
   balanced: boolean
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
 
 export default function BalanceGeneralPage() {
   const [asOf, setAsOf] = useState(new Date().toISOString().slice(0, 10))
@@ -92,10 +91,10 @@ export default function BalanceGeneralPage() {
               <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
               <div>
                 <strong>El balance no cuadra.</strong>{' '}
-                Activo: <span className="font-mono tabular">{fmt(data.activo.total)}</span> ≠{' '}
+                Activo: <span className="font-mono tabular">{formatCLP(data.activo.total)}</span> ≠{' '}
                 Pasivo+Patrimonio+Utilidad:{' '}
-                <span className="font-mono tabular">{fmt(data.totalPasivoPatrimonio)}</span>. Diferencia:{' '}
-                <span className="font-mono tabular">{fmt(Math.abs(data.activo.total - data.totalPasivoPatrimonio))}</span>.
+                <span className="font-mono tabular">{formatCLP(data.totalPasivoPatrimonio)}</span>. Diferencia:{' '}
+                <span className="font-mono tabular">{formatCLP(Math.abs(data.activo.total - data.totalPasivoPatrimonio))}</span>.
               </div>
             </div>
           )}
@@ -105,11 +104,11 @@ export default function BalanceGeneralPage() {
               <span className="eyebrow">I · Resumen</span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <Stat label="Total Activo" value={fmt(data.activo.total)} tone="default" />
-              <Stat label="Pasivo + Patrimonio" value={fmt(data.totalPasivoPatrimonio)} tone="default" />
+              <Stat label="Total Activo" value={formatCLP(data.activo.total)} tone="default" />
+              <Stat label="Pasivo + Patrimonio" value={formatCLP(data.totalPasivoPatrimonio)} tone="default" />
               <Stat
                 label={`${isProfit ? 'Utilidad' : 'Pérdida'} del ejercicio`}
-                value={fmt(Math.abs(data.utilidadEjercicio))}
+                value={formatCLP(Math.abs(data.utilidadEjercicio))}
                 tone={isProfit ? 'accent' : 'negative'}
               />
             </div>
@@ -152,7 +151,7 @@ export default function BalanceGeneralPage() {
                         {isProfit ? 'Utilidad' : 'Pérdida'} del ejercicio
                       </td>
                       <td data-numeric="true" className={isProfit ? 'text-sage' : 'text-rust'}>
-                        {fmt(data.utilidadEjercicio)}
+                        {formatCLP(data.utilidadEjercicio)}
                       </td>
                     </tr>
                   </tbody>
@@ -160,7 +159,7 @@ export default function BalanceGeneralPage() {
                     <tr>
                       <td className="py-3 px-3 font-bold">Total P + P + U</td>
                       <td data-numeric="true" className="text-base font-bold">
-                        {fmt(data.totalPasivoPatrimonio)}
+                        {formatCLP(data.totalPasivoPatrimonio)}
                       </td>
                     </tr>
                   </tfoot>
@@ -189,7 +188,7 @@ function SectionTable({ section }: { section: Section }) {
             <tr key={r.accountId}>
               <td className="py-1.5 px-3 font-mono text-xs">{r.code}</td>
               <td className="py-1.5 px-3 text-sm">{r.name}</td>
-              <td data-numeric="true">{fmt(r.value)}</td>
+              <td data-numeric="true">{formatCLP(r.value)}</td>
             </tr>
           ))
         )}
@@ -198,7 +197,7 @@ function SectionTable({ section }: { section: Section }) {
         <tr>
           <td colSpan={2} className="py-3 px-3 font-bold">Total</td>
           <td data-numeric="true" className="text-base font-bold">
-            {fmt(section.total)}
+            {formatCLP(section.total)}
           </td>
         </tr>
       </tfoot>
@@ -225,13 +224,13 @@ function SectionRowsInline({ title, section }: { title: string; section: Section
               <span className="font-mono text-xs text-muted-foreground mr-2">{r.code}</span>
               {r.name}
             </td>
-            <td data-numeric="true">{fmt(r.value)}</td>
+            <td data-numeric="true">{formatCLP(r.value)}</td>
           </tr>
         ))
       )}
       <tr className="bg-secondary/30 font-semibold">
         <td className="py-2 px-3">Total {title}</td>
-        <td data-numeric="true">{fmt(section.total)}</td>
+        <td data-numeric="true">{formatCLP(section.total)}</td>
       </tr>
     </>
   )

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, AlertTriangle } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Row = {
   accountId: string
@@ -27,8 +28,6 @@ type Response = {
     balanced: boolean
   }
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
 
 export default function BalanceComprobacionPage() {
   const [asOf, setAsOf] = useState(new Date().toISOString().slice(0, 10))
@@ -100,7 +99,7 @@ export default function BalanceComprobacionPage() {
               <div>
                 <strong className="font-display text-base">Los libros no cuadran.</strong>
                 <p className="mt-0.5 text-xs">
-                  Diferencia: <span className="font-mono font-semibold">{fmt(Math.abs(data.totals.saldoDeudor - data.totals.saldoAcreedor))}</span>. Revisa los asientos.
+                  Diferencia: <span className="font-mono font-semibold">{formatCLP(Math.abs(data.totals.saldoDeudor - data.totals.saldoAcreedor))}</span>. Revisa los asientos.
                 </p>
               </div>
             </div>
@@ -111,12 +110,12 @@ export default function BalanceComprobacionPage() {
               <span className="eyebrow">I · Resumen</span>
             </div>
             <div className="grid gap-4 md:grid-cols-4">
-              <Stat label="Total Debe" value={fmt(data.totals.totalDebit)} tone="default" />
-              <Stat label="Total Haber" value={fmt(data.totals.totalCredit)} tone="default" />
-              <Stat label="Saldo Deudor" value={fmt(data.totals.saldoDeudor)} tone="positive" />
+              <Stat label="Total Debe" value={formatCLP(data.totals.totalDebit)} tone="default" />
+              <Stat label="Total Haber" value={formatCLP(data.totals.totalCredit)} tone="default" />
+              <Stat label="Saldo Deudor" value={formatCLP(data.totals.saldoDeudor)} tone="positive" />
               <Stat
                 label="Saldo Acreedor"
-                value={fmt(data.totals.saldoAcreedor)}
+                value={formatCLP(data.totals.saldoAcreedor)}
                 tone={data.totals.balanced ? 'positive' : 'negative'}
               />
             </div>
@@ -166,20 +165,20 @@ export default function BalanceComprobacionPage() {
                               {r.type}
                             </span>
                           </td>
-                          <td data-numeric="true" className="text-muted-foreground">{fmt(r.totalDebit)}</td>
-                          <td data-numeric="true" className="text-muted-foreground">{fmt(r.totalCredit)}</td>
-                          <td data-numeric="true" className="font-semibold">{r.saldoDeudor ? fmt(r.saldoDeudor) : '—'}</td>
-                          <td data-numeric="true" className="font-semibold">{r.saldoAcreedor ? fmt(r.saldoAcreedor) : '—'}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{formatCLP(r.totalDebit)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{formatCLP(r.totalCredit)}</td>
+                          <td data-numeric="true" className="font-semibold">{r.saldoDeudor ? formatCLP(r.saldoDeudor) : '—'}</td>
+                          <td data-numeric="true" className="font-semibold">{r.saldoAcreedor ? formatCLP(r.saldoAcreedor) : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr>
                         <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Totales</td>
-                        <td data-numeric="true" className="font-semibold">{fmt(data.totals.totalDebit)}</td>
-                        <td data-numeric="true" className="font-semibold">{fmt(data.totals.totalCredit)}</td>
-                        <td data-numeric="true" className="font-semibold">{fmt(data.totals.saldoDeudor)}</td>
-                        <td data-numeric="true" className="font-semibold">{fmt(data.totals.saldoAcreedor)}</td>
+                        <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.totalDebit)}</td>
+                        <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.totalCredit)}</td>
+                        <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.saldoDeudor)}</td>
+                        <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.saldoAcreedor)}</td>
                       </tr>
                     </tfoot>
                   </table>

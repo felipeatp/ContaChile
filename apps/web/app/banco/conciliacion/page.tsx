@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, RefreshCcw, Sparkles, Link as LinkIcon, X, Eye, Trash2 } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Status = 'PENDING' | 'SUGGESTED' | 'MATCHED_DTE' | 'MATCHED_PURCHASE' | 'RECONCILED' | 'IGNORED'
 
@@ -143,8 +144,6 @@ export default function ConciliacionPage() {
     }
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
-
   return (
     <div className="space-y-8 animate-fade-up">
       <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -266,7 +265,7 @@ export default function ConciliacionPage() {
                         <div className="text-xs text-muted-foreground font-mono">{m.counterpartRut || ''}</div>
                       </td>
                       <td className={`py-2 px-3 text-right font-mono ${m.type === 'CREDIT' ? 'text-green-600' : 'text-destructive'}`}>
-                        {m.type === 'CREDIT' ? '+' : '-'}{format(m.amount)}
+                        {m.type === 'CREDIT' ? '+' : '-'}{formatCLP(m.amount)}
                       </td>
                       <td className="py-2 px-3">
                         <span className={`text-xs rounded px-2 py-0.5 ${STATUS_COLOR[m.status]}`}>
@@ -401,8 +400,6 @@ function ReconcileModal({
     }
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
-
   return (
     <Modal
       open={true}
@@ -429,7 +426,7 @@ function ReconcileModal({
           <div className="text-xs text-muted-foreground mt-0.5">
             {new Date(movement.postedAt).toLocaleDateString('es-CL')} ·{' '}
             <span className={`font-mono tabular ${movement.type === 'CREDIT' ? 'text-sage' : 'text-rust'}`}>
-              {movement.type === 'CREDIT' ? '+' : '-'}{format(movement.amount)}
+              {movement.type === 'CREDIT' ? '+' : '-'}{formatCLP(movement.amount)}
             </span>
             {' · '}{movement.counterpartName || '—'}
           </div>

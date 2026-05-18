@@ -5,6 +5,7 @@ import { Stat } from '@/components/ui/stat'
 import { RuleOrnament } from '@/components/ui/rule-ornament'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type AccountRow = { accountId: string; code: string; name: string; value: number }
 type Section = { total: number; rows: AccountRow[] }
@@ -29,8 +30,6 @@ function defaultTo() {
   const last = new Date(d.getFullYear(), d.getMonth() + 1, 0)
   return last.toISOString().slice(0, 10)
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
 
 export default function EstadoResultadosPage() {
   const [from, setFrom] = useState(defaultFrom())
@@ -111,12 +110,12 @@ export default function EstadoResultadosPage() {
               <span className="eyebrow">I · Resumen</span>
             </div>
             <div className="grid gap-4 md:grid-cols-4">
-              <Stat label="Ingresos" value={fmt(data.ingresos.total)} tone="positive" />
-              <Stat label="Costos" value={fmt(data.costos.total)} tone="default" />
-              <Stat label="Gastos" value={fmt(data.gastos.total)} tone="default" />
+              <Stat label="Ingresos" value={formatCLP(data.ingresos.total)} tone="positive" />
+              <Stat label="Costos" value={formatCLP(data.costos.total)} tone="default" />
+              <Stat label="Gastos" value={formatCLP(data.gastos.total)} tone="default" />
               <Stat
                 label={isProfit ? 'Utilidad ejercicio' : 'Pérdida ejercicio'}
-                value={fmt(Math.abs(data.utilidadEjercicio))}
+                value={formatCLP(Math.abs(data.utilidadEjercicio))}
                 tone={isProfit ? 'accent' : 'negative'}
               />
             </div>
@@ -140,26 +139,26 @@ export default function EstadoResultadosPage() {
                   <SectionRows title="Ingresos" section={data.ingresos} sign="+" />
                   <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Ingresos</td>
-                    <td data-numeric="true">{fmt(data.ingresos.total)}</td>
+                    <td data-numeric="true">{formatCLP(data.ingresos.total)}</td>
                   </tr>
 
                   <SectionRows title="Costos" section={data.costos} sign="-" />
                   <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Costos</td>
-                    <td data-numeric="true">{fmt(data.costos.total)}</td>
+                    <td data-numeric="true">{formatCLP(data.costos.total)}</td>
                   </tr>
 
                   <tr className="font-semibold border-y-2 border-foreground/20">
                     <td className="py-2 px-3" colSpan={2}>
                       Utilidad bruta <span className="text-muted-foreground font-normal">(Ingresos − Costos)</span>
                     </td>
-                    <td data-numeric="true">{fmt(data.utilidadBruta)}</td>
+                    <td data-numeric="true">{formatCLP(data.utilidadBruta)}</td>
                   </tr>
 
                   <SectionRows title="Gastos" section={data.gastos} sign="-" />
                   <tr className="bg-secondary/40 font-semibold">
                     <td className="py-2 px-3" colSpan={2}>Total Gastos</td>
-                    <td data-numeric="true">{fmt(data.gastos.total)}</td>
+                    <td data-numeric="true">{formatCLP(data.gastos.total)}</td>
                   </tr>
                 </tbody>
                 <tfoot>
@@ -171,7 +170,7 @@ export default function EstadoResultadosPage() {
                       data-numeric="true"
                       className={`text-base font-bold ${isProfit ? 'text-sage' : 'text-rust'}`}
                     >
-                      {fmt(data.utilidadEjercicio)}
+                      {formatCLP(data.utilidadEjercicio)}
                     </td>
                   </tr>
                 </tfoot>
@@ -218,7 +217,7 @@ function SectionRows({
           <td className="py-1.5 px-3 text-sm">{r.name}</td>
           <td data-numeric="true" className="py-1.5">
             <span className="text-muted-foreground/60 mr-0.5">{sign}</span>
-            {fmt(r.value)}
+            {formatCLP(r.value)}
           </td>
         </tr>
       ))}

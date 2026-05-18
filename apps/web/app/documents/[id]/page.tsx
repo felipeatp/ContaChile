@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/documents/status-badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, Copy, FileCode2, RefreshCw, FilePlus, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { formatCLP } from "@contachile/validators"
 
 const DTE_LABELS: Record<number, string> = {
   33: "Factura electrónica",
@@ -19,8 +20,6 @@ const DTE_LABELS: Record<number, string> = {
   56: "Nota de débito",
   61: "Nota de crédito",
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
 
 export default function DocumentDetailPage() {
   const params = useParams()
@@ -223,23 +222,23 @@ export default function DocumentDetailPage() {
                     <tr key={item.id}>
                       <td>{item.description}</td>
                       <td data-numeric="true" className="text-muted-foreground">{item.quantity}</td>
-                      <td data-numeric="true" className="text-muted-foreground">{fmt(item.unitPrice)}</td>
-                      <td data-numeric="true" className="font-semibold">{fmt(item.totalPrice)}</td>
+                      <td data-numeric="true" className="text-muted-foreground">{formatCLP(item.unitPrice)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(item.totalPrice)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr>
                     <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Neto</td>
-                    <td data-numeric="true">{fmt(doc.totalNet)}</td>
+                    <td data-numeric="true">{formatCLP(doc.totalNet)}</td>
                   </tr>
                   <tr>
                     <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">IVA · 19 %</td>
-                    <td data-numeric="true">{fmt(doc.totalTax)}</td>
+                    <td data-numeric="true">{formatCLP(doc.totalTax)}</td>
                   </tr>
                   <tr>
                     <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-foreground">Total</td>
-                    <td data-numeric="true" className="font-mono text-base font-semibold text-foreground">{fmt(doc.totalAmount)}</td>
+                    <td data-numeric="true" className="font-mono text-base font-semibold text-foreground">{formatCLP(doc.totalAmount)}</td>
                   </tr>
                 </tfoot>
               </table>

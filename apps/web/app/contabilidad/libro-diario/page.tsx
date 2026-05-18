@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Line = {
   id: string
@@ -74,8 +75,6 @@ export default function LibroDiarioPage() {
   useEffect(() => {
     fetchEntries()
   }, [from, to, source])
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -177,7 +176,7 @@ export default function LibroDiarioPage() {
                           {SOURCE_LABEL[e.source]}
                         </span>
                       </td>
-                      <td data-numeric="true" className="font-semibold">{format(total)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(total)}</td>
                       <td className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => setDetailEntry(e)}>Ver</Button>
                       </td>
@@ -206,7 +205,6 @@ export default function LibroDiarioPage() {
 }
 
 function EntryDetailModal({ entry, onClose }: { entry: Entry; onClose: () => void }) {
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
   const totalDebit = entry.lines.reduce((s, l) => s + l.debit, 0)
   const totalCredit = entry.lines.reduce((s, l) => s + l.credit, 0)
   return (
@@ -238,16 +236,16 @@ function EntryDetailModal({ entry, onClose }: { entry: Entry; onClose: () => voi
             <tr key={l.id}>
               <td className="font-mono">{l.account.code}</td>
               <td>{l.account.name}</td>
-              <td data-numeric="true">{l.debit ? format(l.debit) : '—'}</td>
-              <td data-numeric="true">{l.credit ? format(l.credit) : '—'}</td>
+              <td data-numeric="true">{l.debit ? formatCLP(l.debit) : '—'}</td>
+              <td data-numeric="true">{l.credit ? formatCLP(l.credit) : '—'}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr>
             <td colSpan={2} className="text-right font-semibold">Totales</td>
-            <td data-numeric="true" className="font-semibold">{format(totalDebit)}</td>
-            <td data-numeric="true" className="font-semibold">{format(totalCredit)}</td>
+            <td data-numeric="true" className="font-semibold">{formatCLP(totalDebit)}</td>
+            <td data-numeric="true" className="font-semibold">{formatCLP(totalCredit)}</td>
           </tr>
         </tfoot>
       </table>
@@ -334,8 +332,6 @@ function ManualEntryForm({
       setSaving(false)
     }
   }
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <Modal
@@ -449,10 +445,10 @@ function ManualEntryForm({
           <tfoot>
             <tr className={balanced ? 'text-sage' : 'text-ochre'}>
               <td className="font-semibold">
-                Totales {balanced ? '· cuadra' : `· diferencia ${format(Math.abs(diff))}`}
+                Totales {balanced ? '· cuadra' : `· diferencia ${formatCLP(Math.abs(diff))}`}
               </td>
-              <td data-numeric="true" className="font-semibold">{format(totalDebit)}</td>
-              <td data-numeric="true" className="font-semibold">{format(totalCredit)}</td>
+              <td data-numeric="true" className="font-semibold">{formatCLP(totalDebit)}</td>
+              <td data-numeric="true" className="font-semibold">{formatCLP(totalCredit)}</td>
               <td></td>
             </tr>
           </tfoot>

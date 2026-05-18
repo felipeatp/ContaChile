@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus, FileCode2, Upload } from "lucide-react"
+import { formatCLP } from "@contachile/validators"
 
 interface Purchase {
   id: string
@@ -18,8 +19,6 @@ interface Purchase {
   totalAmount: number
   category: string | null
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
 
 const TYPE_LABEL: Record<number, string> = {
   33: "Factura",
@@ -240,7 +239,7 @@ export default function PurchasesPage() {
           </div>
           {purchases.length > 0 && (
             <span className="text-xs text-muted-foreground/60 font-mono tabular">
-              Neto {fmt(totals.neto)} · IVA {fmt(totals.iva)}
+              Neto {formatCLP(totals.neto)} · IVA {formatCLP(totals.iva)}
             </span>
           )}
         </div>
@@ -291,12 +290,12 @@ export default function PurchasesPage() {
                           {p.issuerRut}
                         </div>
                       </td>
-                      <td data-numeric="true">{fmt(p.netAmount)}</td>
+                      <td data-numeric="true">{formatCLP(p.netAmount)}</td>
                       <td data-numeric="true" className="text-muted-foreground">
-                        {fmt(p.taxAmount)}
+                        {formatCLP(p.taxAmount)}
                       </td>
                       <td data-numeric="true" className="font-semibold">
-                        {fmt(p.totalAmount)}
+                        {formatCLP(p.totalAmount)}
                       </td>
                     </tr>
                   ))}
@@ -306,9 +305,9 @@ export default function PurchasesPage() {
                     <td colSpan={4} className="text-right font-semibold">
                       Totales
                     </td>
-                    <td data-numeric="true" className="font-semibold">{fmt(totals.neto)}</td>
-                    <td data-numeric="true" className="font-semibold">{fmt(totals.iva)}</td>
-                    <td data-numeric="true" className="font-bold">{fmt(totals.total)}</td>
+                    <td data-numeric="true" className="font-semibold">{formatCLP(totals.neto)}</td>
+                    <td data-numeric="true" className="font-semibold">{formatCLP(totals.iva)}</td>
+                    <td data-numeric="true" className="font-bold">{formatCLP(totals.total)}</td>
                   </tr>
                 </tfoot>
               </table>

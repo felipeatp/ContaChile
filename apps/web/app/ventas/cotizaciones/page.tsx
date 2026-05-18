@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Status = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'INVOICED' | 'EXPIRED'
 
@@ -114,8 +115,6 @@ export default function CotizacionesPage() {
     fetchQuotes()
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
-
   return (
     <div className="space-y-8 animate-fade-up">
       <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -198,7 +197,7 @@ export default function CotizacionesPage() {
                       </div>
                     </td>
                     <td data-numeric="true" className="font-semibold">
-                      {format(q.totalAmount)}
+                      {formatCLP(q.totalAmount)}
                     </td>
                     <td>
                       <span className={`text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm px-2 py-1 ${STATUS_COLOR[q.status]}`}>
@@ -319,8 +318,6 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
     }
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
-
   return (
     <Modal
       open={true}
@@ -395,7 +392,7 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
                     <td className="py-1 px-2">
                       <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, 'unitPrice', Number(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right" />
                     </td>
-                    <td className="py-1 px-2 text-right font-mono text-sm">{format(it.quantity * it.unitPrice)}</td>
+                    <td className="py-1 px-2 text-right font-mono text-sm">{formatCLP(it.quantity * it.unitPrice)}</td>
                     <td className="py-1 px-2 text-right">
                       {items.length > 1 && (
                         <Button variant="ghost" size="sm" onClick={() => removeItem(i)}>
@@ -414,9 +411,9 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
             </Field>
             <div className="rounded-md bg-muted p-3 text-sm space-y-1">
-              <div className="flex justify-between"><span>Neto</span><span className="font-mono">{format(neto)}</span></div>
-              <div className="flex justify-between"><span>IVA 19%</span><span className="font-mono">{format(iva)}</span></div>
-              <div className="flex justify-between font-bold border-t pt-1"><span>Total</span><span className="font-mono">{format(total)}</span></div>
+              <div className="flex justify-between"><span>Neto</span><span className="font-mono">{formatCLP(neto)}</span></div>
+              <div className="flex justify-between"><span>IVA 19%</span><span className="font-mono">{formatCLP(iva)}</span></div>
+              <div className="flex justify-between font-bold border-t pt-1"><span>Total</span><span className="font-mono">{formatCLP(total)}</span></div>
             </div>
           </div>
 

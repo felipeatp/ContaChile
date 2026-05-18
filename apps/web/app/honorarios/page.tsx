@@ -6,6 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type HonorarioType = 'ISSUED' | 'RECEIVED'
 type HonorarioStatus = 'PENDING' | 'PAID'
@@ -71,8 +72,6 @@ export default function HonorariosPage() {
     fetchData()
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
-
   return (
     <div className="space-y-8 animate-fade-up">
       <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -134,19 +133,19 @@ export default function HonorariosPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Stat
               label="Emitidas · bruto"
-              value={format(data.totals.issuedGross)}
-              caption={`Retención ${format(data.totals.issuedRetention)}`}
+              value={formatCLP(data.totals.issuedGross)}
+              caption={`Retención ${formatCLP(data.totals.issuedRetention)}`}
               tone="default"
             />
             <Stat
               label="Recibidas · bruto"
-              value={format(data.totals.receivedGross)}
-              caption={`Retención ${format(data.totals.receivedRetention)}`}
+              value={formatCLP(data.totals.receivedGross)}
+              caption={`Retención ${formatCLP(data.totals.receivedRetention)}`}
               tone="default"
             />
             <Stat
               label="Retenciones totales"
-              value={format(data.totals.issuedRetention + data.totals.receivedRetention)}
+              value={formatCLP(data.totals.issuedRetention + data.totals.receivedRetention)}
               tone="accent"
               caption="13,75 % sobre montos brutos"
             />
@@ -220,12 +219,12 @@ export default function HonorariosPage() {
                           {h.counterpartRut}
                         </div>
                       </td>
-                      <td data-numeric="true">{format(h.grossAmount)}</td>
+                      <td data-numeric="true">{formatCLP(h.grossAmount)}</td>
                       <td data-numeric="true" className="text-muted-foreground">
-                        {format(h.retentionAmount)}
+                        {formatCLP(h.retentionAmount)}
                       </td>
                       <td data-numeric="true" className="font-semibold">
-                        {format(h.netAmount)}
+                        {formatCLP(h.netAmount)}
                       </td>
                       <td className="text-right">
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(h.id)}>
@@ -289,8 +288,6 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
       setSaving(false)
     }
   }
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <Modal
@@ -385,11 +382,11 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
             <div className="eyebrow !text-[0.55rem] mb-1.5">Cálculo automático</div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Retención (13,75 %)</span>
-              <span className="font-mono tabular">{format(retention)}</span>
+              <span className="font-mono tabular">{formatCLP(retention)}</span>
             </div>
             <div className="flex justify-between text-sm font-semibold mt-1 pt-1 border-t border-border/50">
               <span>Líquido a pagar</span>
-              <span className="font-mono tabular">{format(net)}</span>
+              <span className="font-mono tabular">{formatCLP(net)}</span>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Stat } from '@/components/ui/stat'
 import { RuleOrnament } from '@/components/ui/rule-ornament'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 interface F22Line {
   code: string
@@ -27,8 +28,6 @@ interface F22Response {
     saldoDevolver: number
   }
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
 
 export default function F22Page() {
   const [year, setYear] = useState(new Date().getFullYear())
@@ -113,25 +112,25 @@ export default function F22Page() {
             <div className="flex items-center justify-between mb-4">
               <span className="eyebrow">I · Resumen del ejercicio</span>
               <span className="text-xs text-muted-foreground/60 font-mono">
-                PPM acumulado {fmt(data.summary.ppmPagado)}
+                PPM acumulado {formatCLP(data.summary.ppmPagado)}
               </span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <Stat
                 label="Renta líquida"
-                value={fmt(data.summary.rentaLiquida)}
-                caption={`Ingresos ${fmt(data.summary.ingresos)} − Costos ${fmt(data.summary.costos)} − Gastos ${fmt(data.summary.gastos)}`}
+                value={formatCLP(data.summary.rentaLiquida)}
+                caption={`Ingresos ${formatCLP(data.summary.ingresos)} − Costos ${formatCLP(data.summary.costos)} − Gastos ${formatCLP(data.summary.gastos)}`}
                 tone="default"
               />
               <Stat
                 label="Impuesto determinado"
-                value={fmt(data.summary.impuesto)}
+                value={formatCLP(data.summary.impuesto)}
                 tone="accent"
                 caption="Tabla progresiva"
               />
               <Stat
                 label={saldoLabel}
-                value={fmt(saldoValue)}
+                value={formatCLP(saldoValue)}
                 tone={isToPay ? 'negative' : 'positive'}
                 caption={isToPay ? 'Tributo a enterar al SII' : 'Devolución estimada'}
               />
@@ -177,7 +176,7 @@ export default function F22Page() {
                           )}
                         </div>
                       </td>
-                      <td data-numeric="true">{fmt(line.value)}</td>
+                      <td data-numeric="true">{formatCLP(line.value)}</td>
                     </tr>
                   ))}
                 </tbody>

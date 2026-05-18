@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
@@ -62,8 +63,6 @@ export default function TrabajadoresPage() {
     await fetch(`/api/employees/${id}`, { method: 'DELETE' })
     fetchEmployees()
   }
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -140,7 +139,7 @@ export default function TrabajadoresPage() {
                       </span>
                     </td>
                     <td className="text-muted-foreground">{e.afp}</td>
-                    <td data-numeric="true" className="font-semibold">{format(e.baseSalary)}</td>
+                    <td data-numeric="true" className="font-semibold">{formatCLP(e.baseSalary)}</td>
                     <td>
                       {e.isActive ? (
                         <span className="text-[0.6rem] uppercase tracking-eyebrow font-semibold rounded-sm bg-sage/15 text-sage px-1.5 py-0.5">Activo</span>

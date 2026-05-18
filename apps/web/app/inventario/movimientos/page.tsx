@@ -6,6 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Product = { id: string; code: string; name: string; stock: number; costPrice: number; unit: string }
 
@@ -53,8 +54,6 @@ export default function MovimientosPage() {
   useEffect(() => {
     loadKardex(selectedId)
   }, [selectedId])
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -113,10 +112,10 @@ export default function MovimientosPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <Stat label="Stock actual" value={`${data.product.stock} ${data.product.unit}`} tone="default" />
-              <Stat label="Costo promedio" value={format(data.product.costPrice)} tone="default" />
+              <Stat label="Costo promedio" value={formatCLP(data.product.costPrice)} tone="default" />
               <Stat
                 label="Valor inventario"
-                value={format(data.product.stock * data.product.costPrice)}
+                value={formatCLP(data.product.stock * data.product.costPrice)}
                 tone="accent"
               />
             </div>
@@ -173,8 +172,8 @@ export default function MovimientosPage() {
                             </span>
                           </td>
                           <td data-numeric="true">{m.quantity}</td>
-                          <td data-numeric="true">{format(m.unitCost)}</td>
-                          <td data-numeric="true">{format(m.value)}</td>
+                          <td data-numeric="true">{formatCLP(m.unitCost)}</td>
+                          <td data-numeric="true">{formatCLP(m.value)}</td>
                           <td className="text-xs text-muted-foreground">{m.reason}</td>
                           <td className="font-mono text-xs text-muted-foreground">{m.reference || '—'}</td>
                           <td data-numeric="true" className="font-semibold">{m.balance}</td>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
 import { Printer, ShoppingCart, Download, Loader2 } from "lucide-react"
+import { formatCLP } from "@contachile/validators"
 
 interface Purchase {
   id: string
@@ -39,8 +40,6 @@ const TYPE_LABEL: Record<number, string> = {
   56: "N. Débito",
   61: "N. Crédito",
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
 
 export default function LibroComprasPage() {
   const today = new Date()
@@ -171,9 +170,9 @@ export default function LibroComprasPage() {
                 </span>
               </div>
               <div className="grid gap-4 md:grid-cols-3">
-                <Stat label="Neto" value={fmt(data.summary.net)} tone="default" />
-                <Stat label="IVA Crédito (19 %)" value={fmt(data.summary.tax)} tone="default" />
-                <Stat label="Total compras" value={fmt(data.summary.total)} tone="accent" />
+                <Stat label="Neto" value={formatCLP(data.summary.net)} tone="default" />
+                <Stat label="IVA Crédito (19 %)" value={formatCLP(data.summary.tax)} tone="default" />
+                <Stat label="Total compras" value={formatCLP(data.summary.total)} tone="accent" />
               </div>
             </section>
 
@@ -218,12 +217,12 @@ export default function LibroComprasPage() {
                             {p.issuerRut}
                           </div>
                         </td>
-                        <td data-numeric="true">{fmt(p.netAmount)}</td>
+                        <td data-numeric="true">{formatCLP(p.netAmount)}</td>
                         <td data-numeric="true" className="text-muted-foreground">
-                          {fmt(p.taxAmount)}
+                          {formatCLP(p.taxAmount)}
                         </td>
                         <td data-numeric="true" className="font-semibold">
-                          {fmt(p.totalAmount)}
+                          {formatCLP(p.totalAmount)}
                         </td>
                       </tr>
                     ))}
@@ -231,9 +230,9 @@ export default function LibroComprasPage() {
                   <tfoot>
                     <tr>
                       <td colSpan={4} className="text-right font-semibold">Totales</td>
-                      <td data-numeric="true" className="font-semibold">{fmt(data.summary.net)}</td>
-                      <td data-numeric="true" className="font-semibold">{fmt(data.summary.tax)}</td>
-                      <td data-numeric="true" className="font-bold">{fmt(data.summary.total)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(data.summary.net)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(data.summary.tax)}</td>
+                      <td data-numeric="true" className="font-bold">{formatCLP(data.summary.total)}</td>
                     </tr>
                   </tfoot>
                 </table>

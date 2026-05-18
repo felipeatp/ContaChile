@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Stat } from '@/components/ui/stat'
 import { Loader2 } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Account = { id: string; code: string; name: string; type: string }
 
@@ -22,8 +23,6 @@ type LedgerResponse = {
   movements: Movement[]
   totals: { debit: number; credit: number; balance: number }
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString('es-CL')}`
 
 export default function LibroMayorPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
@@ -117,11 +116,11 @@ export default function LibroMayorPage() {
               </span>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <Stat label="Total Debe" value={fmt(data.totals.debit)} tone="default" />
-              <Stat label="Total Haber" value={fmt(data.totals.credit)} tone="default" />
+              <Stat label="Total Debe" value={formatCLP(data.totals.debit)} tone="default" />
+              <Stat label="Total Haber" value={formatCLP(data.totals.credit)} tone="default" />
               <Stat
                 label="Saldo"
-                value={fmt(data.totals.balance)}
+                value={formatCLP(data.totals.balance)}
                 tone={data.totals.balance < 0 ? 'negative' : 'accent'}
                 caption={data.totals.balance < 0 ? 'Saldo acreedor' : 'Saldo deudor'}
               />
@@ -168,18 +167,18 @@ export default function LibroMayorPage() {
                         </td>
                         <td>{m.description}</td>
                         <td className="font-mono text-xs text-muted-foreground">{m.reference || '—'}</td>
-                        <td data-numeric="true">{m.debit ? fmt(m.debit) : '—'}</td>
-                        <td data-numeric="true">{m.credit ? fmt(m.credit) : '—'}</td>
-                        <td data-numeric="true" className="font-semibold">{fmt(m.balance)}</td>
+                        <td data-numeric="true">{m.debit ? formatCLP(m.debit) : '—'}</td>
+                        <td data-numeric="true">{m.credit ? formatCLP(m.credit) : '—'}</td>
+                        <td data-numeric="true" className="font-semibold">{formatCLP(m.balance)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td colSpan={3} className="text-right font-semibold">Totales</td>
-                      <td data-numeric="true" className="font-semibold">{fmt(data.totals.debit)}</td>
-                      <td data-numeric="true" className="font-semibold">{fmt(data.totals.credit)}</td>
-                      <td data-numeric="true" className="font-bold">{fmt(data.totals.balance)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.debit)}</td>
+                      <td data-numeric="true" className="font-semibold">{formatCLP(data.totals.credit)}</td>
+                      <td data-numeric="true" className="font-bold">{formatCLP(data.totals.balance)}</td>
                     </tr>
                   </tfoot>
                 </table>

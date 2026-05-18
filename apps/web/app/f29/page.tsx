@@ -6,6 +6,7 @@ import { Stat } from "@/components/ui/stat"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
+import { formatCLP } from "@contachile/validators"
 
 interface F29Data {
   period: { year: number; month: number }
@@ -18,8 +19,6 @@ const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ]
-
-const fmt = (n: number) => `$ ${(n ?? 0).toLocaleString("es-CL")}`
 
 export default function F29Page() {
   const [data, setData] = useState<F29Data | null>(null)
@@ -154,22 +153,22 @@ export default function F29Page() {
             <div className="grid gap-4 md:grid-cols-3">
               <Stat
                 label="Ventas del período"
-                value={fmt(data?.sales.total ?? 0)}
-                caption={`${data?.sales.count ?? 0} documentos · Neto ${fmt(data?.sales.neto ?? 0)}`}
+                value={formatCLP(data?.sales.total ?? 0)}
+                caption={`${data?.sales.count ?? 0} documentos · Neto ${formatCLP(data?.sales.neto ?? 0)}`}
                 tone="default"
               />
               <Stat
                 label="Compras del período"
-                value={fmt(data?.purchases.total ?? 0)}
-                caption={`${data?.purchases.count ?? 0} documentos · Neto ${fmt(data?.purchases.neto ?? 0)}`}
+                value={formatCLP(data?.purchases.total ?? 0)}
+                caption={`${data?.purchases.count ?? 0} documentos · Neto ${formatCLP(data?.purchases.neto ?? 0)}`}
                 tone="default"
               />
               <Stat
                 label="IVA determinado"
-                value={fmt(determinado)}
+                value={formatCLP(determinado)}
                 tone={isPositive ? "negative" : "positive"}
                 caption={isPositive ? "A pagar" : "A favor"}
-                delta={`Total a pagar ${fmt(totalPagar)}`}
+                delta={`Total a pagar ${formatCLP(totalPagar)}`}
               />
             </div>
           </section>
@@ -203,34 +202,34 @@ export default function F29Page() {
                   <tr>
                     <td className="font-mono">502</td>
                     <td>Débito fiscal (IVA ventas afectas)</td>
-                    <td data-numeric="true">{fmt(data?.f29["502"] ?? 0)}</td>
+                    <td data-numeric="true">{formatCLP(data?.f29["502"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">503</td>
                     <td>Crédito fiscal (IVA compras)</td>
-                    <td data-numeric="true">{fmt(data?.f29["503"] ?? 0)}</td>
+                    <td data-numeric="true">{formatCLP(data?.f29["503"] ?? 0)}</td>
                   </tr>
                   <tr className="bg-secondary/40">
                     <td className="font-mono font-semibold text-primary">595</td>
                     <td className="font-semibold">IVA determinado <span className="text-muted-foreground font-normal">(502 − 503)</span></td>
-                    <td data-numeric="true" className="font-semibold text-primary">{fmt(data?.f29["595"] ?? 0)}</td>
+                    <td data-numeric="true" className="font-semibold text-primary">{formatCLP(data?.f29["595"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">538</td>
                     <td>Remanente crédito fiscal mes anterior</td>
-                    <td data-numeric="true">{fmt(data?.f29["538"] ?? 0)}</td>
+                    <td data-numeric="true">{formatCLP(data?.f29["538"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">547</td>
                     <td>Pago provisional mensual (PPM)</td>
-                    <td data-numeric="true">{fmt(data?.f29["547"] ?? 0)}</td>
+                    <td data-numeric="true">{formatCLP(data?.f29["547"] ?? 0)}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <td className="font-mono font-semibold">91</td>
                     <td className="font-semibold">Total a pagar o devolver</td>
-                    <td data-numeric="true" className="font-bold text-base">{fmt(data?.f29["91"] ?? 0)}</td>
+                    <td data-numeric="true" className="font-bold text-base">{formatCLP(data?.f29["91"] ?? 0)}</td>
                   </tr>
                 </tfoot>
               </table>

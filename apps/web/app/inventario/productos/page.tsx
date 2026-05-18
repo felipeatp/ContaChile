@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Product = {
   id: string
@@ -52,8 +53,6 @@ export default function ProductosPage() {
     await fetch(`/api/inventory/products/${id}`, { method: 'DELETE' })
     fetch_()
   }
-
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -152,8 +151,8 @@ export default function ProductosPage() {
                           {p.description && <div className="text-xs text-muted-foreground">{p.description}</div>}
                         </td>
                         <td className="text-muted-foreground">{p.unit}</td>
-                        <td data-numeric="true">{format(p.costPrice)}</td>
-                        <td data-numeric="true">{format(p.salePrice)}</td>
+                        <td data-numeric="true">{formatCLP(p.costPrice)}</td>
+                        <td data-numeric="true">{formatCLP(p.salePrice)}</td>
                         <td data-numeric="true" className={`font-semibold ${low ? 'text-rust' : ''}`}>
                           <span className="inline-flex items-center gap-1">
                             {low && <AlertTriangle className="h-3 w-3" />}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { Loader2, Play, FileDown, CheckCircle2 } from 'lucide-react'
+import { formatCLP } from '@contachile/validators'
 
 type Payroll = {
   id: string
@@ -89,7 +90,6 @@ export default function LiquidacionesPage() {
     }
   }
 
-  const format = (n: number) => `$${n.toLocaleString('es-CL')}`
   const totalDescuentos = data ? data.totals.afp + data.totals.salud + data.totals.cesantia + data.totals.impuesto : 0
 
   return (
@@ -148,10 +148,10 @@ export default function LiquidacionesPage() {
       ) : data ? (
         <>
           <section className="grid gap-4 md:grid-cols-4">
-            <Stat label="Bruto" value={format(data.totals.bruto)} tone="default" />
-            <Stat label="Descuentos" value={format(totalDescuentos)} tone="negative" caption="AFP + salud + cesantía + impuesto" />
-            <Stat label="Impuesto único" value={format(data.totals.impuesto)} tone="warning" />
-            <Stat label="Líquido a pagar" value={format(data.totals.liquido)} tone="positive" />
+            <Stat label="Bruto" value={formatCLP(data.totals.bruto)} tone="default" />
+            <Stat label="Descuentos" value={formatCLP(totalDescuentos)} tone="negative" caption="AFP + salud + cesantía + impuesto" />
+            <Stat label="Impuesto único" value={formatCLP(data.totals.impuesto)} tone="warning" />
+            <Stat label="Líquido a pagar" value={formatCLP(data.totals.liquido)} tone="positive" />
           </section>
 
           <section>
@@ -197,11 +197,11 @@ export default function LiquidacionesPage() {
                           <td>{p.employee.name}</td>
                           <td className="font-mono text-xs">{p.employee.rut}</td>
                           <td className="text-muted-foreground">{p.employee.afp}</td>
-                          <td data-numeric="true">{format(p.bruto)}</td>
-                          <td data-numeric="true" className="text-muted-foreground">{format(p.afp)}</td>
-                          <td data-numeric="true" className="text-muted-foreground">{format(p.salud)}</td>
-                          <td data-numeric="true" className="text-muted-foreground">{format(p.impuesto)}</td>
-                          <td data-numeric="true" className="font-semibold">{format(p.liquido)}</td>
+                          <td data-numeric="true">{formatCLP(p.bruto)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{formatCLP(p.afp)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{formatCLP(p.salud)}</td>
+                          <td data-numeric="true" className="text-muted-foreground">{formatCLP(p.impuesto)}</td>
+                          <td data-numeric="true" className="font-semibold">{formatCLP(p.liquido)}</td>
                           <td>
                             <StatusBadge status={p.status} />
                           </td>
@@ -227,11 +227,11 @@ export default function LiquidacionesPage() {
                       ))}
                       <tr className="bg-secondary/60 font-semibold">
                         <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Totales</td>
-                        <td data-numeric="true">{format(data.totals.bruto)}</td>
-                        <td data-numeric="true">{format(data.totals.afp)}</td>
-                        <td data-numeric="true">{format(data.totals.salud)}</td>
-                        <td data-numeric="true">{format(data.totals.impuesto)}</td>
-                        <td data-numeric="true">{format(data.totals.liquido)}</td>
+                        <td data-numeric="true">{formatCLP(data.totals.bruto)}</td>
+                        <td data-numeric="true">{formatCLP(data.totals.afp)}</td>
+                        <td data-numeric="true">{formatCLP(data.totals.salud)}</td>
+                        <td data-numeric="true">{formatCLP(data.totals.impuesto)}</td>
+                        <td data-numeric="true">{formatCLP(data.totals.liquido)}</td>
                         <td colSpan={2}></td>
                       </tr>
                     </tbody>
