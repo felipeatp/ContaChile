@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EmitDocumentSchema, calcularIVA, calcularTotal } from "@contachile/validators"
+import { EmitDocumentSchema, calcularIVA, calcularTotal, formatCLP } from "@contachile/validators"
 import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,8 +41,6 @@ function formatRUT(rut: string): string {
   }
   return formatted + "-" + dv
 }
-
-const fmt = (n: number) => `$ ${n.toLocaleString("es-CL")}`
 
 export function EmitForm() {
   const [mode, setMode] = useState<"direct" | "bridge">("direct")
@@ -387,16 +385,16 @@ export function EmitForm() {
           <div className="card-editorial p-5 space-y-3">
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">Neto</span>
-              <span className="font-mono tabular-nums text-sm">{fmt(totals.neto)}</span>
+              <span className="font-mono tabular-nums text-sm">{formatCLP(totals.neto)}</span>
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-muted-foreground">IVA · 19 %</span>
-              <span className="font-mono tabular-nums text-sm">{fmt(totals.tax)}</span>
+              <span className="font-mono tabular-nums text-sm">{formatCLP(totals.tax)}</span>
             </div>
             <div className="h-px bg-border/60" />
             <div className="flex items-baseline justify-between">
               <span className="eyebrow">Total</span>
-              <span className="stat-figure text-2xl">{fmt(totals.total)}</span>
+              <span className="stat-figure text-2xl">{formatCLP(totals.total)}</span>
             </div>
           </div>
         </div>

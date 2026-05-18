@@ -5,6 +5,7 @@ import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
 import { FileCode2, Download } from "lucide-react"
+import { formatCLP } from "@contachile/validators"
 
 interface DocumentTableProps {
   documents: Document[]
@@ -90,7 +91,7 @@ export function DocumentTable({ documents }: DocumentTableProps) {
                 </td>
                 <td className="text-muted-foreground">{doc.type}</td>
                 <td>{doc.receiverName}</td>
-                <td data-numeric="true" className="font-semibold">${doc.totalAmount.toLocaleString("es-CL")}</td>
+                <td data-numeric="true" className="font-semibold">{formatCLP(doc.totalAmount)}</td>
                 <td>
                   <StatusBadge status={doc.status} />
                 </td>
