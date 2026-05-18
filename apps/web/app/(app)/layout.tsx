@@ -1,0 +1,35 @@
+"use client"
+
+import { Sidebar } from "@/components/layout/sidebar"
+import { Header } from "@/components/layout/header"
+import { ChatWidget } from "@/components/ai/chat-widget"
+import { useSidebarState } from "@/components/layout/sidebar-state-provider"
+import { cn } from "@/lib/utils"
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { collapsed } = useSidebarState()
+
+  return (
+    <>
+      <Sidebar />
+      <div
+        className={cn(
+          "transition-[padding] duration-300",
+          collapsed ? "lg:pl-16" : "lg:pl-64"
+        )}
+      >
+        <Header />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-paper focus:border focus:border-foreground focus:rounded-sm"
+        >
+          Saltar al contenido
+        </a>
+        <main id="main-content" className="container py-6">
+          {children}
+        </main>
+      </div>
+      <ChatWidget />
+    </>
+  )
+}

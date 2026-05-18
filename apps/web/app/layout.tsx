@@ -1,10 +1,7 @@
 import type { Metadata } from "next"
 import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
-import { Sidebar } from "@/components/layout/sidebar"
-import { Header } from "@/components/layout/header"
 import { Providers } from "./providers"
-import { ChatWidget } from "@/components/ai/chat-widget"
 import "./globals.css"
 
 const fraunces = Fraunces({
@@ -82,14 +79,7 @@ export default function RootLayout({
         className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}
       >
         <body className="font-sans antialiased">
-          <Providers>
-            <Sidebar />
-            <div className="lg:pl-64">
-              <Header />
-              <main className="container py-6">{children}</main>
-            </div>
-            <ChatWidget />
-          </Providers>
+          <Providers>{children}</Providers>
         </body>
       </html>
     </ClerkProvider>
