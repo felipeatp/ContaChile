@@ -3,7 +3,7 @@
  * Ej: 1847293 -> "$ 1.847.293". Negativos: "-$ 119.000".
  */
 export function formatCLP(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
     return '$ 0'
   }
   const rounded = Math.round(value)
@@ -39,7 +39,7 @@ export function formatPercent(
   ratio: number | null | undefined,
   digits = 1
 ): string {
-  if (ratio === null || ratio === undefined || Number.isNaN(ratio)) {
+  if (ratio === null || ratio === undefined || !Number.isFinite(ratio)) {
     return '0,0 %'
   }
   const formatted = (ratio * 100).toLocaleString('es-CL', {

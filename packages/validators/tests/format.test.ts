@@ -26,6 +26,11 @@ describe('formatCLP', () => {
   it('soporta NaN -> "$ 0"', () => {
     expect(formatCLP(NaN)).toBe('$ 0')
   })
+
+  it('Infinity -> "$ 0"', () => {
+    expect(formatCLP(Infinity)).toBe('$ 0')
+    expect(formatCLP(-Infinity)).toBe('$ 0')
+  })
 })
 
 describe('parseCLP', () => {
@@ -74,5 +79,14 @@ describe('formatPercent', () => {
 
   it('null -> "0,0 %"', () => {
     expect(formatPercent(null)).toBe('0,0 %')
+  })
+
+  it('NaN -> "0,0 %"', () => {
+    expect(formatPercent(NaN)).toBe('0,0 %')
+  })
+
+  it('Infinity -> "0,0 %"', () => {
+    expect(formatPercent(Infinity)).toBe('0,0 %')
+    expect(formatPercent(-Infinity)).toBe('0,0 %')
   })
 })
