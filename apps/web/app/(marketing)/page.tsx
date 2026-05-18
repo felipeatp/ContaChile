@@ -123,7 +123,7 @@ export default function HomePage() {
       <Script
         id="structured-data"
         type="application/ld+json"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
       >
         {JSON.stringify(structuredData)}
       </Script>
