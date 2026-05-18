@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
@@ -260,7 +260,7 @@ function EmployeeForm({
           ['HONORARIOS', 'Honorarios'],
         ]} />
         <Input label="Horas semanales" value={String(form.workHours)} onChange={(v) => update('workHours', Number(v))} type="number" />
-        <Input label="Sueldo base (CLP)" value={String(form.baseSalary)} onChange={(v) => update('baseSalary', Number(v))} type="number" />
+        <Input label="Sueldo base (CLP)" value={String(form.baseSalary)} onChange={(v) => update('baseSalary', parseCLP(v))} type="number" />
         <SelectField label="AFP" value={form.afp} onChange={(v) => update('afp', v)} options={AFPs.map((a) => [a, a])} />
         <SelectField label="Salud" value={form.healthPlan} onChange={(v) => update('healthPlan', v)} options={[
           ['FONASA', 'Fonasa'],
@@ -270,7 +270,7 @@ function EmployeeForm({
           <Input
             label="Monto isapre (CLP)"
             value={String(form.healthAmount)}
-            onChange={(v) => update('healthAmount', Number(v))}
+            onChange={(v) => update('healthAmount', parseCLP(v))}
             type="number"
           />
         )}

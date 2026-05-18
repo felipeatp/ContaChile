@@ -6,7 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 
 type Product = { id: string; code: string; name: string; stock: number; costPrice: number; unit: string }
 
@@ -286,7 +286,7 @@ function MovementForm({
         {type === 'IN' && (
           <div>
             <label className="text-sm font-medium">Costo unitario (CLP)</label>
-            <input type="number" min={0} value={unitCost} onChange={(e) => setUnitCost(Number(e.target.value))} className="mt-1 h-10 w-full px-3 text-sm" />
+            <input type="number" min={0} value={unitCost} onChange={(e) => setUnitCost(parseCLP(e.target.value))} className="mt-1 h-10 w-full px-3 text-sm" />
             <p className="text-xs text-muted-foreground mt-1">Se recalcula costo promedio ponderado</p>
           </div>
         )}

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
 
 type Status = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'INVOICED' | 'EXPIRED'
@@ -305,7 +305,7 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
           items: items.map((i) => ({
             description: i.description,
             quantity: Number(i.quantity),
-            unitPrice: Number(i.unitPrice),
+            unitPrice: parseCLP(String(i.unitPrice)),
           })),
         }),
       })
@@ -395,7 +395,7 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
                       <input type="number" min={1} value={it.quantity} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right" />
                     </td>
                     <td className="py-1 px-2">
-                      <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, 'unitPrice', Number(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right" />
+                      <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, 'unitPrice', parseCLP(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-right" />
                     </td>
                     <td className="py-1 px-2 text-right font-mono text-sm">{formatCLP(it.quantity * it.unitPrice)}</td>
                     <td className="py-1 px-2 text-right">

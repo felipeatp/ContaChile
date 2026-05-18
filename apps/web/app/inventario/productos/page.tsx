@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 
 type Product = {
   id: string
@@ -289,11 +289,11 @@ function ProductForm({
             <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
           </Field>
           <Field label="Precio costo (CLP)">
-            <input type="number" min={0} value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" disabled={!!editing} />
+            <input type="number" min={0} value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" disabled={!!editing} />
             {editing && <p className="text-xs text-muted-foreground mt-1">El costo se actualiza vía movimientos</p>}
           </Field>
           <Field label="Precio venta (CLP)">
-            <input type="number" min={0} value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+            <input type="number" min={0} value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
           </Field>
           {!editing && (
             <Field label="Stock inicial">

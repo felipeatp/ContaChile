@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 
 type Line = {
   id: string
@@ -272,8 +272,8 @@ function ManualEntryForm({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const totalDebit = lines.reduce((s, l) => s + (Number(l.debit) || 0), 0)
-  const totalCredit = lines.reduce((s, l) => s + (Number(l.credit) || 0), 0)
+  const totalDebit = lines.reduce((s, l) => s + (parseCLP(String(l.debit)) || 0), 0)
+  const totalCredit = lines.reduce((s, l) => s + (parseCLP(String(l.credit)) || 0), 0)
   const diff = totalDebit - totalCredit
   const balanced = totalDebit === totalCredit && totalDebit > 0
 
@@ -301,7 +301,7 @@ function ManualEntryForm({
       setError('Selecciona cuenta en todas las líneas')
       return
     }
-    if (lines.some((l) => (Number(l.debit) > 0) === (Number(l.credit) > 0))) {
+    if (lines.some((l) => (parseCLP(String(l.debit)) > 0) === (parseCLP(String(l.credit)) > 0))) {
       setError('Cada línea debe tener debe o haber (uno y solo uno)')
       return
     }
@@ -317,8 +317,8 @@ function ManualEntryForm({
           reference: reference || undefined,
           lines: lines.map((l) => ({
             accountId: l.accountId,
-            debit: Number(l.debit) || 0,
-            credit: Number(l.credit) || 0,
+            debit: parseCLP(String(l.debit)) || 0,
+            credit: parseCLP(String(l.credit)) || 0,
           })),
         }),
       })
@@ -419,7 +419,7 @@ function ManualEntryForm({
                     type="number"
                     min={0}
                     value={l.debit}
-                    onChange={(e) => updateLine(i, 'debit', Number(e.target.value))}
+                    onChange={(e) => updateLine(i, 'debit', parseCLP(e.target.value))}
                     className="h-9 w-full px-2 text-sm"
                   />
                 </td>
@@ -428,7 +428,7 @@ function ManualEntryForm({
                     type="number"
                     min={0}
                     value={l.credit}
-                    onChange={(e) => updateLine(i, 'credit', Number(e.target.value))}
+                    onChange={(e) => updateLine(i, 'credit', parseCLP(e.target.value))}
                     className="h-9 w-full px-2 text-sm"
                   />
                 </td>

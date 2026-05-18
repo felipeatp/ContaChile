@@ -6,7 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
-import { formatCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
 
 type HonorarioType = 'ISSUED' | 'RECEIVED'
@@ -374,7 +374,7 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
               type="number"
               min={0}
               value={form.grossAmount}
-              onChange={(e) => setForm({ ...form, grossAmount: Number(e.target.value) })}
+              onChange={(e) => setForm({ ...form, grossAmount: parseCLP(e.target.value) })}
               className="mt-1 h-10 w-full px-3 text-sm"
             />
           </div>
