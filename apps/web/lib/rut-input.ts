@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo } from "react"
+import { useCallback } from "react"
 import { validateRUT, formatRUT } from "@contachile/validators"
 
 export type RutInputResult = {
@@ -26,27 +26,15 @@ export function useRutInput(
   value: string,
   setValue: (raw: string) => void
 ): RutInputResult {
-  const raw = useMemo(
-    () => (value || "").replace(/[^0-9kK]/g, "").toUpperCase(),
-    [value]
-  )
-
-  const display = useMemo(() => {
-    if (raw.length < 2) return raw
-    return formatRUT(raw)
-  }, [raw])
-
-  const isValid = useMemo(() => {
-    if (!raw) return false
-    return validateRUT(raw)
-  }, [raw])
-
-  const error = useMemo(() => {
+  const raw = (value || "").replace(/[^0-9kK]/g, "").toUpperCase()
+  const display = raw.length < 2 ? raw : formatRUT(raw)
+  const isValid = raw ? validateRUT(raw) : false
+  const error = (() => {
     if (!raw) return null
     if (raw.length < 8) return "RUT incompleto"
     if (!isValid) return "Dígito verificador inválido"
     return null
-  }, [raw, isValid])
+  })()
 
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

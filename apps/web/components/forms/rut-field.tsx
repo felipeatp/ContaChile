@@ -9,6 +9,7 @@ type Props = {
   value: string
   onChange: (raw: string) => void
   required?: boolean
+  disabled?: boolean
   placeholder?: string
 }
 
@@ -18,10 +19,11 @@ export function RutField({
   value,
   onChange,
   required,
+  disabled,
   placeholder = "12.345.678-9",
 }: Props) {
   const rut = useRutInput(value, onChange)
-  const showError = !!value && !rut.isValid
+  const showError = !!rut.error
 
   return (
     <div className="space-y-1.5">
@@ -35,7 +37,8 @@ export function RutField({
         onChange={rut.onChange}
         placeholder={placeholder}
         aria-invalid={showError}
-        aria-describedby={rut.error ? `${id}-error` : undefined}
+        aria-describedby={showError ? `${id}-error` : undefined}
+        disabled={disabled}
         inputMode="text"
         autoComplete="off"
       />
