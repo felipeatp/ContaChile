@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus, FileCode2, Upload } from "lucide-react"
 import { formatCLP } from "@contachile/validators"
+import { RutField } from "@/components/forms/rut-field"
 
 interface Purchase {
   id: string
@@ -361,11 +362,13 @@ export default function PurchasesPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">RUT Emisor</label>
-              <Input
-                placeholder="76.123.456-7"
+              <RutField
+                id="issuer-rut"
+                label="RUT Emisor"
                 value={form.issuerRut}
-                onChange={(e) => handleChange("issuerRut", e.target.value)}
+                onChange={(v) => handleChange("issuerRut", v)}
+                placeholder="76.123.456-7"
+                required
               />
             </div>
             <div>

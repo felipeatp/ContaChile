@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
 import { formatCLP } from '@contachile/validators'
+import { RutField } from '@/components/forms/rut-field'
 
 type Status = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'INVOICED' | 'EXPIRED'
 
@@ -352,9 +353,13 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
                 <option value="CREDITO 60">Crédito 60</option>
               </select>
             </Field>
-            <Field label="RUT cliente">
-              <input type="text" value={receiverRut} onChange={(e) => setReceiverRut(e.target.value)} placeholder="12.345.678-9" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-            </Field>
+            <RutField
+              id="receiver-rut"
+              label="RUT cliente"
+              value={receiverRut}
+              onChange={setReceiverRut}
+              required
+            />
             <Field label="Nombre cliente" className="col-span-2">
               <input type="text" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
             </Field>

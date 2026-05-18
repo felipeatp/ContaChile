@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
 import { formatCLP } from '@contachile/validators'
+import { RutField } from '@/components/forms/rut-field'
 
 type HonorarioType = 'ISSUED' | 'RECEIVED'
 type HonorarioStatus = 'PENDING' | 'PAID'
@@ -341,13 +342,12 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
             />
           </div>
           <div>
-            <label className="text-sm font-medium">RUT contraparte</label>
-            <input
-              type="text"
+            <RutField
+              id="counterpart-rut"
+              label="RUT contraparte"
               value={form.counterpartRut}
-              onChange={(e) => setForm({ ...form, counterpartRut: e.target.value })}
-              placeholder="12.345.678-9"
-              className="mt-1 h-10 w-full px-3 text-sm"
+              onChange={(v) => setForm({ ...form, counterpartRut: v })}
+              required
             />
           </div>
           <div className="col-span-2">
