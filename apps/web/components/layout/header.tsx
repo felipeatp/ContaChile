@@ -3,6 +3,7 @@
 import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 
 const sectionTitles: Record<string, string> = {
@@ -49,8 +50,7 @@ function buildCrumbs(pathname: string): Array<{ label: string; href: string }> {
   })
 }
 
-function formatNow(): string {
-  const d = new Date()
+function formatDateEs(d: Date): string {
   return d.toLocaleDateString("es-CL", {
     weekday: "long",
     day: "numeric",
@@ -64,13 +64,31 @@ export function Header() {
   const crumbs = buildCrumbs(pathname)
   const title = crumbs[crumbs.length - 1]?.label ?? "ContaChile"
 
+  // Hidratación segura: formatear la fecha sólo después del mount para
+  // evitar mismatch SSR/CSR (servidor y cliente pueden tener relojes distintos).
+  const [dateLabels, setDateLabels] = useState<{
+    pretty: string
+    year: string
+  } | null>(null)
+
+  useEffect(() => {
+    const now = new Date()
+    setDateLabels({
+      pretty: formatDateEs(now),
+      year: String(now.getFullYear()),
+    })
+  }, [])
+
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border bg-paper/95 backdrop-blur-sm supports-[backdrop-filter]:bg-paper/70">
       <div className="container py-4">
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             {crumbs.length > 1 && (
-              <nav className="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground/80">
+              <nav
+                aria-label="Migas de pan"
+                className="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground/80"
+              >
                 {crumbs.slice(0, -1).map((c, i) => (
                   <span key={c.href} className="flex items-center gap-1.5">
                     <Link
@@ -79,11 +97,14 @@ export function Header() {
                     >
                       {c.label}
                     </Link>
-                    {i < crumbs.length - 2 && (
-                      <span className="text-muted-foreground/50">/</span>
-                    )}
-                    {i === crumbs.length - 2 && (
-                      <span className="text-muted-foreground/50">›</span>
+                    {i === crumbs.length - 2 ? (
+                      <span aria-hidden="true" className="text-muted-foreground/50">
+                        ›
+                      </span>
+                    ) : (
+                      <span aria-hidden="true" className="text-muted-foreground/50">
+                        /
+                      </span>
                     )}
                   </span>
                 ))}
@@ -95,10 +116,12 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-5">
-            <div className="hidden md:flex flex-col items-end leading-tight">
-              <span className="eyebrow !text-[0.6rem]">{formatNow()}</span>
+            <div className="hidden md:flex flex-col items-end leading-tight min-w-[12rem]">
+              <span className="eyebrow !text-[0.6rem]">
+                {dateLabels?.pretty ?? " "}
+              </span>
               <span className="font-mono text-[0.65rem] text-muted-foreground/70 mt-0.5">
-                ed. nº {new Date().getFullYear()}
+                {dateLabels?.year ? `ed. nº ${dateLabels.year}` : " "}
               </span>
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
