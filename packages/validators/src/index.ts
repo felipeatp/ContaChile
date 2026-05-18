@@ -1,4 +1,5 @@
 export { validateRUT, formatRUT } from './rut'
+export { formatCLP, parseCLP, formatPercent } from './format'
 export { calcularIVA, calcularTotal, calcularImpuestoRenta } from './tax'
 export {
   EmitDocumentSchema,
