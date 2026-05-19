@@ -229,4 +229,37 @@
   .table-editorial thead th[data-numeric="true"] {
     @apply text-right;
   }
+
+  /* Blog article: drop cap on first paragraph */
+  .prose .drop-cap::first-letter,
+  .drop-cap::first-letter {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 900;
+    float: left;
+    line-height: 0.82;
+    margin-right: 0.12em;
+    margin-top: 0.06em;
+    color: hsl(var(--primary));
+  }
+
+  /* Blog article: editorial pull quote */
+  .prose .pull-quote,
+  .pull-quote {
+    border-left: 3px solid hsl(var(--primary));
+    padding: 0.75rem 1.25rem;
+    margin: 1.75rem 0;
+    font-size: 1.0625rem;
+    font-style: italic;
+    color: hsl(var(--ink));
+    background: hsl(var(--secondary) / 0.4);
+    border-radius: 0;
+    quotes: none;
+  }
+  .prose .pull-quote::before,
+  .prose .pull-quote::after,
+  .pull-quote::before,
+  .pull-quote::after {
+    content: none;
+  }
 }
