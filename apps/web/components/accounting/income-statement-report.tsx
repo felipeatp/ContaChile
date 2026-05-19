@@ -1,0 +1,215 @@
+"use client"
+
+import { Stat } from "@/components/ui/stat"
+import { RuleOrnament } from "@/components/ui/rule-ornament"
+import { Button } from "@/components/ui/button"
+import { Loader2, Printer } from "lucide-react"
+import { formatCLP } from "@contachile/validators"
+
+export type IncomeStatementAccountRow = { accountId: string; code: string; name: string; value: number }
+export type IncomeStatementSection = { total: number; rows: IncomeStatementAccountRow[] }
+
+export type IncomeStatementData = {
+  from: string
+  to: string
+  ingresos: IncomeStatementSection
+  costos: IncomeStatementSection
+  gastos: IncomeStatementSection
+  utilidadBruta: number
+  utilidadEjercicio: number
+}
+
+interface IncomeStatementReportProps {
+  data: IncomeStatementData | null
+  from: string
+  to: string
+  loading?: boolean
+  error?: string | null
+  onFromChange: (from: string) => void
+  onToChange: (to: string) => void
+  onPrint: () => void
+  titlePrefix?: string
+}
+
+export function IncomeStatementReport({
+  data,
+  from,
+  to,
+  loading,
+  error,
+  onFromChange,
+  onToChange,
+  onPrint,
+  titlePrefix = "Estado de",
+}: IncomeStatementReportProps) {
+  const isProfit = data ? data.utilidadEjercicio >= 0 : true
+
+  return (
+    <div className="space-y-8 animate-fade-up">
+      <section className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="eyebrow">Contabilidad · Reportes</span>
+            <span className="h-px w-10 bg-foreground/20" />
+            <span className="eyebrow text-muted-foreground/60">{from} → {to}</span>
+          </div>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            {titlePrefix}{" "}
+            <em className="text-primary not-italic font-medium">Resultados</em>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ingresos − Costos − Gastos = Utilidad del ejercicio.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => onFromChange(e.target.value)}
+            className="h-10 px-3 text-sm"
+          />
+          <span className="text-muted-foreground/40 text-xs">—</span>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => onToChange(e.target.value)}
+            className="h-10 px-3 text-sm"
+          />
+          <Button variant="outline" onClick={onPrint}>
+            <Printer className="mr-1.5 h-4 w-4" />
+            Imprimir
+          </Button>
+        </div>
+      </section>
+
+      {error && (
+        <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : data ? (
+        <>
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <span className="eyebrow">I · Resumen</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <Stat label="Ingresos" value={formatCLP(data.ingresos.total)} tone="positive" />
+              <Stat label="Costos" value={formatCLP(data.costos.total)} tone="default" />
+              <Stat label="Gastos" value={formatCLP(data.gastos.total)} tone="default" />
+              <Stat
+                label={isProfit ? "Utilidad ejercicio" : "Pérdida ejercicio"}
+                value={formatCLP(Math.abs(data.utilidadEjercicio))}
+                tone={isProfit ? "accent" : "negative"}
+              />
+            </div>
+          </section>
+
+          <RuleOrnament ornament="diamond" />
+
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <span className="eyebrow block mb-1">II · Detalle</span>
+                <h3 className="font-display text-2xl font-semibold tracking-tightest">
+                  Por cuenta
+                </h3>
+              </div>
+            </div>
+
+            <div className="card-editorial overflow-hidden">
+              <table className="table-editorial">
+                <tbody>
+                  <SectionRows title="Ingresos" section={data.ingresos} sign="+" />
+                  <tr className="bg-secondary/40 font-semibold">
+                    <td className="py-2 px-3" colSpan={2}>Total Ingresos</td>
+                    <td data-numeric="true">{formatCLP(data.ingresos.total)}</td>
+                  </tr>
+
+                  <SectionRows title="Costos" section={data.costos} sign="-" />
+                  <tr className="bg-secondary/40 font-semibold">
+                    <td className="py-2 px-3" colSpan={2}>Total Costos</td>
+                    <td data-numeric="true">{formatCLP(data.costos.total)}</td>
+                  </tr>
+
+                  <tr className="font-semibold border-y-2 border-foreground/20">
+                    <td className="py-2 px-3" colSpan={2}>
+                      Utilidad bruta <span className="text-muted-foreground font-normal">(Ingresos − Costos)</span>
+                    </td>
+                    <td data-numeric="true">{formatCLP(data.utilidadBruta)}</td>
+                  </tr>
+
+                  <SectionRows title="Gastos" section={data.gastos} sign="-" />
+                  <tr className="bg-secondary/40 font-semibold">
+                    <td className="py-2 px-3" colSpan={2}>Total Gastos</td>
+                    <td data-numeric="true">{formatCLP(data.gastos.total)}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr className={isProfit ? "bg-sage/10" : "bg-rust/10"}>
+                    <td className="py-3 px-3 font-bold" colSpan={2}>
+                      {isProfit ? "Utilidad del Ejercicio" : "Pérdida del Ejercicio"}
+                    </td>
+                    <td
+                      data-numeric="true"
+                      className={`text-base font-bold ${isProfit ? "text-sage" : "text-rust"}`}
+                    >
+                      {formatCLP(data.utilidadEjercicio)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </section>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+function SectionRows({
+  title,
+  section,
+  sign,
+}: {
+  title: string
+  section: IncomeStatementSection
+  sign: "+" | "-"
+}) {
+  if (section.rows.length === 0) {
+    return (
+      <>
+        <tr>
+          <td colSpan={3} className="py-2 px-3 font-semibold eyebrow !text-[0.6rem] !text-foreground">{title}</td>
+        </tr>
+        <tr>
+          <td colSpan={3} className="py-2 px-6 italic text-muted-foreground/60 text-xs">
+            (Sin movimientos)
+          </td>
+        </tr>
+      </>
+    )
+  }
+  return (
+    <>
+      <tr>
+        <td colSpan={3} className="py-2 px-3 font-semibold eyebrow !text-[0.6rem] !text-foreground">{title}</td>
+      </tr>
+      {section.rows.map((r) => (
+        <tr key={r.accountId}>
+          <td className="py-1.5 px-6 font-mono text-xs">{r.code}</td>
+          <td className="py-1.5 px-3 text-sm">{r.name}</td>
+          <td data-numeric="true" className="py-1.5">
+            <span className="text-muted-foreground/60 mr-0.5">{sign}</span>
+            {formatCLP(r.value)}
+          </td>
+        </tr>
+      ))}
+    </>
+  )
+}

@@ -10,7 +10,14 @@
       "Bash(pnpm *)",
       "Bash(node *)",
       "WebSearch",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Skill(superpowers:brainstorming)",
+      "Bash(Get-ChildItem *)",
+      "Skill(superpowers:executing-plans)",
+      "Skill(superpowers:subagent-driven-development)",
+      "Skill(superpowers:using-git-worktrees)",
+      "Skill(superpowers:writing-plans)",
+      "Bash(npx tsc *)"
     ]
   }
 }
