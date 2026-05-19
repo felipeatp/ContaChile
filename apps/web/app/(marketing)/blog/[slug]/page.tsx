@@ -5,6 +5,20 @@ import { JsonLd } from "@/components/seo/json-ld"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { getPostBySlug, getAllSlugs, blogPosts } from "@/lib/blog"
 
+function AudienceBadge({ audience }: { audience: "negocio" | "contador" | "ambos" }) {
+  const config = {
+    negocio:  { label: "Para mi negocio",        className: "bg-blue-100 text-blue-700" },
+    contador: { label: "Para contadores",         className: "bg-purple-100 text-purple-700" },
+    ambos:    { label: "Empresas & Contadores",   className: "bg-green-100 text-green-700" },
+  }
+  const { label, className } = config[audience]
+  return (
+    <span className={`inline-block text-[0.6rem] font-semibold uppercase tracking-wide px-2 py-0.5 ${className}`}>
+      {label}
+    </span>
+  )
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const post = getPostBySlug(params.slug)
   if (!post) return {}
@@ -107,23 +121,27 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
         {/* Article */}
         <article className="flex-1">
           {/* Article header */}
-          <header className="border-b border-border py-16">
+          <header className="border-b-2 border-foreground py-14">
             <div className="container max-w-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="eyebrow text-primary/70">{post.category}</span>
-                <span className="h-px w-8 bg-border" />
+              <div className="flex items-center gap-3 mb-5 flex-wrap">
+                <span className="eyebrow text-primary/80">{post.category}</span>
+                <span className="h-px w-6 bg-border" />
                 <span className="text-xs text-muted-foreground font-mono">{post.readTime} min de lectura</span>
-                <span className="h-px w-8 bg-border" />
+                <span className="h-px w-6 bg-border" />
                 <time className="text-xs text-muted-foreground font-mono" dateTime={post.date}>
                   {new Date(post.date).toLocaleDateString("es-CL", { year: "numeric", month: "long", day: "numeric" })}
                 </time>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tightest leading-tight">
+              <h1 className="font-display text-4xl md:text-5xl font-black tracking-tightest leading-tight mb-5">
                 {post.title}
               </h1>
-              <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg italic text-muted-foreground leading-relaxed mb-6 max-w-2xl border-l-2 border-border pl-4">
                 {post.description}
               </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <AudienceBadge audience={post.audience} />
+                <span className="text-xs text-muted-foreground/60 font-mono">ContaChile · {new Date(post.date).getFullYear()}</span>
+              </div>
             </div>
           </header>
 
@@ -131,7 +149,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           <div className="py-16">
             {/* nosec: content is static HTML from lib/blog.ts, not user-supplied */}
             <div
-              className="container max-w-3xl prose prose-slate max-w-none prose-headings:font-display prose-headings:tracking-tightest prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-muted-foreground prose-p:leading-relaxed"
+              className="container max-w-3xl prose prose-slate max-w-none prose-headings:font-display prose-headings:tracking-tightest prose-headings:text-foreground prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:font-bold prose-h3:text-xl prose-h3:mt-8 prose-p:text-base prose-p:leading-[1.85] prose-p:text-foreground/80 prose-strong:text-foreground prose-strong:font-semibold"
               dangerouslySetInnerHTML={{ __html: post.content }} // eslint-disable-line react/no-danger -- content is from static lib/blog.ts only
             />
           </div>
