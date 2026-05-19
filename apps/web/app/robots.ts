@@ -4,8 +4,8 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/home', '/login', '/sign-up'],
-      disallow: ['/dashboard', '/documents', '/emit', '/settings', '/api'],
+      allow: ['/$', '/precios', '/features/', '/blog/', '/docs/', '/comparar/'],
+      disallow: ['/dashboard/', '/documents/', '/emit/', '/settings/', '/api/', '/login', '/sign-up'],
     },
     sitemap: 'https://contachile.cl/sitemap.xml',
   }
