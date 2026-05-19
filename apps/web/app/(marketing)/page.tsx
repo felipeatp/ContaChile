@@ -101,7 +101,7 @@ const pricing = [
     features: [
       "Todo lo de Profesional",
       "Múltiples usuarios + roles",
-      "Agentes IA con tool-use",
+      "Agentes IA avanzados",
       "API pública + webhooks",
       "Integración Fintoc",
       "SLA garantizado",
@@ -330,7 +330,7 @@ export default function HomePage() {
               <h2 className="font-display text-4xl md:text-5xl font-semibold tracking-tightest max-w-2xl mx-auto">
                 Del formulario al{" "}
                 <em className="text-primary not-italic font-medium">
-                  XML firmado
+                  SII
                 </em>{" "}
                 en segundos.
               </h2>
@@ -340,17 +340,17 @@ export default function HomePage() {
                 {
                   step: "01",
                   title: "Completa",
-                  desc: "Receptor, items, forma de pago. Calculamos el IVA. Validamos el RUT con módulo 11.",
+                  desc: "Ingresa receptor, ítems y forma de pago. Calculamos el IVA automáticamente y validamos el RUT.",
                 },
                 {
                   step: "02",
                   title: "Firma",
-                  desc: "Pipeline DTE: XML ISO-8859-1, firma xmldsig con tu certificado digital, envoltura EnvioDTE.",
+                  desc: "Firmamos el documento con tu certificado digital. El proceso completo tarda menos de un segundo.",
                 },
                 {
                   step: "03",
                   title: "Distribuye",
-                  desc: "Envío al SII (o bridge Acepta), polling de estado en BullMQ, email al receptor cuando es aceptado.",
+                  desc: "Enviamos el documento al SII y notificamos a tu cliente por email cuando es aceptado.",
                 },
               ].map((item, i) => (
                 <div key={item.step} className="relative">
@@ -530,9 +530,9 @@ export default function HomePage() {
                     </span>
                   </li>
                   <li>
-                    <span className="hover:text-foreground cursor-pointer transition-colors">
+                    <Link href="/blog" className="hover:text-foreground transition-colors">
                       Blog
-                    </span>
+                    </Link>
                   </li>
                   <li>
                     <span className="hover:text-foreground cursor-pointer transition-colors">
