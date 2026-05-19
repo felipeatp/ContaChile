@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { LogOut, User, Bell } from "lucide-react"
+import { LogOut, User, Bell, Briefcase } from "lucide-react"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -39,6 +39,11 @@ const sectionTitles: Record<string, string> = {
   ai: "Agentes IA",
   ventas: "Ventas",
   cotizaciones: "Cotizaciones",
+  contador: "Contador",
+  clientes: "Mis Empresas",
+  alertas: "Alertas",
+  impuestos: "Impuestos",
+  tesoreria: "Tesorería",
 }
 
 function buildCrumbs(pathname: string): Array<{ label: string; href: string }> {
@@ -77,6 +82,13 @@ function UserMenu() {
           <p className="text-sm font-medium truncate">{user.name || user.email}</p>
           <p className="text-xs text-muted-foreground truncate">{user.email}</p>
         </div>
+        <Link
+          href="/selector"
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 transition-colors"
+        >
+          <Briefcase className="h-4 w-4" />
+          Cambiar perfil
+        </Link>
         <button
           onClick={() => signOut()}
           className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary/50 transition-colors"

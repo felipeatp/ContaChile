@@ -46,6 +46,10 @@
     --radius: 0.25rem;
   }
 
+  .theme-contador {
+    --oxblood:        215 60% 32%;      /* azul profesional para contador */
+  }
+
   .dark {
     --paper:           24 14% 9%;        /* dark plum-warm */
     --ink:             40 25% 90%;
