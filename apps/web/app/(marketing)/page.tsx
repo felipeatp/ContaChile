@@ -1,6 +1,6 @@
-import Script from "next/script"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { JsonLd } from "@/components/seo/json-ld"
 import {
   FileText,
   Shield,
@@ -28,12 +28,6 @@ const structuredData = {
     "@type": "Offer",
     price: "29900",
     priceCurrency: "CLP",
-    priceValidUntil: "2026-12-31",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "127",
   },
   description:
     "Software de facturación electrónica para Chile. Emite DTE, boletas y facturas directamente al SII.",
@@ -120,13 +114,7 @@ const pricing = [
 export default function HomePage() {
   return (
     <>
-      <Script
-        id="structured-data"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify(structuredData)}
-      </Script>
+      <JsonLd data={structuredData} />
 
       <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-50 w-full border-b border-border bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/70">
