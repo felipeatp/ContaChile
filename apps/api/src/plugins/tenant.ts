@@ -1,46 +1,116 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import { auth } from '@contachile/auth'
+import { prisma } from '@contachile/db'
 import { fromNodeHeaders } from 'better-auth/node'
 
 declare module 'fastify' {
   interface FastifyRequest {
     companyId: string
+    userId?: string
   }
+}
+
+/**
+ * Ensures the user has at least one Company + CompanyMembership.
+ * If not, creates them silently using the user's ID as the company ID
+ * (preserving backward compatibility with existing data).
+ */
+async function ensureMembership(userId: string, userEmail: string, userName?: string | null) {
+  const memberships = await prisma.companyMembership.findMany({
+    where: { userId },
+    select: { companyId: true, role: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  if (memberships.length > 0) {
+    return memberships
+  }
+
+  // Migración silenciosa: crear Company + Membership para usuarios legacy
+  const companyId = userId // preserva compatibilidad con datos existentes
+  await prisma.company.upsert({
+    where: { id: companyId },
+    update: {},
+    create: {
+      id: companyId,
+      rut: '76.123.456-7',
+      name: userName || userEmail.split('@')[0] || 'Empresa',
+    },
+  })
+
+  await prisma.companyMembership.create({
+    data: {
+      userId,
+      companyId,
+      role: 'owner',
+    },
+  })
+
+  return [{ companyId, role: 'owner' }]
 }
 
 const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', async (request, reply) => {
-    // Intentar obtener sesión de Better Auth
+    // 1. Intentar obtener sesión de Better Auth
+    let userId: string | null = null
+    let userEmail = ''
+    let userName: string | null = null
+
     try {
       const session = await auth.api.getSession({
         headers: fromNodeHeaders(request.headers),
       })
-
       if (session?.user) {
-        request.companyId = session.user.id
-        return
+        userId = session.user.id
+        userEmail = session.user.email
+        userName = session.user.name
       }
     } catch (err) {
       fastify.log.warn({ err }, 'Better Auth session validation failed')
     }
 
-    // Bypass de desarrollo con companyId fijo
-    if (process.env.DEV_BYPASS_AUTH === 'true') {
+    // 2. Bypass de desarrollo
+    if (!userId && process.env.DEV_BYPASS_AUTH === 'true') {
       request.companyId = 'dev-test-company'
       return
     }
 
-    // Fallback x-company-id: sólo permitido en desarrollo
-    if (process.env.NODE_ENV === 'production') {
-      return reply.code(401).send({ error: 'Missing authentication' })
+    // 3. Sin sesión → rechazar (o fallback x-company-id en dev)
+    if (!userId) {
+      if (process.env.NODE_ENV === 'production') {
+        return reply.code(401).send({ error: 'Missing authentication' })
+      }
+      const companyId = request.headers['x-company-id'] as string
+      if (!companyId) {
+        return reply.code(401).send({ error: 'Missing authentication' })
+      }
+      request.companyId = companyId
+      return
     }
 
-    const companyId = request.headers['x-company-id'] as string
-    if (!companyId) {
-      return reply.code(401).send({ error: 'Missing authentication' })
+    // 4. Buscar/crear memberships del usuario
+    const memberships = await ensureMembership(userId, userEmail, userName)
+
+    // Guardar userId para uso en rutas
+    request.userId = userId
+
+    // 5. Un solo membership → usar esa empresa
+    if (memberships.length === 1) {
+      request.companyId = memberships[0].companyId
+      return
     }
-    request.companyId = companyId
+
+    // 6. Múltiples memberships → leer empresa activa del header
+    const activeCompanyId = request.headers['x-active-company-id'] as string
+    const valid = memberships.find((m) => m.companyId === activeCompanyId)
+
+    if (valid) {
+      request.companyId = activeCompanyId
+    } else {
+      // Fallback a la primera empresa
+      request.companyId = memberships[0].companyId
+    }
   })
 }
 

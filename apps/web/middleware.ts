@@ -74,6 +74,16 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url))
     }
 
+    // Inyectar x-active-company-id desde la cookie para multi-tenancy
+    const activeCompanyId = request.cookies.get("active-company-id")?.value
+    if (activeCompanyId) {
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set("x-active-company-id", activeCompanyId)
+      return NextResponse.next({
+        request: { headers: requestHeaders },
+      })
+    }
+
     return NextResponse.next()
   } catch {
     // Error de red al validar sesión

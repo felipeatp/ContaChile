@@ -7,6 +7,7 @@ import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { LogOut, User, Bell, Briefcase } from "lucide-react"
+import { CompanySelector } from "@/components/layout/company-selector"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -261,6 +262,7 @@ export function Header() {
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <ThemeToggle />
+            <CompanySelector />
             <NotificationBell />
             <UserMenu />
           </div>

@@ -12,6 +12,7 @@ import envioDteRoute from './routes/dte/envio-dte'
 import consultorRoute from './routes/ai/consultor'
 import insightsRoute from './routes/ai/insights'
 import companyRoute from './routes/company'
+import companiesRoute from './routes/companies'
 import purchasesRoute from './routes/purchases'
 import f29Route from './routes/f29'
 import salesBookRoute from './routes/sales-book'
@@ -92,6 +93,7 @@ app.register(pdfRoute)
 app.register(xmlRoute)
 app.register(envioDteRoute)
 app.register(companyRoute)
+app.register(companiesRoute)
 app.register(purchasesRoute)
 app.register(f29Route)
 app.register(salesBookRoute)

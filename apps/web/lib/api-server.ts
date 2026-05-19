@@ -14,6 +14,9 @@ async function getForwardedHeaders(): Promise<Record<string, string>> {
   const companyId = h.get("x-company-id")
   if (companyId) forwarded["x-company-id"] = companyId
 
+  const activeCompanyId = h.get("x-active-company-id")
+  if (activeCompanyId) forwarded["x-active-company-id"] = activeCompanyId
+
   const idempotencyKey = h.get("idempotency-key")
   if (idempotencyKey) forwarded["idempotency-key"] = idempotencyKey
 
