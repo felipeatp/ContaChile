@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
-import { ClerkProvider } from "@clerk/nextjs"
 import { Providers } from "./providers"
 import { JsonLd } from "@/components/seo/json-ld"
 import { WebVitals } from "@/components/web-vitals"
@@ -87,19 +86,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html
-        lang="es"
-        suppressHydrationWarning
-        className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}
-      >
-        <body className="font-sans antialiased">
-          <WebVitals />
-          <JsonLd data={organizationSchema} />
-          <Providers>{children}</Providers>
-          <Analytics />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}
+    >
+      <body className="font-sans antialiased">
+        <WebVitals />
+        <JsonLd data={organizationSchema} />
+        <Providers>{children}</Providers>
+        <Analytics />
+      </body>
+    </html>
   )
 }

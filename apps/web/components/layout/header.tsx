@@ -1,10 +1,12 @@
 "use client"
 
-import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { Button } from "@/components/ui/button"
+import { LogOut, User } from "lucide-react"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -48,6 +50,43 @@ function buildCrumbs(pathname: string): Array<{ label: string; href: string }> {
       seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ")
     return { label, href }
   })
+}
+
+function UserMenu() {
+  const { data: session } = useSession()
+  const user = session?.user
+
+  if (!user) return null
+
+  const initials = user.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user.email?.slice(0, 2).toUpperCase() || "??"
+
+  return (
+    <div className="relative group">
+      <button className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center text-xs font-semibold hover:bg-secondary/80 transition-colors">
+        {initials}
+      </button>
+      <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-border bg-paper shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+        <div className="px-3 py-2 border-b border-border">
+          <p className="text-sm font-medium truncate">{user.name || user.email}</p>
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+        </div>
+        <button
+          onClick={() => signOut()}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary/50 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function formatDateEs(d: Date): string {
@@ -126,13 +165,7 @@ export function Header() {
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <ThemeToggle />
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8 ring-1 ring-border",
-                },
-              }}
-            />
+            <UserMenu />
           </div>
         </div>
       </div>

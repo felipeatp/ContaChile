@@ -95,7 +95,7 @@ export async function buildContextSnapshot(companyId: string): Promise<string> {
 
     return lines.join('\n')
   } catch (err) {
-    console.warn('[buildContextSnapshot] failed:', err instanceof Error ? err.message : err)
+    // buildContextSnapshot failed
     return `## CONTEXTO\nHoy es ${formatLongDate(now)}.`
   }
 }

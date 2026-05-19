@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance, FastifyPluginAsync } from 'fastify'
-import { verifyToken } from '@clerk/backend'
+import { auth } from '@contachile/auth'
+import { fromNodeHeaders } from 'better-auth/node'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -10,28 +11,18 @@ declare module 'fastify' {
 
 const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', async (request, reply) => {
-    const authHeader = request.headers.authorization
-    const clerkSecret = process.env.CLERK_SECRET_KEY
+    // Intentar obtener sesión de Better Auth
+    try {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+      })
 
-    // En producción, Clerk DEBE estar configurado. Sin CLERK_SECRET_KEY no se puede operar.
-    if (!clerkSecret && process.env.NODE_ENV === 'production') {
-      fastify.log.error('CLERK_SECRET_KEY no configurada en producción — rechazando request')
-      return reply.code(500).send({ error: 'Authentication misconfigured' })
-    }
-
-    if (authHeader && authHeader.startsWith('Bearer ') && clerkSecret) {
-      const token = authHeader.slice(7)
-      try {
-        const payload = await verifyToken(token, { secretKey: clerkSecret })
-        const orgId = (payload.orgId as string | undefined) || (payload.sub as string | undefined)
-        if (!orgId) {
-          return reply.code(401).send({ error: 'Invalid token: missing orgId' })
-        }
-        request.companyId = orgId
+      if (session?.user) {
+        request.companyId = session.user.id
         return
-      } catch (err) {
-        return reply.code(401).send({ error: 'Invalid or expired token' })
       }
+    } catch (err) {
+      fastify.log.warn({ err }, 'Better Auth session validation failed')
     }
 
     // Bypass de desarrollo con companyId fijo
@@ -40,8 +31,7 @@ const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       return
     }
 
-    // Fallback x-company-id: sólo permitido en desarrollo (sin CLERK_SECRET_KEY)
-    // NUNCA aceptar en producción — cualquier cliente podría suplantar un tenant.
+    // Fallback x-company-id: sólo permitido en desarrollo
     if (process.env.NODE_ENV === 'production') {
       return reply.code(401).send({ error: 'Missing authentication' })
     }

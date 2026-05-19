@@ -68,7 +68,7 @@ export default async function (fastify: FastifyInstance) {
     const data = parsed.data
 
     const accountIds = data.lines.map((l) => l.accountId)
-    const accounts = await prisma.account.findMany({
+    const accounts = await prisma.ledgerAccount.findMany({
       where: { id: { in: accountIds }, companyId },
       select: { id: true, isActive: true },
     })

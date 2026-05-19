@@ -3,9 +3,7 @@ import { auth } from "@contachile/auth"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-
+export async function GET(req: NextRequest) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   }
@@ -17,7 +15,6 @@ export async function POST(req: NextRequest) {
     })
 
     if (session?.user) {
-      // Usar el userId como companyId (mismo patrón que Clerk)
       headers["x-company-id"] = session.user.id
     } else {
       headers["x-company-id"] = "dev"
@@ -26,12 +23,15 @@ export async function POST(req: NextRequest) {
     headers["x-company-id"] = "dev"
   }
 
-  const upstream = await fetch(`${API_BASE_URL}/ai/consultor`, {
-    method: "POST",
+  // Forward cookie so the backend tenant plugin can validate the session too
+  const cookie = req.headers.get("cookie")
+  if (cookie) {
+    headers["Cookie"] = cookie
+  }
+
+  const upstream = await fetch(`${API_BASE_URL}/ai/insights`, {
+    method: "GET",
     headers,
-    body: JSON.stringify(body),
-    // @ts-expect-error — Node fetch necesita duplex para streaming
-    duplex: "half",
   })
 
   if (!upstream.ok) {
@@ -39,12 +39,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(err, { status: upstream.status })
   }
 
-  return new NextResponse(upstream.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  })
+  const data = await upstream.json()
+  return NextResponse.json(data)
 }

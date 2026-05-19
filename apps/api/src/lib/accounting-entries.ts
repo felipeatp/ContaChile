@@ -31,7 +31,7 @@ async function findAccountIds(
   companyId: string,
   codes: string[]
 ): Promise<Record<string, string> | null> {
-  const accounts = await prisma.account.findMany({
+  const accounts = await prisma.ledgerAccount.findMany({
     where: { companyId, code: { in: codes }, isActive: true },
     select: { id: true, code: true },
   })

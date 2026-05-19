@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react"
 
 type SidebarState = {
@@ -48,16 +49,19 @@ export function SidebarStateProvider({ children }: { children: React.ReactNode }
     setCollapsed(!collapsed)
   }, [collapsed, setCollapsed])
 
+  const value = useMemo(
+    () => ({
+      collapsed: hydrated ? collapsed : false,
+      mobileOpen,
+      toggleCollapsed,
+      setCollapsed,
+      setMobileOpen,
+    }),
+    [hydrated, collapsed, mobileOpen, toggleCollapsed, setCollapsed]
+  )
+
   return (
-    <SidebarContext.Provider
-      value={{
-        collapsed: hydrated ? collapsed : false,
-        mobileOpen,
-        toggleCollapsed,
-        setCollapsed,
-        setMobileOpen,
-      }}
-    >
+    <SidebarContext.Provider value={value}>
       {children}
     </SidebarContext.Provider>
   )

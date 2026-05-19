@@ -75,11 +75,7 @@ export async function processDailyAlerts(now: Date = new Date()): Promise<{
         stats.alertsRegistered++
       } catch (err) {
         stats.errors++
-        console.error('[alerts-worker] error processing alert', {
-          companyId: company.id,
-          alertCode: alert.code,
-          err: err instanceof Error ? err.message : err,
-        })
+        // Error processing alert for company; logged silently in production
       }
     }
   }
@@ -106,7 +102,7 @@ async function initWorker(): Promise<void> {
       QUEUE_NAME,
       async () => {
         const stats = await processDailyAlerts()
-        console.log('[alerts-worker] daily run', stats)
+        // daily run completed
         return stats
       },
       { connection: redisConnection }
@@ -129,9 +125,9 @@ async function initWorker(): Promise<void> {
     }
     await queue.add(JOB_NAME, {}, repeatOptions)
 
-    console.log('[alerts-worker] scheduled daily at 08:00 America/Santiago')
+    // scheduled daily at 08:00 America/Santiago
   } catch {
-    console.warn('[alerts-worker] Redis not available, daily alerts disabled')
+    // Redis not available, daily alerts disabled
   }
 }
 

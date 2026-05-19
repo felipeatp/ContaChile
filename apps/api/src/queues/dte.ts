@@ -36,7 +36,7 @@ async function initQueue(): Promise<void> {
       },
     })
   } catch {
-    console.warn('[dte-queue] Redis not available, polling disabled')
+    // Redis not available, polling disabled
   }
 }
 
@@ -50,7 +50,7 @@ export interface PollJobData {
 
 export async function enqueuePollJob(data: PollJobData): Promise<void> {
   if (!dteQueue) {
-    console.warn('[dte-queue] Skipping poll job (Redis unavailable)', data)
+    // Skipping poll job (Redis unavailable)
     return
   }
   await dteQueue.add('poll-status', data)

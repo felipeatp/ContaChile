@@ -1,8 +1,13 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
-import { ChatWidget } from "@/components/ai/chat-widget"
+
+const ChatWidget = dynamic(
+  () => import("@/components/ai/chat-widget").then((m) => m.ChatWidget),
+  { ssr: false }
+)
 import { useSidebarState } from "@/components/layout/sidebar-state-provider"
 import { cn } from "@/lib/utils"
 

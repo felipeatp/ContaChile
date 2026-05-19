@@ -4,6 +4,7 @@ import { StatsCards } from "@/components/dashboard/stats-cards"
 import { DocumentsChart } from "@/components/dashboard/documents-chart"
 import { StatusChart } from "@/components/dashboard/status-chart"
 import { UpcomingAlertsBanner } from "@/components/dashboard/upcoming-alerts-banner"
+import { AIInsights } from "@/components/dashboard/ai-insights"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,13 +14,12 @@ async function getStats() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/documents?limit=1000`,
-      { cache: "no-store" }
+      { next: { revalidate: 60 } }
     )
     const json = (await res.json()) as DocumentsResponse
     const docs = json?.documents || []
     return { documents: docs, recent: docs.slice(0, 5) }
   } catch (e) {
-    console.warn("[dashboard] getStats failed:", e)
     return { documents: [], recent: [] }
   }
 }
@@ -90,6 +90,7 @@ export default async function DashboardPage() {
       </section>
 
       <UpcomingAlertsBanner />
+      <AIInsights />
 
       {/* Métricas */}
       <section>

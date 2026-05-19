@@ -111,14 +111,15 @@ export default function ConciliacionPage() {
   const handleSync = async () => {
     setSyncing(true)
     try {
-      await fetch('/api/bank/accounts/sync', { method: 'POST' })
-      await fetch('/api/bank/movements/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      })
-      await loadAccounts()
-      await loadMovements()
+      await Promise.all([
+        fetch('/api/bank/accounts/sync', { method: 'POST' }),
+        fetch('/api/bank/movements/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        }),
+      ])
+      await Promise.all([loadAccounts(), loadMovements()])
     } finally {
       setSyncing(false)
     }

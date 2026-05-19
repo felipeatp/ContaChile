@@ -208,7 +208,7 @@ export async function reconcileWithEntry(
   if (!movement) throw new Error('Movimiento no encontrado')
   if (movement.status === 'RECONCILED') throw new Error('Ya conciliado')
 
-  const accounts = await prisma.account.findMany({
+  const accounts = await prisma.ledgerAccount.findMany({
     where: { id: { in: [debitAccountId, creditAccountId] }, companyId },
     select: { id: true, isActive: true },
   })

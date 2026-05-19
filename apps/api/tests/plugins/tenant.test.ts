@@ -2,16 +2,20 @@ import { describe, it, expect, vi } from 'vitest'
 import Fastify from 'fastify'
 import tenantPlugin from '../../src/plugins/tenant'
 
-vi.mock('@clerk/backend', () => ({
-  verifyToken: vi.fn(),
+vi.mock('@contachile/auth', () => ({
+  auth: {
+    api: {
+      getSession: vi.fn(),
+    },
+  },
 }))
 
-import { verifyToken } from '@clerk/backend'
+import { auth } from '@contachile/auth'
 
 describe('tenantPlugin', () => {
-  const mockVerifyToken = verifyToken as any
+  const mockGetSession = auth.api.getSession as any
 
-  it('allows x-company-id header when clerk is not configured', async () => {
+  it('allows x-company-id header when auth is not configured', async () => {
     const app = Fastify()
     app.register(tenantPlugin)
     app.get('/test', async (request) => ({ companyId: request.companyId }))
@@ -40,11 +44,8 @@ describe('tenantPlugin', () => {
     expect(response.statusCode).toBe(401)
   })
 
-  it('verifies clerk JWT when Authorization header is present', async () => {
-    mockVerifyToken.mockResolvedValue({ orgId: 'org_456', sub: 'user_123' })
-
-    const originalEnv = process.env.CLERK_SECRET_KEY
-    process.env.CLERK_SECRET_KEY = 'sk_test_xxx'
+  it('extracts companyId from Better Auth session', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'user_123' } })
 
     const app = Fastify()
     app.register(tenantPlugin)
@@ -53,16 +54,12 @@ describe('tenantPlugin', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/test',
-      headers: { Authorization: 'Bearer test-jwt-token' },
+      headers: { cookie: 'better-auth.session_token=valid-token' },
     })
 
     expect(response.statusCode).toBe(200)
     const body = JSON.parse(response.body)
-    expect(body.companyId).toBe('org_456')
-    expect(mockVerifyToken).toHaveBeenCalledWith('test-jwt-token', {
-      secretKey: 'sk_test_xxx',
-    })
-
-    process.env.CLERK_SECRET_KEY = originalEnv
+    expect(body.companyId).toBe('user_123')
+    expect(mockGetSession).toHaveBeenCalled()
   })
 })

@@ -16,7 +16,7 @@ interface AccountSum {
 }
 
 async function getCompanyAccounts(companyId: string): Promise<AccountInfo[]> {
-  return prisma.account.findMany({
+  return prisma.ledgerAccount.findMany({
     where: { companyId },
     select: { id: true, code: true, name: true, type: true },
     orderBy: { code: 'asc' },

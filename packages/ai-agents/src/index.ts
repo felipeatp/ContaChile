@@ -17,3 +17,6 @@ export { sanitizeMessages, sanitizeUserInput, MAX_MESSAGE_CHARS, MAX_CONVERSATIO
 export type { SanitizedMessage, SanitizeResult } from './sanitize'
 
 export { buildContextSnapshot } from './context'
+
+export { generateProactiveInsights } from './agents/insights'
+export type { Insight } from './agents/insights'

@@ -23,7 +23,7 @@ export default async function (fastify: FastifyInstance) {
     const companyId = request.companyId
     const { type, active } = request.query as { type?: string; active?: string }
 
-    const accounts = await prisma.account.findMany({
+    const accounts = await prisma.ledgerAccount.findMany({
       where: {
         companyId,
         ...(type ? { type: type as any } : {}),
@@ -42,14 +42,14 @@ export default async function (fastify: FastifyInstance) {
       return reply.code(400).send({ error: 'Invalid body', details: body.error.format() })
     }
 
-    const existing = await prisma.account.findUnique({
+    const existing = await prisma.ledgerAccount.findUnique({
       where: { companyId_code: { companyId, code: body.data.code } },
     })
     if (existing) {
       return reply.code(409).send({ error: 'Ya existe una cuenta con ese codigo' })
     }
 
-    const account = await prisma.account.create({
+    const account = await prisma.ledgerAccount.create({
       data: {
         companyId,
         ...body.data,
@@ -68,14 +68,14 @@ export default async function (fastify: FastifyInstance) {
       return reply.code(400).send({ error: 'Invalid body', details: body.error.format() })
     }
 
-    const account = await prisma.account.findFirst({
+    const account = await prisma.ledgerAccount.findFirst({
       where: { id, companyId },
     })
     if (!account) {
       return reply.code(404).send({ error: 'Cuenta no encontrada' })
     }
 
-    const updated = await prisma.account.update({
+    const updated = await prisma.ledgerAccount.update({
       where: { id },
       data: body.data,
     })
@@ -87,7 +87,7 @@ export default async function (fastify: FastifyInstance) {
     const companyId = request.companyId
     const { id } = request.params as { id: string }
 
-    const account = await prisma.account.findFirst({
+    const account = await prisma.ledgerAccount.findFirst({
       where: { id, companyId },
     })
     if (!account) {
@@ -97,7 +97,7 @@ export default async function (fastify: FastifyInstance) {
       return reply.code(403).send({ error: 'No se pueden eliminar cuentas del PUC base' })
     }
 
-    await prisma.account.delete({ where: { id } })
+    await prisma.ledgerAccount.delete({ where: { id } })
     return reply.code(204).send()
   })
 }

@@ -154,10 +154,10 @@ async function testReconcile() {
   }
 
   // Necesitamos 2 cuentas activas: 1102 Bancos y 5220 Gastos diversos
-  const bankAccount = await prisma.account.findFirst({
+  const bankAccount = await prisma.ledgerAccount.findFirst({
     where: { companyId: COMPANY_ID, code: '1102', isActive: true },
   })
-  const expenseAccount = await prisma.account.findFirst({
+  const expenseAccount = await prisma.ledgerAccount.findFirst({
     where: { companyId: COMPANY_ID, code: '5220', isActive: true },
   })
   if (!bankAccount || !expenseAccount) {

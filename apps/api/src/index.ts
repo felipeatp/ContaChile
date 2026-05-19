@@ -10,6 +10,7 @@ import pdfRoute from './routes/dte/pdf'
 import xmlRoute from './routes/dte/xml'
 import envioDteRoute from './routes/dte/envio-dte'
 import consultorRoute from './routes/ai/consultor'
+import insightsRoute from './routes/ai/insights'
 import companyRoute from './routes/company'
 import purchasesRoute from './routes/purchases'
 import f29Route from './routes/f29'
@@ -148,6 +149,7 @@ app.register(async (instance) => {
   })
 
   instance.register(consultorRoute)
+  instance.register(insightsRoute)
 })
 
 app.get('/health', async () => ({ status: 'ok' }))

@@ -6,7 +6,19 @@ import { useState } from "react"
 import { SidebarStateProvider } from "@/components/layout/sidebar-state-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient())
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000, // 5 minutos
+            gcTime: 10 * 60 * 1000, // 10 minutos
+            refetchOnWindowFocus: false,
+            retry: 1,
+          },
+        },
+      })
+  )
 
   return (
     <ThemeProvider

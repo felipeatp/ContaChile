@@ -66,7 +66,7 @@ async function executeTool(
   switch (toolName) {
     case 'get_chart_of_accounts': {
       const cid = (args.company_id as string) || companyId
-      const accounts = await prisma.account.findMany({
+      const accounts = await prisma.ledgerAccount.findMany({
         where: { companyId: cid, isActive: true },
         select: { code: true, name: true, type: true },
         orderBy: { code: 'asc' },

@@ -1,25 +1,25 @@
-import { headers } from 'next/headers'
+import { headers } from "next/headers"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 async function getForwardedHeaders(): Promise<Record<string, string>> {
   const h = await headers()
   const forwarded: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   }
 
-  const auth = h.get('authorization')
-  if (auth) forwarded['Authorization'] = auth
+  const auth = h.get("authorization")
+  if (auth) forwarded["Authorization"] = auth
 
-  const companyId = h.get('x-company-id')
-  if (companyId) forwarded['x-company-id'] = companyId
+  const companyId = h.get("x-company-id")
+  if (companyId) forwarded["x-company-id"] = companyId
 
-  const idempotencyKey = h.get('idempotency-key')
-  if (idempotencyKey) forwarded['idempotency-key'] = idempotencyKey
+  const idempotencyKey = h.get("idempotency-key")
+  if (idempotencyKey) forwarded["idempotency-key"] = idempotencyKey
 
-  // Forward cookie so Clerk session works through the proxy
-  const cookie = h.get('cookie')
-  if (cookie) forwarded['Cookie'] = cookie
+  // Forward cookie so Better Auth session works through the proxy
+  const cookie = h.get("cookie")
+  if (cookie) forwarded["Cookie"] = cookie
 
   return forwarded
 }

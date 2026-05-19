@@ -50,11 +50,11 @@ async function initWorker(): Promise<void> {
         // ── Simulation mode (development only) ─────────────────────────────
         if (SIMULATE_DTE_STATUS) {
           if (attempt < SIMULATED_ATTEMPTS) {
-            console.log(`[dte-worker] Simulating PENDING for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
+            if (process.env.NODE_ENV !== 'production') console.log(`[dte-worker] Simulating PENDING for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
             throw new Error(`Simulated PENDING for ${documentId}`)
           }
 
-          console.log(`[dte-worker] Simulating ACCEPTED for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
+          if (process.env.NODE_ENV !== 'production') console.log(`[dte-worker] Simulating ACCEPTED for ${documentId} (attempt ${attempt}/${SIMULATED_ATTEMPTS})`)
 
           await prisma.document.update({
             where: { id: documentId },
@@ -136,7 +136,7 @@ async function initWorker(): Promise<void> {
       { connection: redisConnection }
     )
   } catch {
-    console.warn('[dte-worker] Redis not available, worker not started')
+    // Redis not available, worker not started
   }
 }
 

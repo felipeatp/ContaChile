@@ -43,12 +43,12 @@ async function ensureCompany() {
 }
 
 async function ensurePuc() {
-  const count = await prisma.account.count({ where: { companyId: COMPANY_ID } })
+  const count = await prisma.ledgerAccount.count({ where: { companyId: COMPANY_ID } })
   if (count > 0) {
     console.log(`[OK] PUC already seeded (${count} accounts)`)
     return
   }
-  await prisma.account.createMany({
+  await prisma.ledgerAccount.createMany({
     data: PUC_BASE_ACCOUNTS.map((a) => ({
       companyId: COMPANY_ID,
       code: a.code,

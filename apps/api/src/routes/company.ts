@@ -3,10 +3,10 @@ import { prisma } from '@contachile/db'
 import { UpdateCompanySchema, PUC_BASE_ACCOUNTS } from '@contachile/validators'
 
 async function seedPucBase(companyId: string): Promise<void> {
-  const existingCount = await prisma.account.count({ where: { companyId } })
+  const existingCount = await prisma.ledgerAccount.count({ where: { companyId } })
   if (existingCount > 0) return // Already seeded
 
-  await prisma.account.createMany({
+  await prisma.ledgerAccount.createMany({
     data: PUC_BASE_ACCOUNTS.map((acc) => ({
       companyId,
       code: acc.code,

@@ -7,8 +7,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@clerk/backend": "^3.4.7",
     "@contachile/ai-agents": "workspace:*",
+    "@contachile/auth": "workspace:^",
     "@contachile/db": "workspace:*",
     "@contachile/dte": "workspace:*",
     "@contachile/fintoc-client": "workspace:*",
@@ -18,6 +18,7 @@
     "@fastify/cors": "^9.0.0",
     "@fastify/helmet": "^11.0.0",
     "@fastify/rate-limit": "^9.1.0",
+    "better-auth": "^1.6.11",
     "bullmq": "^5.0.0",
     "fastify": "^4.26.0",
     "fastify-plugin": "^4.5.0",

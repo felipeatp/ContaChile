@@ -27,21 +27,23 @@ export function AnimatedFigure({
 }: AnimatedFigureProps) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once, amount: 0.5 })
-  const [displayed, setDisplayed] = useState(0)
 
   useEffect(() => {
-    if (!inView) return
+    if (!inView || !ref.current) return
+    const el = ref.current
     const controls = animate(0, value, {
       duration,
       ease: [0.16, 1, 0.3, 1],
-      onUpdate: (v) => setDisplayed(v),
+      onUpdate: (v) => {
+        el.textContent = format(Math.round(v))
+      },
     })
     return () => controls.stop()
-  }, [inView, value, duration])
+  }, [inView, value, duration, format])
 
   return (
     <span ref={ref} className={className}>
-      {format(Math.round(displayed))}
+      {format(0)}
     </span>
   )
 }

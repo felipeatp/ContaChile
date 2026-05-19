@@ -12,7 +12,7 @@ export default async function (fastify: FastifyInstance) {
     }
     const { from, to } = parsed.data
 
-    const account = await prisma.account.findFirst({
+    const account = await prisma.ledgerAccount.findFirst({
       where: { id: accountId, companyId },
       select: { id: true, code: true, name: true, type: true },
     })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { AlertTriangle, CalendarClock } from 'lucide-react'
 
@@ -14,20 +14,17 @@ type Alert = {
 }
 
 export function UpcomingAlertsBanner() {
-  const [alerts, setAlerts] = useState<Alert[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const { data: alerts = [], isLoading } = useQuery<Alert[]>({
+    queryKey: ['alerts', 'upcoming'],
+    queryFn: async () => {
+      const res = await fetch('/api/alerts/upcoming')
+      if (!res.ok) throw new Error('Failed to fetch alerts')
+      const data = await res.json()
+      return data.alerts || []
+    },
+  })
 
-  useEffect(() => {
-    fetch('/api/alerts/upcoming')
-      .then((r) => r.json())
-      .then((data) => {
-        setAlerts(data.alerts || [])
-        setLoaded(true)
-      })
-      .catch(() => setLoaded(true))
-  }, [])
-
-  if (!loaded) return null
+  if (isLoading) return null
 
   // Mostrar solo: vencidos (daysUntil < 0) o próximos (daysUntil <= 7)
   const relevant = alerts.filter((a) => a.daysUntil < 0 || a.daysUntil <= 7)

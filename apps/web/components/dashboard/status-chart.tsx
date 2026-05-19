@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   PieChart,
@@ -30,20 +31,24 @@ const LABELS: Record<string, string> = {
 }
 
 export function StatusChart({ documents }: StatusChartProps) {
-  const byStatus: Record<string, number> = {}
-  documents.forEach((doc) => {
-    byStatus[doc.status] = (byStatus[doc.status] || 0) + 1
-  })
+  const { data, total, accepted, acceptedPct } = useMemo(() => {
+    const byStatus: Record<string, number> = {}
+    documents.forEach((doc) => {
+      byStatus[doc.status] = (byStatus[doc.status] || 0) + 1
+    })
 
-  const data = Object.entries(byStatus).map(([status, value]) => ({
-    name: LABELS[status] || status,
-    value,
-    color: COLORS[status] || CHART_PALETTE.muted,
-  }))
+    const data = Object.entries(byStatus).map(([status, value]) => ({
+      name: LABELS[status] || status,
+      value,
+      color: COLORS[status] || CHART_PALETTE.muted,
+    }))
 
-  const total = data.reduce((s, d) => s + d.value, 0)
-  const accepted = byStatus["ACCEPTED"] || 0
-  const acceptedPct = total > 0 ? Math.round((accepted / total) * 100) : 0
+    const total = data.reduce((s, d) => s + d.value, 0)
+    const accepted = byStatus["ACCEPTED"] || 0
+    const acceptedPct = total > 0 ? Math.round((accepted / total) * 100) : 0
+
+    return { data, total, accepted, acceptedPct }
+  }, [documents])
 
   if (data.length === 0) {
     return (
