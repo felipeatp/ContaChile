@@ -480,11 +480,15 @@ model Purchase {
   taxAmount   Int
   totalAmount Int
   category    String?
+  source      String?   // 'ocr', 'manual', 'import'
+  status      String    @default("APPROVED") // 'APPROVED' | 'PENDING_APPROVAL'
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime? @updatedAt
 
   @@index([companyId])
   @@index([date])
+  @@index([status])
 }
 
 enum InventoryMovementType {
@@ -532,4 +536,25 @@ model InventoryMovement {
   @@index([companyId])
   @@index([productId])
   @@index([createdAt])
+}
+
+enum OcrStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  ERROR
+}
+
+model OcrDocument {
+  id            String    @id @default(cuid())
+  companyId     String
+  imageUrl      String
+  status        OcrStatus @default(PENDING)
+  extractedData Json?
+  purchaseId    String?
+  errorDetail   String?
+  createdAt     DateTime  @default(now())
+
+  @@index([companyId])
+  @@index([status])
 }

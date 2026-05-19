@@ -15,7 +15,7 @@ export interface AgentTool {
 
 export interface AgentConfig {
   systemPrompt: string
-  userMessage: string
+  userMessage: string | Anthropic.ContentBlock[]
   tools?: AgentTool[]
   model?: string
   maxTokens?: number
@@ -167,7 +167,8 @@ export async function runAgent(config: AgentConfig): Promise<string> {
   } = config
   const model = ANTHROPIC_MODEL_OVERRIDE || config.model || 'claude-haiku-4-5'
 
-  const messages: Anthropic.MessageParam[] = [{ role: 'user', content: userMessage }]
+  const content: Anthropic.MessageParam['content'] = Array.isArray(userMessage) ? userMessage : userMessage
+  const messages: Anthropic.MessageParam[] = [{ role: 'user', content }]
 
   while (true) {
     const response = await anthropicClient.messages.create({

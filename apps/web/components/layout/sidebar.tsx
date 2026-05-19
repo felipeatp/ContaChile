@@ -19,6 +19,7 @@ import {
   Boxes,
   CalendarClock,
   Wallet,
+  Camera,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -54,6 +55,7 @@ const navSections: NavSection[] = [
     label: "Compras",
     items: [
       { href: "/purchases", label: "Compras", icon: ShoppingCart },
+      { href: "/ocr", label: "OCR Documentos", icon: Camera },
       { href: "/honorarios", label: "Honorarios", icon: ShoppingCart },
       { href: "/libro-compras", label: "Libro de Compras", icon: BookOpen },
     ],

@@ -31,6 +31,7 @@ import honorariosRoute from './routes/honorarios'
 import bankRoute from './routes/bank'
 import quotesRoute from './routes/quotes'
 import inventoryRoute from './routes/inventory'
+import ocrRoute from './routes/ocr'
 import './workers/dte-polling'
 import './workers/alerts'
 
@@ -113,6 +114,7 @@ app.register(honorariosRoute)
 app.register(bankRoute)
 app.register(quotesRoute)
 app.register(inventoryRoute)
+app.register(ocrRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {

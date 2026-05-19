@@ -20,3 +20,6 @@ export { buildContextSnapshot } from './context'
 
 export { generateProactiveInsights } from './agents/insights'
 export type { Insight } from './agents/insights'
+
+export { procesarDocumentoOCR } from './agents/ocr'
+export type { OCRResult } from './agents/ocr'
