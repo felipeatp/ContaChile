@@ -22,7 +22,7 @@ export const blogPosts: BlogPost[] = [
     category: "Facturación",
     audience: "ambos",
     excerpt: "Emitir facturas al SII es obligatorio y más simple de lo que parece. Te explicamos los pasos y qué hacer si algo sale mal.",
-    content: `<p class="drop-cap">Cada vez que vendes algo a otra empresa, estás obligado a emitir una factura electrónica. El Servicio de Impuestos Internos la recibe, la valida y la registra automáticamente. Si todo está correcto, el documento queda aceptado y tu cliente puede usar ese IVA como crédito fiscal.</p>
+    content: `<p class="drop-cap">Cada vez que vendes algo, estás obligado a emitir un documento tributario electrónico al SII. El Servicio de Impuestos Internos la recibe, la valida y la registra automáticamente. Si todo está correcto, el documento queda aceptado y tu cliente puede usar ese IVA como crédito fiscal.</p>
 <blockquote class="pull-quote">Si te rechazan un documento, no entres en pánico: cada rechazo tiene un código que te dice exactamente qué corregir.</blockquote>
 <h2>¿Qué necesitas antes de emitir?</h2>
 <p>Para emitir legalmente necesitas tres cosas: que tu empresa esté registrada en el SII con actividad económica activa, un software autorizado para emitir documentos electrónicos (como ContaChile), y un certificado digital vigente. El certificado es el equivalente a tu firma física, pero en formato digital.</p>
@@ -69,7 +69,7 @@ export const blogPosts: BlogPost[] = [
 <h2>¿Cuándo pedirle el RUT al cliente?</h2>
 <p>Si el cliente dice "necesito factura", siempre pide su RUT de empresa (no el RUT personal). Verifica que el RUT corresponda a una empresa activa. Si el cliente no tiene RUT de empresa o no necesita factura, emite boleta directamente sin pedirle nada.</p>
 <h2>¿Y si emito el documento equivocado?</h2>
-<p>Si emitiste una boleta y el cliente necesitaba factura, puedes anular la boleta y emitir la factura correcta, siempre que sea dentro del mismo período tributario. Si ya cerró el período, necesitas emitir una nota de débito para corregir. Es trabajo evitable si consultas al cliente antes de emitir.</p>
+<p>Si emitiste una boleta y el cliente necesitaba factura, puedes anular la boleta y emitir la factura correcta, siempre que sea dentro del mismo período tributario. Si ya cerró el período, necesitas emitir una nota de crédito para anular la boleta, y luego emitir la factura correcta. Es trabajo evitable si consultas al cliente antes de emitir.</p>
 <h2>Resumen rápido</h2>
 <p>¿Tu cliente es una empresa y necesita recuperar IVA? Factura con RUT. ¿Tu cliente es una persona o no necesita recuperar IVA? Boleta. En caso de duda, pregunta: "¿Necesitas factura con RUT de empresa?"</p>`,
   },
@@ -100,7 +100,7 @@ export const blogPosts: BlogPost[] = [
     lastModified: "2026-05-19",
     readTime: 7,
     category: "Facturación",
-    audience: "contador",
+    audience: "ambos",
     excerpt: "Sin certificación, tu empresa no puede emitir facturas electrónicas válidas. Te explicamos el proceso y cómo acortarlo.",
     content: `<p class="drop-cap">Para que una empresa pueda emitir facturas, boletas y demás documentos tributarios electrónicos en Chile, primero debe pasar por un proceso de certificación ante el SII. Este proceso valida que el sistema que va a usar cumple con los estándares técnicos y tributarios exigidos por el fisco.</p>
 <blockquote class="pull-quote">Una empresa que no está certificada no puede emitir documentos electrónicos válidos por cuenta propia. Puede usar un proveedor de servicios autorizado mientras gestiona la certificación propia.</blockquote>
@@ -126,7 +126,7 @@ export const blogPosts: BlogPost[] = [
     content: `<p class="drop-cap">El libro de compras y ventas registra todos los documentos tributarios que una empresa emitió y recibió durante un período determinado. Es la base sobre la cual se calcula el IVA del mes y se completa el F29. Desde 2017, el SII genera automáticamente el Registro de Compras y Ventas a partir de los documentos electrónicos registrados en su sistema.</p>
 <blockquote class="pull-quote">Que el SII genere el registro automáticamente no significa que sea responsabilidad del SII. El contador debe revisar que todos los documentos estén correctamente registrados.</blockquote>
 <h2>¿Para qué sirve exactamente?</h2>
-<p>Sirve para determinar el débito fiscal (IVA de las ventas) y el crédito fiscal (IVA de las compras) del período. La diferencia entre ambos es lo que la empresa debe pagar o puede remantar al mes siguiente. También es el registro que el SII puede auditar si tiene dudas sobre la declaración de la empresa.</p>
+<p>Sirve para determinar el débito fiscal (IVA de las ventas) y el crédito fiscal (IVA de las compras) del período. La diferencia entre ambos es lo que la empresa debe pagar o puede arrastrar al mes siguiente. También es el registro que el SII puede auditar si tiene dudas sobre la declaración de la empresa.</p>
 <h2>¿Quién está obligado a llevarlo?</h2>
 <p>Toda empresa o persona natural con giro afecta a IVA. Es decir, cualquier negocio que venda bienes o preste servicios gravados con IVA. Los profesionales que emiten solo boletas de honorarios no están afectos a IVA y no llevan este registro.</p>
 <h2>Errores comunes que complican el F29</h2>
