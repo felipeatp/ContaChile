@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
 import { ArrowRight } from "lucide-react"
 import { blogPosts } from "@/lib/blog"
+import type { BlogPost } from "@/lib/blog"
 
 export const metadata = {
   title: "Blog — Contabilidad y Tributación en Chile",
-  description: "Guías prácticas sobre facturación electrónica, DTE, F29, IVA y contabilidad para pymes chilenas.",
+  description: "Guías prácticas sobre facturación electrónica, F29, IVA y contabilidad para pymes chilenas.",
   alternates: { canonical: "/blog" },
 }
 
@@ -19,13 +20,29 @@ const breadcrumbSchema = {
   ],
 }
 
+function AudienceBadge({ audience }: { audience: BlogPost["audience"] }) {
+  const config = {
+    negocio:  { label: "Para mi negocio",        className: "bg-blue-100 text-blue-700" },
+    contador: { label: "Para contadores",         className: "bg-purple-100 text-purple-700" },
+    ambos:    { label: "Empresas & Contadores",   className: "bg-green-100 text-green-700" },
+  }
+  const { label, className } = config[audience]
+  return (
+    <span className={`inline-block text-[0.6rem] font-semibold uppercase tracking-wide px-2 py-0.5 ${className}`}>
+      {label}
+    </span>
+  )
+}
+
 export default function BlogIndexPage() {
+  const [featured, ...rest] = blogPosts
+
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
 
       <div className="flex flex-col min-h-screen">
-        {/* Header — identical to other marketing pages */}
+        {/* Header */}
         <header className="sticky top-0 z-50 w-full border-b border-border bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/70">
           <div className="container flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5">
@@ -47,66 +64,106 @@ export default function BlogIndexPage() {
           </div>
         </header>
 
-        {/* Breadcrumb */}
-        <div className="border-b border-border">
-          <div className="container py-3">
-            <nav className="text-xs text-muted-foreground font-mono">
-              <Link href="/" className="hover:text-foreground transition-colors">Inicio</Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground">Blog</span>
-            </nav>
+        {/* Newspaper masthead */}
+        <div className="border-b bg-paper" style={{ borderBottomWidth: "3px", borderBottomStyle: "double" }}>
+          <div className="container py-6 text-center">
+            <h1 className="font-display text-4xl md:text-5xl font-black tracking-tightest text-foreground">
+              ContaChile · Blog
+            </h1>
+            <p className="eyebrow mt-1 text-muted-foreground/70">
+              Guías tributarias para empresas y contadores
+            </p>
+            {/* Decorative category nav — not interactive, all posts always shown */}
+            <div className="flex justify-center gap-5 mt-4 flex-wrap">
+              {["Todo", "Facturación", "IVA & Impuestos", "Formularios SII", "Para mi negocio", "Para contadores"].map((tab, i) => (
+                <span
+                  key={tab}
+                  className={`text-[0.7rem] font-semibold uppercase tracking-widest pb-0.5 ${
+                    i === 0
+                      ? "text-foreground border-b-2 border-foreground"
+                      : "text-muted-foreground/60"
+                  }`}
+                >
+                  {tab}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Hero */}
-        <section className="py-16 border-b border-border">
-          <div className="container">
-            <span className="eyebrow block mb-3">Conocimiento tributario</span>
-            <h1 className="font-display text-5xl md:text-6xl font-semibold tracking-tightest max-w-2xl">
-              Guías para <em className="text-primary not-italic font-medium">contadores</em> y pymes.
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              DTE, F29, IVA, PPM, nóminas. Todo lo que necesitas saber sobre tributación chilena, explicado con claridad.
-            </p>
-          </div>
-        </section>
+        <main className="flex-1">
+          <div className="container py-10">
 
-        {/* Posts grid */}
-        <section className="py-16">
-          <div className="container">
+            {/* Featured article */}
+            <div className="eyebrow mb-4 text-muted-foreground/70">Artículo destacado</div>
+            <Link
+              href={`/blog/${featured.slug}`}
+              className="group grid md:grid-cols-[3fr_2fr] border border-border overflow-hidden mb-10 hover:bg-secondary/20 transition-colors"
+            >
+              {/* Color block */}
+              <div className="relative min-h-[180px] bg-gradient-to-br from-foreground/90 to-primary flex flex-col justify-end p-8">
+                <span className="eyebrow text-white/60 mb-2">{featured.category} · {featured.readTime} min</span>
+                <p className="font-display text-xl md:text-2xl font-bold text-white leading-snug tracking-tightest">
+                  {featured.title}
+                </p>
+              </div>
+              {/* Content */}
+              <div className="p-8 flex flex-col justify-between bg-paper">
+                <div>
+                  <span className="eyebrow text-primary/80 block mb-2">{featured.category} · {featured.readTime} min</span>
+                  <p className="font-display text-xl font-semibold tracking-tightest mb-3 group-hover:text-primary transition-colors leading-snug">
+                    {featured.title}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                    {featured.excerpt}
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center gap-3 flex-wrap">
+                  <AudienceBadge audience={featured.audience} />
+                  <span className="text-xs text-muted-foreground/60 font-mono ml-auto flex items-center gap-1">
+                    Leer artículo <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Section divider */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="flex-1 h-px bg-border" />
+              <span className="eyebrow text-muted-foreground/50">Últimos artículos</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Post grid */}
             <div className="grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-3">
-              {blogPosts.map((post) => (
+              {rest.map((post) => (
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="bg-paper p-8 group hover:bg-secondary/40 transition-colors flex flex-col gap-4"
+                  className="bg-paper p-7 group hover:bg-secondary/40 transition-colors flex flex-col gap-4"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="eyebrow text-primary/70">{post.category}</span>
-                    <span className="text-xs text-muted-foreground font-mono">{post.readTime} min</span>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="font-display text-xl font-semibold tracking-tightest mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                  <div>
+                    <span className="eyebrow text-primary/70">{post.category} · {post.readTime} min</span>
+                    <h2 className="font-display text-lg font-semibold tracking-tightest mt-1.5 mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                       {post.title}
                     </h2>
                     <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                       {post.excerpt}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                    <time className="text-xs text-muted-foreground font-mono" dateTime={post.date}>
-                      {new Date(post.date).toLocaleDateString("es-CL", { year: "numeric", month: "long", day: "numeric" })}
-                    </time>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
+                    <AudienceBadge audience={post.audience} />
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                   </div>
                 </Link>
               ))}
             </div>
+
           </div>
-        </section>
+        </main>
 
         {/* Footer */}
-        <footer className="border-t border-border py-8 bg-secondary/30 mt-auto">
+        <footer className="border-t border-border py-8 bg-secondary/30">
           <div className="container flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
             <p>© {new Date().getFullYear()} ContaChile · Todos los derechos reservados</p>
             <Link href="/" className="mt-2 md:mt-0 hover:text-foreground transition-colors">contachile.cl</Link>
