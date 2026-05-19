@@ -149,7 +149,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           <div className="py-16">
             {/* nosec: content is static HTML from lib/blog.ts, not user-supplied */}
             <div
-              className="container max-w-3xl prose prose-slate max-w-none prose-headings:font-display prose-headings:tracking-tightest prose-headings:text-foreground prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:font-bold prose-h3:text-xl prose-h3:mt-8 prose-p:text-base prose-p:leading-[1.85] prose-p:text-foreground/80 prose-strong:text-foreground prose-strong:font-semibold"
+              className="container max-w-3xl prose prose-slate prose-headings:font-display prose-headings:tracking-tightest prose-headings:text-foreground prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:font-bold prose-h3:text-xl prose-h3:mt-8 prose-p:text-base prose-p:leading-[1.85] prose-p:text-foreground/80 prose-strong:text-foreground prose-strong:font-semibold"
               dangerouslySetInnerHTML={{ __html: post.content }} // eslint-disable-line react/no-danger -- content is from static lib/blog.ts only
             />
           </div>

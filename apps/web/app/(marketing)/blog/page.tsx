@@ -74,7 +74,7 @@ export default function BlogIndexPage() {
               Guías tributarias para empresas y contadores
             </p>
             {/* Decorative category nav — not interactive, all posts always shown */}
-            <div className="flex justify-center gap-5 mt-4 flex-wrap">
+            <div className="flex justify-center gap-5 mt-4 flex-wrap" aria-hidden="true">
               {["Todo", "Facturación", "IVA & Impuestos", "Formularios SII", "Para mi negocio", "Para contadores"].map((tab, i) => (
                 <span
                   key={tab}
