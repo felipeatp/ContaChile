@@ -98,7 +98,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    label: "Gestión",
     items: [
+      { href: "/alertas", label: "Alertas", icon: CalendarClock },
       { href: "/ai", label: "Agentes IA", icon: Bot },
       { href: "/settings", label: "Configuración", icon: Settings },
     ],

@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { prisma } from '@contachile/db'
 import { findUpcomingDueDates } from '@contachile/validators'
 
 export default async function (fastify: FastifyInstance) {
@@ -12,6 +13,20 @@ export default async function (fastify: FastifyInstance) {
     const alerts = findUpcomingDueDates(new Date(), {
       monthsAhead,
       includePastDays,
+    })
+
+    return reply.send({ alerts })
+  })
+
+  fastify.get('/alerts/history', async (request, reply) => {
+    const companyId = request.companyId
+    const { limit } = request.query as { limit?: string }
+    const take = limit ? Math.min(100, parseInt(limit, 10)) : 50
+
+    const alerts = await prisma.alertSent.findMany({
+      where: { companyId },
+      orderBy: { sentAt: 'desc' },
+      take,
     })
 
     return reply.send({ alerts })

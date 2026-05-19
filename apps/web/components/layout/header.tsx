@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { LogOut, User } from "lucide-react"
+import { LogOut, User, Bell } from "lucide-react"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -89,6 +89,90 @@ function UserMenu() {
   )
 }
 
+function NotificationBell() {
+  const [alerts, setAlerts] = useState<Array<{ code: string; label: string; daysUntil: number }>>([])
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/alerts/upcoming')
+      .then((r) => r.json())
+      .then((data) => setAlerts(data.alerts || []))
+      .catch(() => setAlerts([]))
+  }, [])
+
+  const relevant = alerts.filter((a) => a.daysUntil < 0 || a.daysUntil <= 7)
+  const count = relevant.length
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center text-xs hover:bg-secondary/80 transition-colors"
+        aria-label="Notificaciones"
+      >
+        <Bell className="h-4 w-4" />
+        {count > 0 && (
+          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+            {count}
+          </span>
+        )}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-72 rounded-md border border-border bg-paper shadow-lg z-50 max-h-80 overflow-y-auto">
+            <div className="px-3 py-2 border-b border-border">
+              <p className="text-sm font-medium">Alertas</p>
+            </div>
+            {relevant.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                Sin alertas pendientes
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {relevant.map((alert) => {
+                  const overdue = alert.daysUntil < 0
+                  const urgent = !overdue && alert.daysUntil <= 2
+                  const tone = overdue
+                    ? 'text-red-700 bg-red-50'
+                    : urgent
+                    ? 'text-orange-700 bg-orange-50'
+                    : 'text-amber-700 bg-amber-50'
+                  const status = overdue
+                    ? `Vencido hace ${Math.abs(alert.daysUntil)}d`
+                    : alert.daysUntil === 0
+                    ? 'Vence hoy'
+                    : `Quedan ${alert.daysUntil}d`
+                  return (
+                    <Link
+                      key={alert.code}
+                      href="/alertas"
+                      onClick={() => setOpen(false)}
+                      className={`block px-3 py-2 text-sm hover:bg-secondary/30 transition-colors ${tone}`}
+                    >
+                      <p className="font-medium">{alert.label}</p>
+                      <p className="text-xs opacity-80">{status}</p>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+            <div className="px-3 py-2 border-t border-border">
+              <Link
+                href="/alertas"
+                onClick={() => setOpen(false)}
+                className="text-xs text-primary hover:underline"
+              >
+                Ver todas las alertas →
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function formatDateEs(d: Date): string {
   return d.toLocaleDateString("es-CL", {
     weekday: "long",
@@ -165,6 +249,7 @@ export function Header() {
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
             <ThemeToggle />
+            <NotificationBell />
             <UserMenu />
           </div>
         </div>
