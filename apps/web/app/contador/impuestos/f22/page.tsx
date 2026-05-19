@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { F22Report, type F22Response } from "@/components/tax/f22-report"
+import { F22Report, type F22Data } from "@/components/tax/f22-report"
 
 export default function ContadorF22Page() {
   const [year, setYear] = useState(new Date().getFullYear())
-  const [data, setData] = useState<F22Response | null>(null)
+  const [data, setData] = useState<F22Data | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,11 +34,10 @@ export default function ContadorF22Page() {
       year={year}
       loading={loading}
       error={error}
-      onYearChange={(y) => {
-        setYear(y)
-        fetchF22(y)
-      }}
+      onYearChange={setYear}
+      onRefresh={() => fetchF22(year)}
       onPrint={() => window.print()}
+      titlePrefix="F22 (Contador)"
     />
   )
 }

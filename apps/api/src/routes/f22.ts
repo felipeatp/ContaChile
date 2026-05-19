@@ -75,7 +75,24 @@ export default async function (fastify: FastifyInstance) {
     const totalGastos = gastos._sum.totalAmount || 0
     const rentaLiquida = Math.max(0, totalIngresos - totalCostos - totalGastos)
 
-    const ppmTotal = 0 // Simplified: PPM calculation would require F29 history
+    // PPM aproximado: 0.5% de ingresos brutos mensuales del año
+    const ppmByMonth = await Promise.all(
+      Array.from({ length: 12 }, async (_, i) => {
+        const monthStart = new Date(year, i, 1)
+        const monthEnd = new Date(year, i + 1, 1)
+        const docs = await prisma.document.findMany({
+          where: {
+            companyId,
+            type: 33,
+            emittedAt: { gte: monthStart, lt: monthEnd },
+          },
+          select: { totalAmount: true },
+        })
+        const ingresosMes = docs.reduce((s, d) => s + d.totalAmount, 0)
+        return Math.floor(ingresosMes * 0.005)
+      })
+    )
+    const ppmTotal = ppmByMonth.reduce((s, p) => s + p, 0)
 
     const impuesto = calcularImpuestoRenta(rentaLiquida)
     const saldo = impuesto - ppmTotal
