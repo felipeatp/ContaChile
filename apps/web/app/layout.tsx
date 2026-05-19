@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Providers } from "./providers"
+import { JsonLd } from "@/components/seo/json-ld"
 import "./globals.css"
 
 const fraunces = Fraunces({
@@ -25,6 +26,18 @@ const jetBrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600", "700"],
   display: "swap",
 })
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "ContaChile",
+  url: "https://contachile.cl",
+  logo: "https://contachile.cl/logo.png",
+  sameAs: [
+    "https://twitter.com/contachile",
+    "https://linkedin.com/company/contachile",
+  ],
+}
 
 export const metadata: Metadata = {
   title: {
@@ -79,6 +92,7 @@ export default function RootLayout({
         className={`${fraunces.variable} ${dmSans.variable} ${jetBrainsMono.variable}`}
       >
         <body className="font-sans antialiased">
+          <JsonLd data={organizationSchema} />
           <Providers>{children}</Providers>
         </body>
       </html>
