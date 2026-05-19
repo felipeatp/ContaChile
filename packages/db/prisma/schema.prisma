@@ -191,6 +191,12 @@ model Honorario {
   @@index([type, date])
 }
 
+enum BankAccountMode {
+  REAL
+  SIMULATED
+  DEMO
+}
+
 enum BankMovementType {
   CREDIT
   DEBIT
@@ -206,16 +212,18 @@ enum BankMovementStatus {
 }
 
 model BankAccount {
-  id          String         @id @default(cuid())
-  companyId   String
-  externalId  String
-  institution String
-  holderName  String
-  holderId    String
-  currency    String         @default("CLP")
-  lastSyncAt  DateTime?
-  createdAt   DateTime       @default(now())
-  movements   BankMovement[]
+  id            String           @id @default(cuid())
+  companyId     String
+  externalId    String
+  institution   String
+  holderName    String
+  holderId      String
+  currency      String           @default("CLP")
+  fintocLinkId  String?
+  mode          BankAccountMode  @default(SIMULATED)
+  lastSyncAt    DateTime?
+  createdAt     DateTime         @default(now())
+  movements     BankMovement[]
 
   @@unique([companyId, externalId])
   @@index([companyId])
@@ -339,6 +347,8 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
 }
 
 model Verification {
@@ -348,6 +358,8 @@ model Verification {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([identifier, value])
 }
 
 model CompanyMembership {

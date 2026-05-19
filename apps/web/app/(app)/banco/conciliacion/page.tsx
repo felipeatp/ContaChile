@@ -18,6 +18,7 @@ export default function ConciliacionPage() {
   const [syncing, setSyncing] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [reconcileMovement, setReconcileMovement] = useState<BankMovement | null>(null)
+  const [canConnectReal, setCanConnectReal] = useState(false)
 
   const loadAccounts = async () => {
     const res = await fetch("/api/bank/accounts")
@@ -47,6 +48,13 @@ export default function ConciliacionPage() {
   useEffect(() => {
     loadAccounts()
     loadChartAccounts()
+    // Allow real bank connection in development or for owners
+    fetch("/api/companies")
+      .then((r) => r.json())
+      .then((data) => {
+        const active = data.companies?.find((c: any) => c.id === data.activeCompanyId)
+        setCanConnectReal(active?.role === "owner" || process.env.NODE_ENV === "development")
+      })
   }, [])
 
   useEffect(() => {
@@ -90,6 +98,35 @@ export default function ConciliacionPage() {
     }
   }
 
+  const handleConnectBank = async (linkToken: string) => {
+    const res = await fetch("/api/bank/connections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkToken }),
+    })
+    const data = await res.json()
+    if (data.error) {
+      alert(data.error)
+      return
+    }
+    alert(`Banco conectado. Cuentas: ${data.created} nuevas, ${data.updated} actualizadas.`)
+    await loadAccounts()
+  }
+
+  const handleChangeMode = async (accountId: string, mode: "REAL" | "SIMULATED" | "DEMO") => {
+    const res = await fetch(`/api/bank/accounts/${accountId}/mode`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    })
+    const data = await res.json()
+    if (data.error) {
+      alert(data.error)
+      return
+    }
+    await loadAccounts()
+  }
+
   const handleReconciled = async (debitId: string, creditId: string, description: string) => {
     if (!reconcileMovement) return
     const res = await fetch(`/api/bank/movements/${reconcileMovement.id}/reconcile`, {
@@ -118,6 +155,9 @@ export default function ConciliacionPage() {
         onSync={handleSync}
         onAction={handleAction}
         onReconcile={setReconcileMovement}
+        onConnectBank={handleConnectBank}
+        onChangeMode={handleChangeMode}
+        canConnectReal={canConnectReal}
       />
       {reconcileMovement && (
         <ReconcileModal

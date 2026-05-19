@@ -6,6 +6,10 @@ import {
   syncMovements,
   findAndApplyMatch,
   reconcileWithEntry,
+  connectBankLink,
+  setAccountMode,
+  createLinkIntent,
+  exchangeLinkToken,
 } from '../lib/bank-service'
 
 export default async function (fastify: FastifyInstance) {
@@ -16,6 +20,66 @@ export default async function (fastify: FastifyInstance) {
       orderBy: { createdAt: 'asc' },
     })
     return reply.send({ accounts })
+  })
+
+  fastify.post('/bank/link-intents', async (request, reply) => {
+    try {
+      const result = await createLinkIntent('business')
+      return reply.send(result)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al crear link intent'
+      fastify.log.warn({ err: msg }, 'createLinkIntent failed')
+      return reply.code(400).send({ error: msg })
+    }
+  })
+
+  fastify.post('/bank/link-intents/exchange', async (request, reply) => {
+    const companyId = request.companyId
+    const body = request.body as { exchangeToken?: string }
+    if (!body.exchangeToken) {
+      return reply.code(400).send({ error: 'exchangeToken requerido' })
+    }
+    try {
+      const { linkToken } = await exchangeLinkToken(body.exchangeToken)
+      const result = await connectBankLink(companyId, linkToken)
+      return reply.send(result)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al intercambiar token'
+      fastify.log.warn({ err: msg, companyId }, 'exchangeLinkToken failed')
+      return reply.code(400).send({ error: msg })
+    }
+  })
+
+  fastify.post('/bank/connections', async (request, reply) => {
+    const companyId = request.companyId
+    const body = request.body as { linkToken?: string }
+    if (!body.linkToken) {
+      return reply.code(400).send({ error: 'linkToken requerido' })
+    }
+    try {
+      const result = await connectBankLink(companyId, body.linkToken)
+      return reply.send(result)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al conectar banco'
+      fastify.log.warn({ err: msg, companyId }, 'connectBankLink failed')
+      return reply.code(400).send({ error: msg })
+    }
+  })
+
+  fastify.patch('/bank/accounts/:id/mode', async (request, reply) => {
+    const companyId = request.companyId
+    const { id } = request.params as { id: string }
+    const body = request.body as { mode?: string; linkToken?: string }
+    if (!body.mode || !['REAL', 'SIMULATED', 'DEMO'].includes(body.mode)) {
+      return reply.code(400).send({ error: 'mode debe ser REAL, SIMULATED o DEMO' })
+    }
+    try {
+      const result = await setAccountMode(id, companyId, body.mode as 'REAL' | 'SIMULATED' | 'DEMO', body.linkToken)
+      return reply.send(result)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error'
+      return reply.code(400).send({ error: msg })
+    }
   })
 
   fastify.post('/bank/accounts/sync', async (request, reply) => {

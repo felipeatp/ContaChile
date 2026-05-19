@@ -90,6 +90,20 @@ export default function ContadorConciliacionPage() {
     }
   }
 
+  const handleChangeMode = async (accountId: string, mode: "REAL" | "SIMULATED" | "DEMO") => {
+    const res = await fetch(`/api/bank/accounts/${accountId}/mode`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+    })
+    const data = await res.json()
+    if (data.error) {
+      alert(data.error)
+      return
+    }
+    await loadAccounts()
+  }
+
   const handleReconciled = async (debitId: string, creditId: string, description: string) => {
     if (!reconcileMovement) return
     const res = await fetch(`/api/bank/movements/${reconcileMovement.id}/reconcile`, {
@@ -118,6 +132,9 @@ export default function ContadorConciliacionPage() {
         onSync={handleSync}
         onAction={handleAction}
         onReconcile={setReconcileMovement}
+        onChangeMode={handleChangeMode}
+        canConnectReal={false}
+        titlePrefix="Conciliación (Contador)"
       />
       {reconcileMovement && (
         <ReconcileModal

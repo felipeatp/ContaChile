@@ -29,15 +29,34 @@ async function ensureMembership(userId: string, userEmail: string, userName?: st
 
   // Migración silenciosa: crear Company + Membership para usuarios legacy
   const companyId = userId // preserva compatibilidad con datos existentes
-  await prisma.company.upsert({
-    where: { id: companyId },
-    update: {},
-    create: {
-      id: companyId,
-      rut: '76.123.456-7',
-      name: userName || userEmail.split('@')[0] || 'Empresa',
-    },
-  })
+  const safeRut = `76.${userId.slice(0, 3)}.${userId.slice(3, 6)}-${userId.slice(6, 7) || 'K'}`
+  try {
+    await prisma.company.upsert({
+      where: { id: companyId },
+      update: {},
+      create: {
+        id: companyId,
+        rut: safeRut,
+        name: userName || userEmail.split('@')[0] || 'Empresa',
+      },
+    })
+  } catch (err: any) {
+    // Si falla por RUT duplicado, buscar la company existente y reusarla
+    if (err.code === 'P2002') {
+      const existing = await prisma.company.findUnique({ where: { id: companyId } })
+      if (!existing) {
+        // Buscar por RUT y crear membership ahí
+        const byRut = await prisma.company.findFirst({ where: { rut: safeRut } })
+        if (byRut) {
+          await prisma.companyMembership.create({
+            data: { userId, companyId: byRut.id, role: 'owner' },
+          })
+          return [{ companyId: byRut.id, role: 'owner' }]
+        }
+      }
+    }
+    throw err
+  }
 
   await prisma.companyMembership.create({
     data: {

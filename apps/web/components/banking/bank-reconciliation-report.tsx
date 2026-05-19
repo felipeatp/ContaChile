@@ -1,10 +1,13 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Loader2, RefreshCcw, Sparkles, Link as LinkIcon, Eye, Trash2 } from "lucide-react"
+import { Loader2, RefreshCcw, Sparkles, Link as LinkIcon, Eye, Trash2, Landmark } from "lucide-react"
 import { formatCLP } from "@contachile/validators"
+import { ConnectBankButton } from "./connect-bank-button"
 
 export type BankStatus = "PENDING" | "SUGGESTED" | "MATCHED_DTE" | "MATCHED_PURCHASE" | "RECONCILED" | "IGNORED"
+
+export type BankAccountMode = "REAL" | "SIMULATED" | "DEMO"
 
 export type BankAccount = {
   id: string
@@ -13,6 +16,7 @@ export type BankAccount = {
   holderName: string
   holderId: string
   currency: string
+  mode: BankAccountMode
   lastSyncAt?: string | null
 }
 
@@ -55,6 +59,18 @@ const STATUS_COLOR: Record<BankStatus, string> = {
   IGNORED: "bg-muted text-muted-foreground",
 }
 
+const MODE_LABEL: Record<BankAccountMode, string> = {
+  REAL: "Real",
+  SIMULATED: "Simulado",
+  DEMO: "Demo",
+}
+
+const MODE_COLOR: Record<BankAccountMode, string> = {
+  REAL: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  SIMULATED: "bg-amber-100 text-amber-800 border-amber-200",
+  DEMO: "bg-purple-100 text-purple-800 border-purple-200",
+}
+
 interface BankReconciliationReportProps {
   accounts: BankAccount[]
   movements: BankMovement[]
@@ -66,7 +82,10 @@ interface BankReconciliationReportProps {
   onSync: () => void
   onAction: (movId: string, action: "match-auto" | "classify" | "ignore") => void
   onReconcile: (movement: BankMovement) => void
+  onConnectBank?: (linkToken: string) => void
+  onChangeMode?: (accountId: string, mode: BankAccountMode) => void
   titlePrefix?: string
+  canConnectReal?: boolean
 }
 
 export function BankReconciliationReport({
@@ -80,7 +99,10 @@ export function BankReconciliationReport({
   onSync,
   onAction,
   onReconcile,
+  onConnectBank,
+  onChangeMode,
   titlePrefix = "Conciliación",
+  canConnectReal = false,
 }: BankReconciliationReportProps) {
   return (
     <div className="space-y-8 animate-fade-up">
@@ -101,10 +123,15 @@ export function BankReconciliationReport({
             Sincroniza movimientos desde el banco, busca match automático con DTEs/Compras o pídele a la IA que sugiera un asiento.
           </p>
         </div>
-        <Button onClick={onSync} disabled={syncing}>
-          {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
-          Sincronizar
-        </Button>
+        <div className="flex items-center gap-2">
+          {canConnectReal && onConnectBank && (
+            <ConnectBankButton onSuccess={onConnectBank} />
+          )}
+          <Button onClick={onSync} disabled={syncing}>
+            {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
+            Sincronizar
+          </Button>
+        </div>
       </section>
 
       <section>
@@ -113,9 +140,11 @@ export function BankReconciliationReport({
         </div>
         <div className="card-editorial p-5">
           {accounts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Aún no hay cuentas. Haz clic en &ldquo;Sincronizar&rdquo; para conectar (modo simulador activo).
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Aún no hay cuentas. Haz clic en &ldquo;Sincronizar&rdquo; para generar datos simulados, o usa &ldquo;Conectar banco real&rdquo; para vincular tu cuenta.
+              </p>
+            </div>
           ) : (
             <div className="space-y-2">
               {accounts.map((a) => (
@@ -123,14 +152,33 @@ export function BankReconciliationReport({
                   key={a.id}
                   className="flex items-center justify-between border-b border-border/60 last:border-0 pb-2 last:pb-0 text-sm"
                 >
-                  <div>
-                    <div className="font-medium">{a.institution}</div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {a.holderName} · {a.holderId} · {a.currency}
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="font-medium">{a.institution}</div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        {a.holderName} · {a.holderId} · {a.currency}
+                      </div>
                     </div>
+                    <span className={`text-[0.65rem] rounded px-1.5 py-0.5 border ${MODE_COLOR[a.mode]}`}>
+                      {MODE_LABEL[a.mode]}
+                    </span>
                   </div>
-                  <div className="text-[0.65rem] font-mono text-muted-foreground/60 tabular">
-                    Última sync: {a.lastSyncAt ? new Date(a.lastSyncAt).toLocaleString("es-CL") : "nunca"}
+                  <div className="flex items-center gap-2">
+                    {onChangeMode && (
+                      <select
+                        value={a.mode}
+                        onChange={(e) => onChangeMode(a.id, e.target.value as BankAccountMode)}
+                        className="h-7 text-xs px-2"
+                        title="Cambiar modo"
+                      >
+                        <option value="REAL">Real</option>
+                        <option value="SIMULATED">Simulado</option>
+                        <option value="DEMO">Demo</option>
+                      </select>
+                    )}
+                    <div className="text-[0.65rem] font-mono text-muted-foreground/60 tabular">
+                      Sync: {a.lastSyncAt ? new Date(a.lastSyncAt).toLocaleString("es-CL") : "nunca"}
+                    </div>
                   </div>
                 </div>
               ))}
