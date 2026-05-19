@@ -19,17 +19,17 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 ### Mes 1 — Fundación
 
 #### Infraestructura
-- [ ] Repositorio GitHub con monorepo (apps/web + apps/api + packages/shared)
-- [ ] Next.js 14 con App Router + TypeScript
-- [ ] PostgreSQL en Neon (free tier) + Prisma ORM
-- [ ] Fastify API en Railway
+- [x] Repositorio GitHub con monorepo (apps/web + apps/api + packages/shared)
+- [x] Next.js 14 con App Router + TypeScript
+- [x] PostgreSQL local Docker + Prisma ORM
+- [ ] Fastify API en Railway (pendiente deploy)
 - [ ] CI/CD con GitHub Actions → Vercel + Railway
-- [ ] Variables de entorno y secrets management
+- [x] Variables de entorno y secrets management
 
 #### Auth y multi-empresa
-- [ ] Autenticación con Clerk (email/password + magic link)
-- [ ] Modelo multi-tenant: 1 usuario → N empresas (RUTs)
-- [ ] Schema de DB con tenant isolation
+- [x] Autenticación con Better Auth (email/password + OAuth Google)
+- [x] Modelo multi-tenant: 1 usuario → N empresas (RUTs) con CompanyMembership
+- [x] Schema de DB con tenant isolation
 - [ ] Onboarding: crear empresa, ingresar datos SII, subir certificado digital
 
 #### Proceso SII (iniciar en paralelo)
@@ -40,32 +40,32 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 ### Mes 2 — Motor DTE
 
 #### Librería DTE propia (packages/dte)
-- [ ] Generación de XML según norma SII para tipos: 33, 39, 52, 56, 61
-- [ ] Firma digital con certificado del usuario (xmldsig)
-- [ ] Generación de sobre DTE (EnvioDTE)
+- [x] Generación de XML según norma SII para tipos: 33, 39, 52, 56, 61
+- [x] Firma digital con certificado del usuario (xmldsig)
+- [x] Generación de sobre DTE (EnvioDTE)
 - [ ] Generación de set de pruebas para certificación SII
 - [ ] Tests unitarios exhaustivos de cada tipo de documento
 
 #### UI de emisión
-- [ ] Formulario de emisión de factura (33)
-- [ ] Formulario de boleta electrónica (39)
-- [ ] Lista de documentos emitidos con estado SII
-- [ ] Descarga PDF (representación impresa)
+- [x] Formulario de emisión de factura (33)
+- [x] Formulario de boleta electrónica (39)
+- [x] Lista de documentos emitidos con estado SII
+- [x] Descarga PDF (representación impresa)
 - [ ] Envío por email al cliente
 
 ### Mes 3 — Libros y F29
 
 #### Libros tributarios
-- [ ] Libro de ventas automático (desde DTEs emitidos)
-- [ ] Ingreso manual de compras (facturas recibidas)
+- [x] Libro de ventas automático (desde DTEs emitidos)
+- [x] Ingreso manual de compras (facturas recibidas)
 - [ ] Importación de compras desde XML SII (RCOF)
-- [ ] Libro IVA compras/ventas con cálculo automático
+- [x] Libro IVA compras/ventas con cálculo automático
 
 #### F29
-- [ ] Cálculo automático: IVA débito, crédito, diferencia
-- [ ] Vista preview del F29 con todos los códigos
-- [ ] Exportación a PDF para declarar manualmente
-- [ ] Alertas de vencimiento (día 20 de cada mes)
+- [x] Cálculo automático: IVA débito, crédito, diferencia
+- [x] Vista preview del F29 con todos los códigos
+- [x] Exportación a PDF para declarar manualmente
+- [x] Alertas de vencimiento (día 20 de cada mes)
 
 #### Certificación SII
 - [ ] Enviar set de pruebas y obtener respuesta
@@ -82,20 +82,20 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 
 ### Mes 4 — Contabilidad General
 
-- [ ] Plan de cuentas IFRS adaptado a Chile (importable/personalizable)
-- [ ] Libro diario: registro de asientos manuales y automáticos
-- [ ] Libro mayor: movimientos por cuenta
-- [ ] Balance de comprobación
-- [ ] Estado de resultados (PyG)
-- [ ] Balance general
-- [ ] Asientos automáticos desde DTEs emitidos y recibidos
+- [x] Plan de cuentas IFRS adaptado a Chile (importable/personalizable)
+- [x] Libro diario: registro de asientos manuales y automáticos
+- [x] Libro mayor: movimientos por cuenta
+- [x] Balance de comprobación
+- [x] Estado de resultados (PyG)
+- [x] Balance general
+- [x] Asientos automáticos desde DTEs emitidos y recibidos
 
 ### Mes 5 — Agente IA + Conciliación Bancaria
 
 #### Integración Fintoc
-- [ ] Conexión OAuth con bancos chilenos (BCI, Santander, BancoEstado, etc.)
-- [ ] Importación automática de movimientos bancarios
-- [ ] Modelo de conciliación: movimiento bancario ↔ asiento contable
+- [x] Conexión con bancos chilenos vía widget Fintoc (real + simulador dual-mode)
+- [x] Importación automática de movimientos bancarios
+- [x] Modelo de conciliación: movimiento bancario ↔ asiento contable + match auto DTE/Compra
 
 #### Primer agente Claude
 - [ ] Agente clasificador de transacciones (ver agentes/01-clasificador.md)
@@ -121,19 +121,19 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 
 ### Mes 7 — Remuneraciones
 
-- [ ] Ficha de trabajadores (contrato, cargo, sueldo base)
-- [ ] Liquidaciones de sueldo según legislación chilena
-- [ ] Cálculo de imposiciones: AFP, salud (7%), cesantía
-- [ ] Descuentos legales y voluntarios
-- [ ] Exportación a formato PreviRed
+- [x] Ficha de trabajadores (contrato, cargo, sueldo base)
+- [x] Liquidaciones de sueldo según legislación chilena
+- [x] Cálculo de imposiciones: AFP, salud (7%), cesantía
+- [x] Descuentos legales y voluntarios
+- [x] Exportación a formato PreviRed
 - [ ] DDJJ 1887 (honorarios) y DDJJ 1879
 
 ### Mes 8 — Inventario y CRM
 
-- [ ] Catálogo de productos y servicios
-- [ ] Control de stock (entrada, salida, inventario valorado)
-- [ ] Ficha de clientes y proveedores con historial
-- [ ] Órdenes de compra y cotizaciones
+- [x] Catálogo de productos y servicios
+- [x] Control de stock (entrada, salida, inventario valorado)
+- [x] Ficha de clientes y proveedores con historial
+- [x] Órdenes de compra y cotizaciones
 - [ ] Notas de pedido → factura en 1 clic
 
 ### Mes 9 — API Pública + App Móvil

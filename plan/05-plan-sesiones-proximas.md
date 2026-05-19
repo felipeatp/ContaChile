@@ -10,9 +10,17 @@
 - ✅ Motor DTE: emisión de facturas (33), boletas (39), notas crédito/débito (56/61), envío DTE
 - ✅ Libro de ventas y libro de compras
 - ✅ F29 (cálculo IVA débito/crédito, preview, PDF)
-- ✅ Multi-tenant: auth por companyId, schema-per-tenant
+- ✅ Multi-tenant real: Better Auth + CompanyMembership + invitaciones empresa→contador
 - ✅ Receptores (clientes/proveedores)
-- ✅ Plan de cuentas (accounts route — base)
+- ✅ Plan de cuentas (PUC completo)
+- ✅ Contabilidad General: Libro Diario, Mayor, Balance Comprobación, Estado Resultados, Balance General, asientos automáticos
+- ✅ Remuneraciones: trabajadores, liquidaciones con cálculo legal, PDF, exportación PreviRed, asiento automático
+- ✅ Alertas de vencimiento: cron worker, emails, deduplicación AlertSent
+- ✅ Boletas de Honorarios: BHE recibidas, retención 13.75%, asiento automático
+- ✅ Split Empresa/Contador: route groups, selector de empresa, invitation flow HMAC
+- ✅ Conciliación Bancaria: Fintoc real (widget v1 con link intents) + simulador dual-mode (REAL/SIMULATED/DEMO)
+- ✅ Cotizaciones: CRUD completo, estados, conversión a factura
+- ✅ Inventario básico: productos, movimientos, stock
 - ✅ Agente clasificador IA de transacciones bancarias
 - ✅ Consultor tributario IA (streaming + tool use)
 - ✅ Seguridad API: CORS, Helmet, rate limit, prompt injection, audit log
@@ -473,17 +481,17 @@ No es bloqueante para contratar pero es muy valorado en NPS.
 
 | # | Módulo | Sesiones | Prioridad | Impacto |
 |---|--------|----------|-----------|---------|
-| 1A | Libro diario y mayor | 1 | 🔴 Crítica | Sin esto no somos contables |
-| 1B | Estados financieros | 1 | 🔴 Crítica | Balance y resultados |
-| 2A | Ficha trabajadores | 1 | 🔴 Crítica | Base de RRHH |
-| 2B | Liquidaciones + PDF | 1 | 🔴 Crítica | El core de remuneraciones |
-| 2C | PreviRed + DDJJ 1887 | 1 | 🔴 Crítica | Obligatorio para producción |
-| 3A | Alertas vencimiento | 1 | 🔴 Crítica | Retención de clientes |
-| 4A | Boletas honorarios | 1 | 🔴 Crítica | Segmento segunda categoría |
-| 5A | Fintoc integración | 1 | 🟡 Alta | Base de conciliación |
-| 5B | Conciliación + IA | 1 | 🟡 Alta | Automatización real |
-| 6A | Cotizaciones y OC | 1 | 🟡 Alta | Flujo ventas completo |
-| 7A | Inventario stock | 1-2 | 🟡 Alta | Retail y comercio |
+| 1A | Libro diario y mayor | ✅ Hecho | 🔴 Crítica | Sin esto no somos contables |
+| 1B | Estados financieros | ✅ Hecho | 🔴 Crítica | Balance y resultados |
+| 2A | Ficha trabajadores | ✅ Hecho | 🔴 Crítica | Base de RRHH |
+| 2B | Liquidaciones + PDF | ✅ Hecho | 🔴 Crítica | El core de remuneraciones |
+| 2C | PreviRed + DDJJ 1887 | ✅ Hecho | 🔴 Crítica | Obligatorio para producción |
+| 3A | Alertas vencimiento | ✅ Hecho | 🔴 Crítica | Retención de clientes |
+| 4A | Boletas honorarios | ✅ Hecho | 🔴 Crítica | Segmento segunda categoría |
+| 5A | Fintoc integración | ✅ Hecho | 🟡 Alta | Base de conciliación |
+| 5B | Conciliación + IA | ✅ Hecho | 🟡 Alta | Automatización real |
+| 6A | Cotizaciones y OC | ✅ Hecho | 🟡 Alta | Flujo ventas completo |
+| 7A | Inventario stock | ✅ Hecho | 🟡 Alta | Retail y comercio |
 | 8A | F22 con IA | 2 | 🟡 Alta | Retención anual |
 | 9A | OCR IA | 1 | 🟢 Media | Captura gastos terreno |
 | 10A | API pública | 1 | 🟢 Media | Canal B2B |
