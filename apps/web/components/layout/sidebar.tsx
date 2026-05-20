@@ -20,6 +20,8 @@ import {
   CalendarClock,
   Wallet,
   Camera,
+  Key,
+  Webhook,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -105,6 +107,8 @@ const navSections: NavSection[] = [
       { href: "/alertas", label: "Alertas", icon: CalendarClock },
       { href: "/ai", label: "Agentes IA", icon: Bot },
       { href: "/settings", label: "Configuración", icon: Settings },
+      { href: "/settings/api-keys", label: "API Keys", icon: Key },
+      { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
     ],
   },
 ]

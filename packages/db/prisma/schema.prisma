@@ -558,3 +558,31 @@ model OcrDocument {
   @@index([companyId])
   @@index([status])
 }
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  keyHash   String   @unique
+  scopes    String[] @default(["read:documents", "read:purchases", "read:company"])
+  lastUsedAt DateTime?
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([keyHash])
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  companyId String
+  url       String
+  events    String[] @default(["document.created", "purchase.created"])
+  secret    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([active])
+}

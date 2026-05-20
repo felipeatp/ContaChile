@@ -32,6 +32,10 @@ import bankRoute from './routes/bank'
 import quotesRoute from './routes/quotes'
 import inventoryRoute from './routes/inventory'
 import ocrRoute from './routes/ocr'
+import publicApiRoute from './routes/public-api'
+import apiKeysRoute from './routes/api-keys'
+import webhooksRoute from './routes/webhooks'
+import publicApiPlugin from './plugins/public-api'
 import './workers/dte-polling'
 import './workers/alerts'
 
@@ -115,6 +119,10 @@ app.register(bankRoute)
 app.register(quotesRoute)
 app.register(inventoryRoute)
 app.register(ocrRoute)
+app.register(publicApiPlugin)
+app.register(publicApiRoute)
+app.register(apiKeysRoute)
+app.register(webhooksRoute)
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {

@@ -71,6 +71,9 @@ async function ensureMembership(userId: string, userEmail: string, userName?: st
 
 const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', async (request, reply) => {
+    // Rutas públicas (API Key) se manejan en su propio plugin
+    if (request.url.startsWith('/public')) return
+
     // 1. Intentar obtener sesión de Better Auth
     let userId: string | null = null
     let userEmail = ''
