@@ -50,6 +50,7 @@ model JournalEntry {
   @@index([companyId])
   @@index([date])
   @@index([source])
+  @@index([companyId, date])
 }
 
 model JournalLine {
@@ -436,6 +437,7 @@ model Document {
   @@index([status])
   @@index([emittedAt])
   @@index([companyId])
+  @@index([companyId, emittedAt])
 }
 
 model DocumentItem {
@@ -489,6 +491,7 @@ model Purchase {
   @@index([companyId])
   @@index([date])
   @@index([status])
+  @@index([companyId, date])
 }
 
 enum InventoryMovementType {
@@ -516,6 +519,7 @@ model Product {
   @@unique([companyId, code])
   @@index([companyId])
   @@index([isActive])
+  @@index([companyId, isActive])
 }
 
 model InventoryMovement {

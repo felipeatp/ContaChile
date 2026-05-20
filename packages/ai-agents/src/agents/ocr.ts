@@ -51,27 +51,27 @@ export async function procesarDocumentoOCR(
   imageBase64: string,
   mimeType: string = 'image/jpeg'
 ): Promise<OCRResult> {
-  const result = await runAgent({
-    systemPrompt: SYSTEM_PROMPT,
-    model: 'claude-sonnet-4-6',
-    maxTokens: 2048,
-    userMessage: [
-      {
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mimeType as any,
-          data: imageBase64,
-        },
-      },
-      {
-        type: 'text',
-        text: 'Extrae los datos de este documento tributario chileno. Responde solo en JSON.',
-      },
-    ] as any,
-  })
-
   try {
+    const result = await runAgent({
+      systemPrompt: SYSTEM_PROMPT,
+      model: 'claude-sonnet-4-6',
+      maxTokens: 2048,
+      userMessage: [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mimeType as any,
+            data: imageBase64,
+          },
+        },
+        {
+          type: 'text',
+          text: 'Extrae los datos de este documento tributario chileno. Responde solo en JSON.',
+        },
+      ] as any,
+    })
+
     // Intenta extraer JSON de la respuesta
     const jsonMatch = result.match(/\{[\s\S]*\}/)
     const jsonStr = jsonMatch ? jsonMatch[0] : result
