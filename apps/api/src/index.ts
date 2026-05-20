@@ -42,8 +42,23 @@ import './workers/alerts'
 const app = Fastify({ logger: true })
 
 // CORS: sólo permite el origen del frontend configurado
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : [process.env.WEB_URL || 'http://localhost:3000']
+
 app.register(cors, {
-  origin: process.env.WEB_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    // Permitir requests sin origin (mobile apps, curl, etc.)
+    if (!origin) return cb(null, true)
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return cb(null, true)
+    }
+    // En desarrollo, permitir cualquier localhost
+    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost')) {
+      return cb(null, true)
+    }
+    cb(new Error('Not allowed by CORS'), false)
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })
