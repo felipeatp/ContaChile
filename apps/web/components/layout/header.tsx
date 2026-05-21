@@ -6,8 +6,9 @@ import { useEffect, useState } from "react"
 import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { LogOut, User, Bell, Briefcase } from "lucide-react"
+import { LogOut, User, Bell, Briefcase, Download } from "lucide-react"
 import { CompanySelector } from "@/components/layout/company-selector"
+import { useInstallPrompt } from "@/lib/use-install-prompt"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -186,6 +187,23 @@ function NotificationBell() {
   )
 }
 
+function InstallButton() {
+  const { isInstallable, promptInstall } = useInstallPrompt()
+
+  if (!isInstallable) return null
+
+  return (
+    <button
+      onClick={promptInstall}
+      className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+      aria-label="Instalar ContaChile"
+      title="Instalar como app"
+    >
+      <Download className="h-4 w-4" />
+    </button>
+  )
+}
+
 function formatDateEs(d: Date): string {
   return d.toLocaleDateString("es-CL", {
     weekday: "long",
@@ -261,6 +279,7 @@ export function Header() {
               </span>
             </div>
             <div className="h-8 w-px bg-border hidden md:block" />
+            <InstallButton />
             <ThemeToggle />
             <CompanySelector />
             <NotificationBell />
