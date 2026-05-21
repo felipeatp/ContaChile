@@ -147,7 +147,7 @@ function ChartShell({
             Sin datos en el período
           </div>
         ) : (
-          children
+          <>{children}</>
         )}
       </CardContent>
     </Card>
