@@ -1,46 +1,55 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import * as SecureStore from 'expo-secure-store'
-import { setApiKey } from './api'
+import { authClient } from './auth-client'
 
 interface AuthContextType {
-  apiKey: string | null
+  user: { id: string; email: string; name?: string } | null
   isLoading: boolean
-  login: (key: string) => Promise<void>
   logout: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-const API_KEY_STORAGE = 'contachile_api_key'
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setKey] = useState<string | null>(null)
+  const [user, setUser] = useState<{ id: string; email: string; name?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    SecureStore.getItemAsync(API_KEY_STORAGE).then((key) => {
-      if (key) {
-        setKey(key)
-        setApiKey(key)
+    const loadSession = async () => {
+      try {
+        const { data } = await authClient.getSession()
+        if (data?.user) {
+          setUser({ id: data.user.id, email: data.user.email, name: data.user.name || undefined })
+        }
+      } catch {
+        // no session
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    })
+    }
+    loadSession()
   }, [])
 
-  const login = async (key: string) => {
-    await SecureStore.setItemAsync(API_KEY_STORAGE, key)
-    setKey(key)
-    setApiKey(key)
+  const refreshSession = async () => {
+    try {
+      const { data } = await authClient.getSession()
+      if (data?.user) {
+        setUser({ id: data.user.id, email: data.user.email, name: data.user.name || undefined })
+      } else {
+        setUser(null)
+      }
+    } catch {
+      // keep current state on error
+    }
   }
 
   const logout = async () => {
-    await SecureStore.deleteItemAsync(API_KEY_STORAGE)
-    setKey(null)
-    setApiKey('')
+    await authClient.signOut()
+    setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ apiKey, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   )

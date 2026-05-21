@@ -1,29 +1,68 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
+import { authClient } from '../lib/auth-client'
 import { useAuth } from '../lib/auth-context'
-import { apiFetch, setApiKey } from '../lib/api'
+import { signInWithGoogle } from '../lib/google-auth-native'
 
 export default function LoginScreen() {
-  const [key, setKey] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
   const router = useRouter()
+  const { user, refreshSession } = useAuth()
 
-  const handleLogin = async () => {
-    if (!key.trim()) {
-      Alert.alert('Error', 'Ingresa tu API key')
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    try {
+      const success = await signInWithGoogle()
+      if (success) {
+        await refreshSession()
+        router.replace('/dashboard')
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo iniciar sesión con Google')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Si ya hay sesión, redirigir al dashboard
+  useEffect(() => {
+    if (user) {
+      router.replace('/dashboard')
+    }
+  }, [user])
+
+  const handleSubmit = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Ingresa email y contraseña')
       return
     }
 
     setLoading(true)
     try {
-      setApiKey(key.trim())
-      await apiFetch('/public/v1/company')
-      await login(key.trim())
-      router.replace('/dashboard')
+      if (isSignUp) {
+        const { error } = await authClient.signUp.email({
+          email: email.trim(),
+          password,
+          name: name.trim() || '',
+        })
+        if (error) throw new Error(error.message || 'Error al registrarse')
+        Alert.alert('Éxito', 'Cuenta creada. Ahora inicia sesión.')
+        setIsSignUp(false)
+      } else {
+        const { error } = await authClient.signIn.email({
+          email: email.trim(),
+          password,
+        })
+        if (error) throw new Error(error.message || 'Credenciales inválidas')
+        router.replace('/dashboard')
+      }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'API key inválida')
+      Alert.alert('Error', err.message)
     } finally {
       setLoading(false)
     }
@@ -32,25 +71,66 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>ContaChile</Text>
-      <Text style={styles.subtitle}>App Móvil</Text>
+      <Text style={styles.subtitle}>{isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.label}>API Key</Text>
+        {isSignUp && (
+          <>
+            <Text style={styles.label}>Nombre</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Tu nombre"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
+          </>
+        )}
+
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="ck_live_..."
-          value={key}
-          onChangeText={setKey}
+          placeholder="tu@email.com"
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
-          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
         />
-        <Text style={styles.hint}>
-          Genera tu API key desde Configuración → API Keys en la web.
-        </Text>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <Text style={styles.label}>Contraseña</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="••••••••"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete="password"
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
           <Text style={styles.buttonText}>
-            {loading ? 'Verificando...' : 'Ingresar'}
+            {loading ? 'Cargando...' : isSignUp ? 'Crear cuenta' : 'Ingresar'}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>o</Text>
+          <View style={styles.line} />
+        </View>
+
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleGoogleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.googleButtonText}>Ingresar con Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={styles.switchBtn}>
+          <Text style={styles.switchText}>
+            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -97,11 +177,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    marginBottom: 8,
-  },
-  hint: {
-    fontSize: 12,
-    color: '#888',
     marginBottom: 16,
   },
   button: {
@@ -109,9 +184,46 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 4,
   },
   buttonText: {
     color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  switchBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  switchText: {
+    color: '#666',
+    fontSize: 13,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    gap: 12,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ddd',
+  },
+  dividerText: {
+    color: '#666',
+    fontSize: 13,
+  },
+  googleButton: {
+    backgroundColor: '#fff',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  googleButtonText: {
+    color: '#111',
     fontWeight: '600',
     fontSize: 14,
   },
