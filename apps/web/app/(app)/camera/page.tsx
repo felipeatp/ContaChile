@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Camera, Trash2, Loader2, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,12 @@ export default function CameraPage() {
   const [processedCount, setProcessedCount] = useState(0)
   const [results, setResults] = useState<PhotoResult[] | null>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach(t => t.stop())
+    }
+  }, [])
 
   const startCamera = useCallback(async () => {
     setCameraError(null)
@@ -82,52 +88,50 @@ export default function CameraPage() {
     setProcessing(true)
     setProcessedCount(0)
 
-    const collected: PhotoResult[] = []
-
-    for (let i = 0; i < photos.length; i++) {
-      const photo = photos[i]
-      try {
-        const res = await fetch('/api/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageBase64: photo.base64,
-            mimeType: 'image/jpeg',
-          }),
-        })
-        const data = await res.json()
-        if (res.ok && data.ocr) {
-          collected.push({
-            photoId: photo.id,
-            tipo: data.ocr.tipo,
-            nombreEmisor: data.ocr.nombreEmisor,
-            montoTotal: data.ocr.montoTotal,
-            confianza: data.ocr.confianza,
-            error: null,
+    const collected = await Promise.all(
+      photos.map(async (photo): Promise<PhotoResult> => {
+        try {
+          const res = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64: photo.base64,
+              mimeType: 'image/jpeg',
+            }),
           })
-        } else {
-          collected.push({
+          const data = await res.json()
+          if (res.ok && data.ocr) {
+            return {
+              photoId: photo.id,
+              tipo: data.ocr.tipo,
+              nombreEmisor: data.ocr.nombreEmisor,
+              montoTotal: data.ocr.montoTotal,
+              confianza: data.ocr.confianza,
+              error: null,
+            }
+          }
+          return {
             photoId: photo.id,
             tipo: '',
             nombreEmisor: null,
             montoTotal: null,
             confianza: 0,
             error: data.error || 'Error al procesar',
-          })
+          }
+        } catch {
+          return {
+            photoId: photo.id,
+            tipo: '',
+            nombreEmisor: null,
+            montoTotal: null,
+            confianza: 0,
+            error: 'Error de conexión',
+          }
         }
-      } catch {
-        collected.push({
-          photoId: photo.id,
-          tipo: '',
-          nombreEmisor: null,
-          montoTotal: null,
-          confianza: 0,
-          error: 'Error de conexión',
-        })
-      }
-      setProcessedCount(i + 1)
-    }
+      })
+    )
 
+    setProcessedCount(photos.length)
     setResults(collected)
     setProcessing(false)
   }, [photos, stopCamera])

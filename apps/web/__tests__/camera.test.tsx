@@ -140,4 +140,20 @@ describe('CameraPage', () => {
       expect(screen.getByText(/proveedor sa/i)).toBeInTheDocument()
     )
   })
+
+  it('detiene el stream de cámara al desmontar el componente', async () => {
+    const mockStop = jest.fn()
+    const streamWithSpy = {
+      getTracks: () => [{ stop: mockStop }],
+    }
+    ;(navigator.mediaDevices.getUserMedia as jest.Mock).mockResolvedValue(streamWithSpy)
+
+    const { unmount } = render(<CameraPage />)
+    fireEvent.click(screen.getByRole('button', { name: /activar cámara/i }))
+    await waitFor(() => screen.getByRole('button', { name: /capturar/i }))
+
+    unmount()
+
+    expect(mockStop).toHaveBeenCalled()
+  })
 })
