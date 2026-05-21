@@ -78,6 +78,13 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // PWA
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ContaChile",
+  },
 }
 
 export default function RootLayout({
