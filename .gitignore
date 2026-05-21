@@ -16,3 +16,4 @@ coverage/
 packages/db/generated/
 *.tsbuildinfo
 _tmp_*
+apps/mobile/

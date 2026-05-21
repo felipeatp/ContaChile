@@ -12,11 +12,5 @@
     "turbo": "^1.13.0",
     "typescript": "^5.4.0"
   },
-  "packageManager": "pnpm@8.15.0",
-  "pnpm": {
-    "overrides": {
-      "@types/react": "18.3.28",
-      "@types/react-dom": "18.3.7"
-    }
-  }
+  "packageManager": "pnpm@8.15.0"
 }

@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
+import { bearer } from "better-auth/plugins"
 import { prisma } from "@contachile/db"
 
 export const auth = betterAuth({
@@ -9,8 +10,10 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:3001",
+    ...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
     ...(process.env.WEB_URL ? [process.env.WEB_URL] : []),
   ],
+  plugins: [bearer()],
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
