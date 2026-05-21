@@ -7,6 +7,16 @@ const nextConfig = {
   async rewrites() {
     return []
   },
+  async headers() {
+    return [
+      {
+        source: '/(app)/camera',
+        headers: [
+          { key: 'Permissions-Policy', value: 'camera=(self)' },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = withPWA({

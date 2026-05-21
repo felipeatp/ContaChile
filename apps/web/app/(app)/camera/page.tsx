@@ -100,6 +100,7 @@ export default function CameraPage() {
             }),
           })
           const data = await res.json()
+          setProcessedCount(c => c + 1)
           if (res.ok && data.ocr) {
             return {
               photoId: photo.id,
@@ -119,6 +120,7 @@ export default function CameraPage() {
             error: data.error || 'Error al procesar',
           }
         } catch {
+          setProcessedCount(c => c + 1)
           return {
             photoId: photo.id,
             tipo: '',
@@ -130,8 +132,6 @@ export default function CameraPage() {
         }
       })
     )
-
-    setProcessedCount(photos.length)
     setResults(collected)
     setProcessing(false)
   }, [photos, stopCamera])
@@ -170,6 +170,7 @@ export default function CameraPage() {
                   <video
                     ref={videoRef}
                     autoPlay
+                    muted
                     playsInline
                     className="w-full h-full object-cover"
                   />
