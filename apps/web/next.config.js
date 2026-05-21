@@ -1,14 +1,18 @@
 /** @type {import('next').NextConfig} */
+const withPWA = require('@ducanh2912/next-pwa').default
+
 const nextConfig = {
-  transpilePackages: ['@contachile/validators'],
-  // webpack cache disabled historically due to corrupted cache issues;
-  // re-enabled after cache corruption resolved. Removing this block lets
-  // Next.js use its default persistent cache, dramatically improving
-  // HMR and rebuild times in development.
+  transpilePackages: ['@contachile/validators', '@contachile/auth'],
   poweredByHeader: false,
   async rewrites() {
     return []
   },
 }
 
-module.exports = nextConfig
+module.exports = withPWA({
+  dest: 'public',
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: false,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === 'development',
+})(nextConfig)
