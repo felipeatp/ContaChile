@@ -13,7 +13,7 @@
     "@better-auth/expo": "^1.6.11",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "better-auth": "^1.6.11",
-    "expo": "~54.0.33",
+    "expo": "~55.0.0",
     "expo-camera": "^55.0.18",
     "expo-constants": "^55.0.16",
     "expo-linking": "^55.0.15",
@@ -33,7 +33,7 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "jest": "^29.7.0",
-    "jest-expo": "~54.0.0",
+    "jest-expo": "~55.0.0",
     "typescript": "~5.9.2"
   },
   "private": true
