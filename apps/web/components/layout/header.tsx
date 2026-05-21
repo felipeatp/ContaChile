@@ -46,6 +46,7 @@ const sectionTitles: Record<string, string> = {
   alertas: "Alertas",
   impuestos: "Impuestos",
   tesoreria: "Tesorería",
+  camera: "Escanear documentos",
 }
 
 function buildCrumbs(pathname: string): Array<{ label: string; href: string }> {

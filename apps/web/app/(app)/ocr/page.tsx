@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -148,6 +149,12 @@ export default function OCRPage() {
         <CardContent className="space-y-4">
           {!image && !cameraActive && (
             <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/camera">
+                <Button variant="outline" className="w-full">
+                  <Camera className="mr-2 h-4 w-4" />
+                  Escanear múltiples fotos
+                </Button>
+              </Link>
               <Button onClick={startCamera} className="flex-1">
                 <Camera className="mr-2 h-4 w-4" />
                 Usar Cámara
