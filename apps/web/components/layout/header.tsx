@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { useSession, signOut } from "@/lib/auth-client"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { LogOut, User, Bell, Briefcase, Download } from "lucide-react"
+import { LogOut, User, Bell, Briefcase, Download, LogIn } from "lucide-react"
 import { CompanySelector } from "@/components/layout/company-selector"
 import { useInstallPrompt } from "@/lib/use-install-prompt"
 
@@ -64,7 +64,17 @@ function UserMenu() {
   const { data: session } = useSession()
   const user = session?.user
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <Link
+        href="/login"
+        className="h-8 flex items-center gap-1.5 rounded-full ring-1 ring-border bg-secondary px-3 text-xs font-medium hover:bg-secondary/80 transition-colors"
+      >
+        <LogIn className="h-3.5 w-3.5" />
+        Ingresar
+      </Link>
+    )
+  }
 
   const initials = user.name
     ? user.name
@@ -189,16 +199,34 @@ function NotificationBell() {
 }
 
 function InstallButton() {
-  const { isInstallable, promptInstall } = useInstallPrompt()
+  const { canPrompt, isIOS, promptInstall } = useInstallPrompt()
+  const [showable, setShowable] = useState(false)
 
-  if (!isInstallable) return null
+  useEffect(() => {
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    if (!standalone) setShowable(true)
+  }, [])
+
+  if (!showable) return null
+
+  const handleClick = isIOS
+    ? () => alert('En Safari: toca el ícono Compartir (□↑) y selecciona "Agregar a pantalla de inicio"')
+    : canPrompt
+    ? promptInstall
+    : () => alert('Toca el ícono de instalación (⊕) en la barra de dirección del browser para instalar la app')
+
+  const tooltip = isIOS
+    ? 'Instalar en iOS: Compartir → Agregar a pantalla de inicio'
+    : canPrompt ? 'Instalar ContaChile como app' : 'Instalar desde la barra del browser'
 
   return (
     <button
-      onClick={promptInstall}
+      onClick={handleClick}
       className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
       aria-label="Instalar ContaChile"
-      title="Instalar como app"
+      title={tooltip}
     >
       <Download className="h-4 w-4" />
     </button>
@@ -238,7 +266,7 @@ export function Header() {
     <header className="sticky top-0 z-30 w-full border-b border-border bg-paper/95 backdrop-blur-sm supports-[backdrop-filter]:bg-paper/70">
       <div className="container py-4">
         <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pl-10 lg:pl-0">
             {crumbs.length > 1 && (
               <nav
                 aria-label="Migas de pan"
@@ -270,7 +298,7 @@ export function Header() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 shrink-0">
             <div className="hidden md:flex flex-col items-end leading-tight min-w-[12rem]">
               <span className="eyebrow !text-[0.6rem]">
                 {dateLabels?.pretty ?? " "}

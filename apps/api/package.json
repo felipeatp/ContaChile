@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/index.ts",
+    "start": "dotenv -e .env -- tsx src/index.ts",
     "build": "tsc",
     "test": "vitest run"
   },

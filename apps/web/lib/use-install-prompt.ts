@@ -1,42 +1,49 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
 }
 
+let _promptEvent: BeforeInstallPromptEvent | null = null
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault()
+    _promptEvent = e as BeforeInstallPromptEvent
+    window.dispatchEvent(new CustomEvent('pwa:installable'))
+  })
+  window.addEventListener('appinstalled', () => {
+    _promptEvent = null
+    window.dispatchEvent(new CustomEvent('pwa:installed'))
+  })
+}
+
 export function useInstallPrompt() {
-  const [isInstallable, setIsInstallable] = useState(false)
-  const promptRef = useRef<BeforeInstallPromptEvent | null>(null)
+  const [canPrompt, setCanPrompt] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
-    const onBeforeInstall = (e: Event) => {
-      e.preventDefault()
-      promptRef.current = e as BeforeInstallPromptEvent
-      setIsInstallable(true)
-    }
+    setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent))
+    if (_promptEvent) setCanPrompt(true)
 
-    const onInstalled = () => {
-      promptRef.current = null
-      setIsInstallable(false)
-    }
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall)
-    window.addEventListener('appinstalled', onInstalled)
-
+    const onInstallable = () => setCanPrompt(true)
+    const onInstalled = () => setCanPrompt(false)
+    window.addEventListener('pwa:installable', onInstallable)
+    window.addEventListener('pwa:installed', onInstalled)
     return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
-      window.removeEventListener('appinstalled', onInstalled)
+      window.removeEventListener('pwa:installable', onInstallable)
+      window.removeEventListener('pwa:installed', onInstalled)
     }
   }, [])
 
   const promptInstall = useCallback(async () => {
-    if (!promptRef.current) return
-    await promptRef.current.prompt()
-    promptRef.current = null
-    setIsInstallable(false)
+    if (!_promptEvent) return
+    await _promptEvent.prompt()
+    _promptEvent = null
+    setCanPrompt(false)
   }, [])
 
-  return { isInstallable, promptInstall }
+  return { canPrompt, isIOS, promptInstall }
 }

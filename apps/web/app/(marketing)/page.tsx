@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
+import { InstallBanner } from "@/components/layout/install-banner"
 import {
   FileText,
   Shield,
@@ -117,16 +118,17 @@ export default function HomePage() {
       <JsonLd data={structuredData} />
 
       <div className="flex flex-col min-h-screen">
+        <InstallBanner />
         <header className="sticky top-0 z-50 w-full border-b border-border bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/70">
-          <div className="container flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5">
+          <div className="container flex h-16 items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0">
               <div className="relative h-9 w-9 border border-foreground bg-paper flex items-center justify-center">
                 <span className="font-display text-base font-black leading-none text-foreground">
                   C
                 </span>
                 <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
               </div>
-              <div className="leading-none">
+              <div className="leading-none hidden sm:block">
                 <span className="block font-display text-lg font-semibold tracking-tightest">
                   ContaChile
                 </span>
@@ -135,24 +137,24 @@ export default function HomePage() {
                 </span>
               </div>
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="flex items-center gap-2 sm:gap-6">
               <a
                 href="#caracteristicas"
-                className="eyebrow hover:text-foreground transition-colors"
+                className="eyebrow hover:text-foreground transition-colors hidden md:block"
               >
                 Características
               </a>
               <a
                 href="#precios"
-                className="eyebrow hover:text-foreground transition-colors"
+                className="eyebrow hover:text-foreground transition-colors hidden md:block"
               >
                 Precios
               </a>
               <Link href="/login">
-                <Button variant="ghost">Iniciar sesión</Button>
+                <Button variant="ghost" size="sm">Ingresar</Button>
               </Link>
               <Link href="/sign-up">
-                <Button>Probar gratis</Button>
+                <Button size="sm">Probar gratis</Button>
               </Link>
             </nav>
           </div>

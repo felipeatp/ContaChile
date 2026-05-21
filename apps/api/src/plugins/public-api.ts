@@ -1,6 +1,8 @@
 import fp from 'fastify-plugin'
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { prisma } from '@contachile/db'
+import { auth } from '@contachile/auth'
+import { fromNodeHeaders } from 'better-auth/node'
 import crypto from 'crypto'
 
 export async function hashKey(key: string): Promise<string> {
@@ -13,28 +15,52 @@ async function publicApiPlugin(fastify: FastifyInstance) {
     if (!request.url.startsWith('/public')) return
 
     const apiKey = request.headers['x-api-key'] as string | undefined
-    if (!apiKey) {
-      return reply.code(401).send({ error: 'API key requerida. Envía x-api-key en el header.' })
+
+    if (apiKey) {
+      // Auth por API key
+      const keyHash = await hashKey(apiKey)
+      const keyRecord = await prisma.apiKey.findUnique({
+        where: { keyHash },
+      })
+
+      if (!keyRecord || keyRecord.revoked) {
+        return reply.code(401).send({ error: 'API key inválida o revocada.' })
+      }
+
+      await prisma.apiKey.update({
+        where: { id: keyRecord.id },
+        data: { lastUsedAt: new Date() },
+      })
+
+      ;(request as any).companyId = keyRecord.companyId
+      ;(request as any).apiKeyScopes = keyRecord.scopes
+      return
     }
 
-    const keyHash = await hashKey(apiKey)
-    const keyRecord = await prisma.apiKey.findUnique({
-      where: { keyHash },
-    })
+    // Fallback: intentar sesión de Better Auth (para app móvil)
+    try {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+      })
 
-    if (!keyRecord || keyRecord.revoked) {
-      return reply.code(401).send({ error: 'API key inválida o revocada.' })
+      if (session?.user) {
+        const memberships = await prisma.companyMembership.findMany({
+          where: { userId: session.user.id },
+          select: { companyId: true },
+        })
+
+        if (memberships.length > 0) {
+          ;(request as any).companyId = memberships[0].companyId
+          ;(request as any).apiKeyScopes = ['read:documents', 'read:purchases', 'read:company', 'read:accounting']
+          ;(request as any).userId = session.user.id
+          return
+        }
+      }
+    } catch {
+      // fall through to 401
     }
 
-    // Actualizar lastUsedAt
-    await prisma.apiKey.update({
-      where: { id: keyRecord.id },
-      data: { lastUsedAt: new Date() },
-    })
-
-    // Adjuntar companyId y scopes al request
-    ;(request as any).companyId = keyRecord.companyId
-    ;(request as any).apiKeyScopes = keyRecord.scopes
+    return reply.code(401).send({ error: 'API key o sesión requerida.' })
   })
 }
 
