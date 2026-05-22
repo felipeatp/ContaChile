@@ -1,5 +1,9 @@
-/** @type {import('next').NextConfig} */
+const { initOpenNextCloudflareForDev } = require("@opennextjs/cloudflare")
 const withPWA = require('@ducanh2912/next-pwa').default
+
+initOpenNextCloudflareForDev()
+
+/** @type {import('next').NextConfig} */
 
 const nextConfig = {
   transpilePackages: ['@contachile/validators', '@contachile/auth'],
