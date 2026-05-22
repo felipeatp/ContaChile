@@ -22,8 +22,9 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 - [x] Repositorio GitHub con monorepo (apps/web + apps/api + packages/shared)
 - [x] Next.js 14 con App Router + TypeScript
 - [x] PostgreSQL local Docker + Prisma ORM
-- [ ] Fastify API en Railway (pendiente deploy)
-- [ ] CI/CD con GitHub Actions → Vercel + Railway
+- [ ] `apps/web` deploy en **Cloudflare Pages** (adapter: @cloudflare/next-on-pages)
+- [ ] `apps/api` deploy en **Fly.io** (Fastify + workers BullMQ, proceso persistente)
+- [ ] CI/CD con GitHub Actions → Cloudflare Pages + Fly.io
 - [x] Variables de entorno y secrets management
 
 #### Auth y multi-empresa
@@ -32,10 +33,21 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 - [x] Schema de DB con tenant isolation
 - [ ] Onboarding: crear empresa, ingresar datos SII, subir certificado digital
 
-#### Proceso SII (iniciar en paralelo)
-- [ ] Registrar cuenta en www4.sii.cl como software house
-- [ ] Leer y descargar esquemas XSD del SII
-- [ ] Configurar ambiente de pruebas (maullin.sii.cl)
+#### Proceso SII — Certificación DTE (iniciar en paralelo, toma 30-120 días)
+
+> **CRÍTICO:** El SII elimina postulantes sin actividad en 6 meses. No pausar el proceso.
+
+- [ ] **Paso 1 — Postulación:** ingresar con certificado digital del representante legal en [maullin.sii.cl/cvc/dte/postulacion.html](https://maullin.sii.cl/cvc/dte/postulacion.html)
+- [ ] **Paso 2 — Set de pruebas:** descargar archivo XML del SII desde [sii.cl/servicios_online/1039-menu_certificacion-1184.html](https://www.sii.cl/servicios_online/1039-menu_certificacion-1184.html) → "Obtener set de pruebas"
+- [ ] **Paso 3 — Certificación en maullin:** completar las 6 etapas en [maullin.sii.cl/cvc/dte/certificacion_dte.html](https://maullin.sii.cl/cvc/dte/certificacion_dte.html):
+  - Etapa 1: enviar DTEs de prueba firmados
+  - Etapa 2: set de simulación (flujo completo)
+  - Etapa 3: intercambio de información (AEC)
+  - Etapa 4: muestras de impresión (PDFs)
+  - Etapa 5: declaración de cumplimiento (representante legal)
+  - Etapa 6: activación como emisor electrónico en producción
+- [ ] Validar XML contra XSD oficial ([formato_dte_202602.pdf](https://www.sii.cl/factura_electronica/factura_mercado/formato_dte_202602.pdf) — versión 2.5 vigente)
+- [ ] **Plan B activo mientras dura certificación:** usar Acepta.com como bridge DTE
 
 ### Mes 2 — Motor DTE
 
@@ -104,9 +116,9 @@ Mes:  1    2    3    4    5    6    7    8    9   10   11   12
 
 ### Mes 6 — Pagos y Lanzamiento Beta Pública
 
-- [ ] Integración Stripe (tarjetas internacionales)
-- [ ] Integración WebPay Plus (tarjetas chilenas)
+- [ ] Integración **Fintoc Pagos Recurrentes** para cobro de suscripciones vía PAC (débito bancario chileno)
 - [ ] Planes Free/Pro/Agency con límites y billing
+- [ ] Integración Stripe (tarjetas internacionales — agregar solo si hay demanda explícita)
 - [ ] Dashboard de métricas del negocio (ingresos, gastos, flujo de caja)
 - [ ] Lanzamiento beta pública + landing page
 - [ ] Proceso de certificación SII completado (si no se completó en Fase 1)
@@ -189,7 +201,8 @@ La certificación SII es el único bloqueante que no depende del equipo de desar
 
 | Riesgo | Probabilidad | Impacto | Mitigación |
 |--------|-------------|---------|-----------|
-| Certificación SII demorada | Alta | Alto | Iniciar semana 1, tener plan B con proveedor DTE externo (Acepta, Sertigo) |
-| Error en cálculo tributario | Media | Alto | Contador asesor desde el inicio, tests exhaustivos |
+| Certificación SII demorada | Alta | Alto | Iniciar postulación en maullin.sii.cl semana 1; plan B con Acepta.com como bridge |
+| Error en cálculo tributario | Media | Alto | Contador asesor desde el inicio, tests exhaustivos contra XSD SII |
 | Competidor lanza freemium | Media | Medio | Velocidad de ejecución, comunidad de usuarios |
-| Fintoc no disponible en banco | Baja | Medio | Importación manual como fallback |
+| Fintoc no disponible en banco | Baja | Medio | Importación manual como fallback; pago con tarjeta vía Stripe como alternativa de billing |
+| Límites del free tier de Fly.io/Cloudflare | Baja | Bajo | Migrar a plan de pago (~$5-10/mes) cuando supere los límites; infraestructura pensada para escalar sin reescribir |

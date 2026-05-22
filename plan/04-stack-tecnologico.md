@@ -5,7 +5,7 @@
 ### Frontend
 | Tecnología | Versión | Razón |
 |-----------|---------|-------|
-| Next.js | 14 (App Router) | SSR, RSC, excelente DX, deploy en Vercel gratis |
+| Next.js | 14 (App Router) | SSR, RSC, excelente DX, deploy en Cloudflare Pages con @cloudflare/next-on-pages |
 | TypeScript | 5.x | Tipado estático crítico para lógica tributaria |
 | Tailwind CSS | 3.x | Utility-first, consistente con shadcn |
 | shadcn/ui | latest | Componentes accesibles, sin licencia, customizable |
@@ -24,25 +24,31 @@
 | Zod | 3.x | Validación compartida frontend/backend |
 
 ### Infraestructura
-| Servicio | Plan | Costo |
-|----------|------|-------|
-| Vercel | Hobby → Pro | $0 → $20/mes |
-| Neon (PostgreSQL) | Free → Launch | $0 → $19/mes |
-| Railway (API) | Hobby | $5/mes |
-| Cloudflare R2 | Free (10GB) | $0 inicio |
-| Upstash Redis (Bull) | Free | $0 inicio |
+| Servicio | Para qué | Plan | Costo |
+|----------|----------|------|-------|
+| Cloudflare Pages | `apps/web` (Next.js) | Free | $0 |
+| Fly.io | `apps/api` (Fastify + workers BullMQ) | Free (3 VMs compartidas) | $0 inicio |
+| Neon (PostgreSQL) | Base de datos principal | Free → Launch | $0 → $19/mes |
+| Cloudflare R2 | Storage XML/PDF | Free (10GB) | $0 inicio |
+| Upstash Redis | Cola BullMQ | Free (10k cmd/día) | $0 inicio |
+
+> **Por qué Cloudflare Pages y no Vercel:** mismo resultado para Next.js, sin límite de builds, CDN global incluido, gratis sin restricciones de tiempo.
+> **Por qué Fly.io y no Railway:** Railway eliminó su free tier. Fly.io ofrece 3 máquinas compartidas persistentes (sin spin-down), ideal para el API Fastify y los workers BullMQ que necesitan proceso continuo.
+> **Por qué no Cloudflare Workers para el API:** BullMQ requiere conexión persistente a Redis; no es compatible con el modelo stateless de Workers.
 
 ### Servicios externos
 | Servicio | Para qué | Costo aprox. |
 |----------|----------|-------------|
-| Clerk | Auth multi-tenant | $0 inicio (25k MAU gratis) |
+| Better Auth | Auth multi-tenant (propio, sin terceros) | $0 |
 | Resend | Email transaccional | $0 (3k/mes gratis) |
-| Stripe | Pagos internacionales | 2.9% + $0.30 por transacción |
-| WebPay Plus | Pagos locales Chile | 1.49-2.49% por transacción |
-| Fintoc | Open banking Chile | ~$0.10 USD por conexión |
+| Stripe | Pagos con tarjeta internacional (opcional Fase 2) | 2.9% + $0.30 por transacción |
+| Fintoc | Open banking + **cobro recurrente suscripciones** (PAC) | ~$0.10 USD por conexión |
 | Anthropic Claude | Agentes IA | ~$0.003/1k tokens (Haiku) |
 | Sentry | Error tracking | $0 (5k errores/mes) |
 | PostHog | Analytics producto | $0 (1M eventos/mes) |
+
+> **WebPay eliminado:** Fintoc tiene desde 2026 un producto de pagos recurrentes/suscripciones vía PAC (Pago Automático de Cuentas), que cubre el caso de uso de cobro mensual a clientes chilenos. WebPay se agrega solo si hay demanda explícita de pago con tarjeta de crédito.
+> **Clerk eliminado:** reemplazado por Better Auth con Google + Microsoft OAuth.
 
 ---
 
@@ -74,9 +80,8 @@ Ventajas: aislamiento total, backup por empresa, cumplimiento datos personales.
 ```
 contachile/
 ├── apps/
-│   ├── web/          ← Next.js 14 (dashboard)
-│   ├── api/          ← Fastify (REST API)
-│   └── mobile/       ← React Native (Fase 3)
+│   ├── web/          ← Next.js 14 (dashboard + PWA)
+│   └── api/          ← Fastify (REST API + workers BullMQ)
 ├── packages/
 │   ├── dte/          ← Motor DTE, XML, firma (crítico)
 │   ├── sii-client/   ← Cliente HTTP para APIs SII
@@ -186,7 +191,7 @@ Usar un proveedor certificado (Acepta.com, Sertigo, TokTok) mientras se desarrol
 
 ### API
 - Rate limiting: 100 req/min por tenant (Fastify rate-limit)
-- JWT con rotación de tokens (Clerk maneja esto)
+- JWT con rotación de tokens (Better Auth maneja esto)
 - Audit log de todas las operaciones críticas (emisión DTE, cambio de datos)
 
 ---
