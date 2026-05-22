@@ -9,6 +9,8 @@ WEB_URL=http://localhost:3000
 # OAuth
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=
 
 # Base de datos (Neon connection string)
 DATABASE_URL=
