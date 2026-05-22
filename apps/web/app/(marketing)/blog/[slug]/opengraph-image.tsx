@@ -5,13 +5,15 @@ export const runtime = "edge"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
-export async function generateImageMetadata({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug)
-  return [{ alt: post?.title ?? "ContaChile Blog", id: params.slug }]
+export async function generateImageMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
+  return [{ alt: post?.title ?? "ContaChile Blog", id: slug }]
 }
 
-export default function BlogOgImage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug)
+export default async function BlogOgImage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   const title = post?.title ?? "ContaChile Blog"
   const category = post?.category ?? "Blog"
   const readTime = post?.readTime ?? 5

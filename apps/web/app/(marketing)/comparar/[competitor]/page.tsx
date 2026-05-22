@@ -73,18 +73,19 @@ const comparisonRows: {
 export async function generateMetadata({
   params,
 }: {
-  params: { competitor: string }
+  params: Promise<{ competitor: string }>
 }): Promise<Metadata> {
-  const c = competitors[params.competitor as CompetitorSlug]
+  const { competitor } = await params
+  const c = competitors[competitor as CompetitorSlug]
   if (!c) return {}
   return {
     title: c.metaTitle,
     description: c.metaDescription,
-    alternates: { canonical: `/comparar/${params.competitor}` },
+    alternates: { canonical: `/comparar/${competitor}` },
     openGraph: {
       title: c.metaTitle,
       description: c.metaDescription,
-      url: `https://contachile.cl/comparar/${params.competitor}`,
+      url: `https://contachile.cl/comparar/${competitor}`,
     },
   }
 }
@@ -117,12 +118,13 @@ function FeatureCell({ value }: { value: boolean | null }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function CompetitorPage({
+export default async function CompetitorPage({
   params,
 }: {
-  params: { competitor: string }
+  params: Promise<{ competitor: string }>
 }) {
-  const slug = params.competitor as CompetitorSlug
+  const { competitor } = await params
+  const slug = competitor as CompetitorSlug
   const c = competitors[slug]
   if (!c) notFound()
 

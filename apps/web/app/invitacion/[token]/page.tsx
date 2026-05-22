@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Loader2, Building2, AlertTriangle, CheckCircle } from "lucide-react"
 
-export default function InvitacionPage({ params }: { params: { token: string } }) {
+export default function InvitacionPage() {
   const router = useRouter()
+  const { token } = useParams<{ token: string }>()
   const [loading, setLoading] = useState(true)
   const [accepting, setAccepting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -14,7 +15,7 @@ export default function InvitacionPage({ params }: { params: { token: string } }
   const [accepted, setAccepted] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/invitations/${params.token}`)
+    fetch(`/api/invitations/${token}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
@@ -28,14 +29,14 @@ export default function InvitacionPage({ params }: { params: { token: string } }
         setError("Error al verificar la invitación")
         setLoading(false)
       })
-  }, [params.token])
+  }, [token])
 
   const handleAccept = async () => {
     setAccepting(true)
     setError(null)
 
     try {
-      const res = await fetch(`/api/invitations/${params.token}/accept`, {
+      const res = await fetch(`/api/invitations/${token}/accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),

@@ -146,18 +146,19 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { feature: string }
+  params: Promise<{ feature: string }>
 }) {
-  const f = features[params.feature as FeatureSlug]
+  const { feature } = await params
+  const f = features[feature as FeatureSlug]
   if (!f) return {}
   return {
     title: f.metaTitle,
     description: f.metaDescription,
-    alternates: { canonical: `/features/${params.feature}` },
+    alternates: { canonical: `/features/${feature}` },
     openGraph: {
       title: f.metaTitle,
       description: f.metaDescription,
-      url: `https://contachile.cl/features/${params.feature}`,
+      url: `https://contachile.cl/features/${feature}`,
     },
   }
 }
@@ -166,15 +167,16 @@ export async function generateMetadata({
 // Page component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function FeaturePage({
+export default async function FeaturePage({
   params,
 }: {
-  params: { feature: string }
+  params: Promise<{ feature: string }>
 }) {
-  const f = features[params.feature as FeatureSlug]
+  const { feature } = await params
+  const f = features[feature as FeatureSlug]
   if (!f) notFound()
 
-  const slug = params.feature
+  const slug = feature
 
   const softwareApplicationSchema = {
     "@context": "https://schema.org",
