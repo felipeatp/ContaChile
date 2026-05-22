@@ -3,7 +3,6 @@ import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { Providers } from "./providers"
 import { JsonLd } from "@/components/seo/json-ld"
 import { WebVitals } from "@/components/web-vitals"
-import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
 const fraunces = Fraunces({
@@ -102,7 +101,6 @@ export default function RootLayout({
         <WebVitals />
         <JsonLd data={organizationSchema} />
         <Providers>{children}</Providers>
-        <Analytics />
       </body>
     </html>
   )
