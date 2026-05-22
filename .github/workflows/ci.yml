@@ -55,13 +55,11 @@ jobs:
         run: pnpm build
         env:
           DATABASE_URL: postgresql://contachile:contachile@localhost:5432/contachile
-          CLERK_SECRET_KEY: test-key
 
       - name: Run tests
         run: pnpm test
         env:
           DATABASE_URL: postgresql://contachile:contachile@localhost:5432/contachile
-          CLERK_SECRET_KEY: test-key
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           SII_BASE_URL: https://maullin.sii.cl

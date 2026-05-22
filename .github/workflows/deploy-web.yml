@@ -1,0 +1,61 @@
+name: Deploy Web → Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/db/**'
+      - 'packages/auth/**'
+      - 'packages/validators/**'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy to Cloudflare
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @contachile/db exec prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build packages
+        run: pnpm --filter @contachile/validators build && pnpm --filter @contachile/auth build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+
+      - name: Build web with OpenNext
+        run: pnpm --filter @contachile/web build:cf
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ vars.BETTER_AUTH_URL }}
+          WEB_URL: ${{ vars.WEB_URL }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: apps/web
+          command: deploy
