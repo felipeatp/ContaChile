@@ -20,3 +20,6 @@ apps/mobile/
 
 # OpenNext Cloudflare build output
 apps/web/.open-next/
+
+# Wrangler local secrets
+apps/web/.dev.vars

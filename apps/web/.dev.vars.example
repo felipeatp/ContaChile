@@ -1,0 +1,20 @@
+# Requerido por @opennextjs/cloudflare en dev
+NEXTJS_ENV=development
+
+# Better Auth
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:3000
+WEB_URL=http://localhost:3000
+
+# OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Base de datos (Neon connection string)
+DATABASE_URL=
+
+# API Fastify
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# Anthropic
+ANTHROPIC_API_KEY=
