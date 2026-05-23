@@ -1,15 +1,10 @@
 import { Worker, Queue, JobsOptions } from 'bullmq'
-import Redis from 'ioredis'
 import { prisma } from '@contachile/db'
 import { findUpcomingDueDates } from '@contachile/validators'
 import { createEmailService } from '../lib/email'
+import { createRedisClient, probeRedis } from '../lib/redis'
 
 const emailService = createEmailService()
-
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-}
 
 const ALERT_DAYS_BEFORE = [5, 1]
 const QUEUE_NAME = 'alerts-daily'
@@ -73,9 +68,8 @@ export async function processDailyAlerts(now: Date = new Date()): Promise<{
           },
         })
         stats.alertsRegistered++
-      } catch (err) {
+      } catch {
         stats.errors++
-        // Error processing alert for company; logged silently in production
       }
     }
   }
@@ -84,51 +78,32 @@ export async function processDailyAlerts(now: Date = new Date()): Promise<{
 }
 
 async function initWorker(): Promise<void> {
-  const testRedis = new Redis({
-    ...redisConnection,
-    connectTimeout: 2000,
-    lazyConnect: true,
+  if (!(await probeRedis())) return
+
+  new Worker(
+    QUEUE_NAME,
+    async () => {
+      const stats = await processDailyAlerts()
+      return stats
+    },
+    { connection: createRedisClient() }
+  )
+
+  const queue = new Queue(QUEUE_NAME, {
+    connection: createRedisClient(),
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: 50,
+    },
   })
 
-  testRedis.on('error', () => {
-    // ignore connection errors during probe
-  })
-
-  try {
-    await testRedis.connect()
-    await testRedis.disconnect()
-
-    new Worker(
-      QUEUE_NAME,
-      async () => {
-        const stats = await processDailyAlerts()
-        // daily run completed
-        return stats
-      },
-      { connection: redisConnection }
-    )
-
-    const queue = new Queue(QUEUE_NAME, {
-      connection: redisConnection,
-      defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: 50,
-      },
-    })
-
-    // Schedule daily at 08:00 local
-    const repeatOptions: JobsOptions = {
-      repeat: {
-        pattern: '0 8 * * *',
-        tz: 'America/Santiago',
-      },
-    }
-    await queue.add(JOB_NAME, {}, repeatOptions)
-
-    // scheduled daily at 08:00 America/Santiago
-  } catch {
-    // Redis not available, daily alerts disabled
+  const repeatOptions: JobsOptions = {
+    repeat: {
+      pattern: '0 8 * * *',
+      tz: 'America/Santiago',
+    },
   }
+  await queue.add(JOB_NAME, {}, repeatOptions)
 }
 
 void initWorker()

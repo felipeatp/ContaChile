@@ -1,43 +1,23 @@
 import { Queue } from 'bullmq'
-import Redis from 'ioredis'
-
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-}
+import { createRedisClient, probeRedis } from '../lib/redis'
 
 let dteQueue: Queue | null = null
 
 async function initQueue(): Promise<void> {
-  const testRedis = new Redis({
-    ...redisConnection,
-    connectTimeout: 2000,
-    lazyConnect: true,
-  })
+  if (!(await probeRedis())) return
 
-  testRedis.on('error', () => {
-    // ignore connection errors during probe
-  })
-
-  try {
-    await testRedis.connect()
-    await testRedis.disconnect()
-
-    dteQueue = new Queue('dte-polling', {
-      connection: redisConnection,
-      defaultJobOptions: {
-        attempts: 24,
-        backoff: {
-          type: 'fixed',
-          delay: 5 * 60 * 1000,
-        },
-        removeOnComplete: true,
-        removeOnFail: false,
+  dteQueue = new Queue('dte-polling', {
+    connection: createRedisClient(),
+    defaultJobOptions: {
+      attempts: 24,
+      backoff: {
+        type: 'fixed',
+        delay: 5 * 60 * 1000,
       },
-    })
-  } catch {
-    // Redis not available, polling disabled
-  }
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  })
 }
 
 void initQueue()
@@ -50,7 +30,6 @@ export interface PollJobData {
 
 export async function enqueuePollJob(data: PollJobData): Promise<void> {
   if (!dteQueue) {
-    // Skipping poll job (Redis unavailable)
     return
   }
   await dteQueue.add('poll-status', data)
