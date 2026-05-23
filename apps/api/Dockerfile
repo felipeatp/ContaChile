@@ -2,8 +2,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+# Install pnpm and openssl (needed by Prisma engine on Alpine/OpenSSL 3)
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate && \
+    apk add --no-cache openssl
 
 # Copy workspace files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
@@ -34,8 +35,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
+# Install pnpm and openssl (Prisma engine on Alpine/OpenSSL 3 requires libssl.so.3)
+RUN corepack enable && corepack prepare pnpm@8.15.0 --activate && \
+    apk add --no-cache openssl
 
 # Copy only necessary files from builder
 COPY --from=builder /app/package.json /app/pnpm-workspace.yaml /app/pnpm-lock.yaml ./
