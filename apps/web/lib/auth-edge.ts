@@ -16,7 +16,7 @@ const baseURL = stripBom(process.env.BETTER_AUTH_URL || "http://localhost:3000")
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: process.env.BETTER_AUTH_SECRET ? stripBom(process.env.BETTER_AUTH_SECRET) : undefined,
   baseURL,
   trustedOrigins: [
     "http://localhost:3000",
@@ -31,14 +31,14 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: stripBom(process.env.GOOGLE_CLIENT_ID!),
+      clientSecret: stripBom(process.env.GOOGLE_CLIENT_SECRET!),
     },
     ...(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
       ? {
           microsoft: {
-            clientId: process.env.MICROSOFT_CLIENT_ID,
-            clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+            clientId: stripBom(process.env.MICROSOFT_CLIENT_ID),
+            clientSecret: stripBom(process.env.MICROSOFT_CLIENT_SECRET),
           },
         }
       : {}),
