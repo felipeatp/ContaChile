@@ -21,78 +21,43 @@ const DEV_BYPASS = process.env.DEV_BYPASS_AUTH === "true"
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Rutas públicas: permitir siempre
   if (isPublicRoute(pathname)) {
     return NextResponse.next()
   }
 
-  // Bypass de desarrollo
   if (DEV_BYPASS) {
     return NextResponse.next()
   }
 
-  // Verificar sesión via Better Auth
-  const sessionCookie =
-    request.cookies.get("better-auth.session_token")?.value ||
-    request.cookies.get("session_token")?.value
+  try {
+    // Dynamic import so auth-edge.ts is evaluated after CF env vars are
+    // populated by init() — avoids neon("") at module load time.
+    const { auth } = await import("@/lib/auth-edge")
+    const session = await auth.api.getSession({ headers: request.headers })
 
-  if (!sessionCookie) {
-    // No autenticado en ruta protegida → login
-    if (!isPublicRoute(pathname)) {
+    if (!session?.user) {
       const loginUrl = new URL("/login", request.url)
       loginUrl.searchParams.set("returnBackUrl", request.url)
       return NextResponse.redirect(loginUrl)
     }
-    return NextResponse.next()
-  }
 
-  // Validar sesión contra la API de Better Auth
-  try {
-    const sessionRes = await fetch(
-      new URL("/api/auth/get-session", request.url),
-      {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
-      }
-    )
-
-    const session = sessionRes.ok ? await sessionRes.json() : null
-
-    if (!session?.user) {
-      // Sesión inválida
-      if (!isPublicRoute(pathname)) {
-        const loginUrl = new URL("/login", request.url)
-        loginUrl.searchParams.set("returnBackUrl", request.url)
-        return NextResponse.redirect(loginUrl)
-      }
-      return NextResponse.next()
-    }
-
-    // Usuario autenticado visitando login/sign-up → dashboard
     if (isAuthRoute(pathname)) {
       return NextResponse.redirect(new URL("/dashboard", request.url))
     }
 
-    // Inyectar x-active-company-id desde la cookie para multi-tenancy
     const activeCompanyId = request.cookies.get("active-company-id")?.value
     if (activeCompanyId) {
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set("x-active-company-id", activeCompanyId)
-      return NextResponse.next({
-        request: { headers: requestHeaders },
-      })
+      return NextResponse.next({ request: { headers: requestHeaders } })
     }
 
     return NextResponse.next()
-  } catch {
-    // Error de red al validar sesión
-    if (!isPublicRoute(pathname)) {
-      const loginUrl = new URL("/login", request.url)
-      loginUrl.searchParams.set("returnBackUrl", request.url)
-      return NextResponse.redirect(loginUrl)
-    }
-    return NextResponse.next()
+  } catch (err) {
+    console.error("[middleware] session check failed:", err)
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("returnBackUrl", request.url)
+    return NextResponse.redirect(loginUrl)
   }
 }
 

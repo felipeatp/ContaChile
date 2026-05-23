@@ -11,7 +11,12 @@ import { Loader2 } from "lucide-react"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const returnUrl = searchParams.get("returnBackUrl") || "/dashboard"
+  const rawReturnUrl = searchParams.get("returnBackUrl") || "/dashboard"
+  // Normalize to relative path — passing absolute URLs to signIn.social()
+  // can cause trustedOrigins mismatches in Better Auth on CF Workers.
+  const returnUrl = (() => {
+    try { return new URL(rawReturnUrl).pathname } catch { return rawReturnUrl }
+  })()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
