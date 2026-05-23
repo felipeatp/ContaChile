@@ -10,9 +10,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "build:cf": "opennextjs-cloudflare build",
-    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy:cf": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
+    "build:cf": "opennextjs-cloudflare build && node scripts/patch-cf-handler.mjs",
+    "preview:cf": "opennextjs-cloudflare build && node scripts/patch-cf-handler.mjs && opennextjs-cloudflare preview",
+    "deploy:cf": "opennextjs-cloudflare build && node scripts/patch-cf-handler.mjs && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@contachile/auth": "workspace:^",
