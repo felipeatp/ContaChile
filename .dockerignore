@@ -1,0 +1,47 @@
+# Exclude node_modules at all levels (pnpm symlinks break Docker's tar)
+**/node_modules
+node_modules
+
+# Build artifacts
+**/dist
+**/.turbo
+
+# Git and IDE
+.git
+.gitignore
+**/.vscode
+**/.idea
+
+# Env files (secrets are set via fly secrets)
+**/.env
+**/.env.local
+**/.env.example
+**/.dev.vars
+**/.dev.vars.example
+
+# Logs
+**/*.log
+
+# Next.js / Cloudflare build outputs
+apps/web/.next
+apps/web/.open-next
+apps/web/.wrangler
+
+# Test and dev only
+**/*.test.ts
+**/*.spec.ts
+**/tests
+**/scripts
+
+# Docs and planning
+docs
+plan
+agentes
+legal
+*.md
+!packages/*/README.md
+
+# Mobile / misc
+mobile-*.png
+eas.json
+.playwright-mcp
