@@ -1,5 +1,5 @@
 app = "contachile-api"
-primary_region = "scl"
+primary_region = "gru"
 
 [build]
   dockerfile = "apps/api/Dockerfile"
