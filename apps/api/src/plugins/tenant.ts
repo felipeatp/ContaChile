@@ -73,6 +73,7 @@ const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', async (request, reply) => {
     // Rutas públicas (API Key) se manejan en su propio plugin
     if (request.url.startsWith('/public')) return
+    if (request.url === '/health') return
 
     // 1. Intentar obtener sesión de Better Auth
     let userId: string | null = null
