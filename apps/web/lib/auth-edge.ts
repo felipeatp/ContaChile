@@ -9,7 +9,7 @@ import { schema } from "./db-schema"
 // Uses Drizzle + Neon HTTP instead of Prisma+pg (Prisma needs TCP, not available in CF Workers).
 const stripBom = (s: string) => s.replace(/^﻿/, "")
 
-const sql = neon(process.env.DATABASE_URL!)
+const sql = neon(stripBom(process.env.DATABASE_URL!))
 const db = drizzle(sql, { schema })
 
 const baseURL = stripBom(process.env.BETTER_AUTH_URL || "http://localhost:3000")
