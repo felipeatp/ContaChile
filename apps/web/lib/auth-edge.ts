@@ -7,7 +7,10 @@ import { schema } from "./db-schema"
 
 // Edge-compatible auth for Cloudflare Workers.
 // Uses Drizzle + Neon HTTP instead of Prisma+pg (Prisma needs TCP, not available in CF Workers).
-const stripBom = (s: string) => s.replace(/^﻿/, "")
+// CF secrets set via wrangler on Windows sometimes carry a UTF-8 BOM prefix
+// (U+FEFF). Strip it from every env var we read.
+const stripBom = (s: string) =>
+  s.charCodeAt(0) === 0xfeff ? s.slice(1) : s
 
 const sql = neon(stripBom(process.env.DATABASE_URL!))
 const db = drizzle(sql, { schema })
