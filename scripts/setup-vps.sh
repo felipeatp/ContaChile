@@ -4,7 +4,7 @@
 set -e
 
 echo "=============================="
-echo " ContaChile — Setup VPS"
+echo " ContAI — Setup VPS"
 echo "=============================="
 
 # ── Docker ─────────────────────────────────────────────────────────────────
@@ -42,14 +42,14 @@ sudo apt-get install -y -qq git
 
 # ── Clonar repo ──────────────────────────────────────────────────────────────
 echo ""
-read -p "URL del repositorio git (ej: git@github.com:usuario/contachile.git): " REPO_URL
-sudo git clone "$REPO_URL" /opt/contachile
-sudo chown -R $USER:$USER /opt/contachile
+read -p "URL del repositorio git (ej: git@github.com:usuario/contai.git): " REPO_URL
+sudo git clone "$REPO_URL" /opt/contai
+sudo chown -R $USER:$USER /opt/contai
 
 # ── .env.production ──────────────────────────────────────────────────────────
 echo ""
 echo ">>> Copiando plantilla de variables de entorno..."
-cp /opt/contachile/.env.production.example /opt/contachile/.env.production
+cp /opt/contai/.env.production.example /opt/contai/.env.production
 
 echo ""
 echo "=============================="
@@ -57,10 +57,10 @@ echo " Setup completo"
 echo "=============================="
 echo ""
 echo "Próximos pasos:"
-echo "  1. Editar secrets:  nano /opt/contachile/.env.production"
-echo "  2. Configurar Nginx: bash /opt/contachile/scripts/setup-nginx.sh"
-echo "  3. Obtener SSL:      bash /opt/contachile/scripts/setup-ssl.sh"
-echo "  4. Primer deploy:    bash /opt/contachile/scripts/deploy.sh"
+echo "  1. Editar secrets:  nano /opt/contai/.env.production"
+echo "  2. Configurar Nginx: bash /opt/contai/scripts/setup-nginx.sh"
+echo "  3. Obtener SSL:      bash /opt/contai/scripts/setup-ssl.sh"
+echo "  4. Primer deploy:    bash /opt/contai/scripts/deploy.sh"
 echo ""
 echo "IMPORTANTE: cierra esta sesión SSH y vuelve a conectarte"
 echo "para que el grupo 'docker' tome efecto en tu usuario."

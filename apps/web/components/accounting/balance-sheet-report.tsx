@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import { Stat } from "@/components/ui/stat"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer, AlertTriangle } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export type BalanceSheetAccountRow = { accountId: string; code: string; name: string; value: number }
 export type BalanceSheetSection = { total: number; rows: BalanceSheetAccountRow[] }

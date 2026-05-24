@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Download } from 'lucide-react'
@@ -21,7 +21,7 @@ export function InstallBanner() {
     return (
       <div className="w-full border-b border-border bg-secondary/50 px-4 py-2.5 text-center">
         <p className="text-xs text-muted-foreground">
-          Instala ContaChile: toca <strong>Compartir</strong> (□↑) → <strong>"Agregar a pantalla de inicio"</strong>
+          Instala ContAI: toca <strong>Compartir</strong> (□↑) → <strong>"Agregar a pantalla de inicio"</strong>
         </p>
       </div>
     )
@@ -31,7 +31,7 @@ export function InstallBanner() {
     <div className="w-full border-b border-border bg-secondary/50 px-4 py-2 flex items-center justify-between gap-3">
       <p className="text-xs text-muted-foreground">
         {canPrompt
-          ? 'Instala ContaChile como app en tu dispositivo'
+          ? 'Instala ContAI como app en tu dispositivo'
           : 'Toca el ícono ⊕ en la barra del browser para instalar'}
       </p>
       {canPrompt && (

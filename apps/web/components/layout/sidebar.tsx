@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -131,7 +131,7 @@ function Brand({ collapsed }: { collapsed: boolean }) {
       {!collapsed && (
         <div className="leading-none">
           <span className="block font-display text-lg font-semibold tracking-tightest text-foreground">
-            ContaChile
+            ContAI
           </span>
           <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">
             Edición Financiera

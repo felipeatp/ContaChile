@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: contachile-postgres
+    container_name: contai-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -19,7 +19,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: contachile-redis
+    container_name: contai-redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
@@ -36,8 +36,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: contachile/api:latest
-    container_name: contachile-api
+    image: contai/api:latest
+    container_name: contai-api
     env_file: .env.production
     ports:
       - "127.0.0.1:3001:3001"
@@ -58,8 +58,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    image: contachile/web:latest
-    container_name: contachile-web
+    image: contai/web:latest
+    container_name: contai-web
     env_file: .env.production
     environment:
       # Server-side API calls go through Docker internal network — no auth issues

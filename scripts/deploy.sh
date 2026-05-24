@@ -1,12 +1,12 @@
 #!/bin/bash
-# deploy.sh — Deploy / redeploy ContaChile en el VPS
-# Ejecutar desde /opt/contachile
+# deploy.sh — Deploy / redeploy ContAI en el VPS
+# Ejecutar desde /opt/contai
 set -e
 
-cd /opt/contachile
+cd /opt/contai
 
 echo "=============================="
-echo " ContaChile — Deploy"
+echo " ContAI — Deploy"
 echo "=============================="
 
 # ── Verificar .env.production ──────────────────────────────────────────────

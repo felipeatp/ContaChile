@@ -10,40 +10,40 @@ import type { Metadata } from "next"
 const competitors = {
   "vs-nubox": {
     name: "Nubox",
-    metaTitle: "ContaChile vs Nubox — Alternativa moderna a Nubox Chile",
+    metaTitle: "ContAI vs Nubox — Alternativa moderna a Nubox Chile",
     metaDescription:
-      "Compara ContaChile con Nubox. Facturación electrónica DTE, contabilidad con IA y nóminas. Alternativa chilena con enfoque en automatización.",
-    headline: "ContaChile vs Nubox",
+      "Compara ContAI con Nubox. Facturación electrónica DTE, contabilidad con IA y nóminas. Alternativa chilena con enfoque en automatización.",
+    headline: "ContAI vs Nubox",
     subheadline:
       "Una comparación honesta entre dos plataformas contables chilenas.",
     competitorDesc:
       "Nubox es una plataforma contable establecida en Chile con foco en pymes y contadores.",
     contachileDesc:
-      "ContaChile es una plataforma nueva con arquitectura moderna, agentes IA integrados y diseño editorial pensado para equipos contables.",
+      "ContAI es una plataforma nueva con arquitectura moderna, agentes IA integrados y diseño editorial pensado para equipos contables.",
   },
   "vs-defontana": {
     name: "Defontana",
-    metaTitle: "ContaChile vs Defontana — Alternativa a Defontana para Pymes",
+    metaTitle: "ContAI vs Defontana — Alternativa a Defontana para Pymes",
     metaDescription:
-      "Compara ContaChile con Defontana ERP. Facturación electrónica, contabilidad y nóminas sin la complejidad de un ERP.",
-    headline: "ContaChile vs Defontana",
+      "Compara ContAI con Defontana ERP. Facturación electrónica, contabilidad y nóminas sin la complejidad de un ERP.",
+    headline: "ContAI vs Defontana",
     subheadline: "¿Necesitas un ERP completo o una plataforma contable ágil?",
     competitorDesc:
       "Defontana es un ERP chileno con módulos amplios: contabilidad, ventas, compras, bodega y RRHH.",
     contachileDesc:
-      "ContaChile se enfoca en lo que más necesitan las pymes: DTE, libro mayor, nóminas e IA contable, sin la curva de aprendizaje de un ERP.",
+      "ContAI se enfoca en lo que más necesitan las pymes: DTE, libro mayor, nóminas e IA contable, sin la curva de aprendizaje de un ERP.",
   },
   "vs-bsale": {
     name: "Bsale",
-    metaTitle: "ContaChile vs Bsale — Alternativa contable a Bsale Chile",
+    metaTitle: "ContAI vs Bsale — Alternativa contable a Bsale Chile",
     metaDescription:
-      "Compara ContaChile con Bsale. ContaChile incluye contabilidad completa, F29/F22 y nóminas, más allá de la facturación.",
-    headline: "ContaChile vs Bsale",
+      "Compara ContAI con Bsale. ContAI incluye contabilidad completa, F29/F22 y nóminas, más allá de la facturación.",
+    headline: "ContAI vs Bsale",
     subheadline: "Más allá de la facturación: contabilidad completa para tu pyme.",
     competitorDesc:
       "Bsale es una plataforma de punto de venta y facturación electrónica enfocada en el comercio.",
     contachileDesc:
-      "ContaChile va más allá de la facturación: incluye libro mayor, balances, nóminas y agentes IA para análisis tributario.",
+      "ContAI va más allá de la facturación: incluye libro mayor, balances, nóminas y agentes IA para análisis tributario.",
   },
 } as const
 
@@ -133,14 +133,14 @@ export default async function CompetitorPage({
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `ContaChile vs ${c.name}`,
+    name: `ContAI vs ${c.name}`,
     itemListElement: [
       {
         "@type": "ListItem",
         position: 1,
         item: {
           "@type": "Product",
-          name: "ContaChile",
+          name: "ContAI",
           url: "https://contachile.cl",
           description:
             "Software de facturación electrónica y contabilidad para empresas chilenas.",
@@ -177,7 +177,7 @@ export default async function CompetitorPage({
       {
         "@type": "ListItem",
         position: 3,
-        name: `ContaChile vs ${c.name}`,
+        name: `ContAI vs ${c.name}`,
         item: `https://contachile.cl/comparar/${slug}`,
       },
     ],
@@ -202,7 +202,7 @@ export default async function CompetitorPage({
               </div>
               <div className="leading-none">
                 <span className="block font-display text-lg font-semibold tracking-tightest">
-                  ContaChile
+                  ContAI
                 </span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">
                   Edición Financiera
@@ -244,7 +244,7 @@ export default async function CompetitorPage({
                 </li>
                 <li aria-hidden="true" className="text-border">/</li>
                 <li className="text-foreground font-medium" aria-current="page">
-                  ContaChile vs {c.name}
+                  ContAI vs {c.name}
                 </li>
               </ol>
             </nav>
@@ -284,7 +284,7 @@ export default async function CompetitorPage({
             <span className="eyebrow block mb-8">I · Sobre cada plataforma</span>
 
             <div className="grid md:grid-cols-2 gap-px bg-border border border-border">
-              {/* ContaChile card */}
+              {/* ContAI card */}
               <div className="bg-paper p-8 relative group">
                 {/* Subtle primary accent stripe on left edge */}
                 <div className="absolute left-0 top-8 bottom-8 w-0.5 bg-primary" />
@@ -298,7 +298,7 @@ export default async function CompetitorPage({
                     </div>
                     <div>
                       <span className="block font-display text-xl font-semibold tracking-tightest">
-                        ContaChile
+                        ContAI
                       </span>
                       <span className="eyebrow !text-[0.55rem]">Esta plataforma</span>
                     </div>
@@ -354,13 +354,13 @@ export default async function CompetitorPage({
                 <div className="px-5 py-4 flex items-end">
                   <span className="eyebrow">Característica</span>
                 </div>
-                {/* ContaChile column — blue accent bg */}
+                {/* ContAI column — blue accent bg */}
                 <div className="px-5 py-4 border-l border-border bg-primary/[0.06] flex flex-col items-center justify-end gap-1 text-center">
                   <div className="relative h-6 w-6 border border-foreground/30 bg-paper flex items-center justify-center mb-1">
                     <span className="font-display text-xs font-black leading-none">C</span>
                     <span className="absolute -bottom-0.5 -right-0.5 h-1 w-1 bg-primary" />
                   </div>
-                  <span className="eyebrow !text-[0.6rem] text-foreground">ContaChile</span>
+                  <span className="eyebrow !text-[0.6rem] text-foreground">ContAI</span>
                 </div>
                 {/* Competitor column */}
                 <div className="px-5 py-4 border-l border-border flex flex-col items-center justify-end gap-1 text-center">
@@ -418,7 +418,7 @@ export default async function CompetitorPage({
             <div className="mx-auto max-w-2xl text-center">
               <span className="eyebrow block mb-3">¿Listo para cambiar?</span>
               <h2 className="font-display text-4xl md:text-5xl font-semibold tracking-tightest mb-4">
-                Prueba ContaChile{" "}
+                Prueba ContAI{" "}
                 <em className="text-primary not-italic font-medium">gratis</em>.
               </h2>
               <p className="text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
@@ -463,7 +463,7 @@ export default async function CompetitorPage({
                     <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
                   </div>
                   <span className="font-display text-lg font-semibold tracking-tightest">
-                    ContaChile
+                    ContAI
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -528,7 +528,7 @@ export default async function CompetitorPage({
               </div>
             </div>
             <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
-              <p>© {new Date().getFullYear()} ContaChile · Todos los derechos reservados</p>
+              <p>© {new Date().getFullYear()} ContAI · Todos los derechos reservados</p>
               <div className="flex items-center gap-2 mt-3 md:mt-0">
                 <Mail className="h-3 w-3" />
                 <span>hola@contachile.cl</span>

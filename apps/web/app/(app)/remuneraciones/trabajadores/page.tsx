@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
-import { formatCLP, parseCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@ContAI/validators'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'

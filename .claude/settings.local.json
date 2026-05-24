@@ -17,7 +17,16 @@
       "Skill(superpowers:subagent-driven-development)",
       "Skill(superpowers:using-git-worktrees)",
       "Skill(superpowers:writing-plans)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell($env:DATABASE_URL = \"postgresql://contachile:contachile@localhost:5432/contachile\"; npx prisma db push --schema packages/db/prisma/schema.prisma 2>&1)",
+      "PowerShell(pnpm *)",
+      "PowerShell(psql *)",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_evaluate",
+      "WebFetch(domain:www.sii.cl)",
+      "Bash(Remove-Item \"apps/web/app/opengraph-image.tsx\")",
+      "Bash(Remove-Item \"apps/web/app/\\(marketing\\)/opengraph-image.tsx\")",
+      "Bash(Remove-Item \"apps/web/app/\\(marketing\\)/blog/[slug]/opengraph-image.tsx\")"
     ]
   }
 }

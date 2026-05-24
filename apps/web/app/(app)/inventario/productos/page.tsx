@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
-import { formatCLP, parseCLP } from '@contachile/validators'
+import { formatCLP, parseCLP } from '@ContAI/validators'
 
 type Product = {
   id: string

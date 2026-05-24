@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
 import { FileText, BarChart3, Users, Package, Sparkles, ArrowRight } from "lucide-react"
@@ -46,8 +46,8 @@ const breadcrumbSchema = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Inicio", item: "https://contachile.cl" },
-    { "@type": "ListItem", position: 2, name: "Funcionalidades", item: "https://contachile.cl/features" },
+    { "@type": "ListItem", position: 1, name: "Inicio", item: "https://ContAI.cl" },
+    { "@type": "ListItem", position: 2, name: "Funcionalidades", item: "https://ContAI.cl/features" },
   ],
 }
 
@@ -66,7 +66,7 @@ export default function FeaturesPage() {
                 <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
               </div>
               <div className="leading-none">
-                <span className="block font-display text-lg font-semibold tracking-tightest">ContaChile</span>
+                <span className="block font-display text-lg font-semibold tracking-tightest">ContAI</span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">Edición Financiera</span>
               </div>
             </Link>
@@ -145,8 +145,8 @@ export default function FeaturesPage() {
         {/* Footer */}
         <footer className="border-t border-border py-8 bg-secondary/30">
           <div className="container flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
-            <p>© {new Date().getFullYear()} ContaChile · Todos los derechos reservados</p>
-            <Link href="/" className="mt-2 md:mt-0 hover:text-foreground transition-colors">contachile.cl</Link>
+            <p>© {new Date().getFullYear()} ContAI · Todos los derechos reservados</p>
+            <Link href="/" className="mt-2 md:mt-0 hover:text-foreground transition-colors">ContAI.cl</Link>
           </div>
         </footer>
       </div>

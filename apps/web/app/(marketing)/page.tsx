@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
 import { InstallBanner } from "@/components/layout/install-banner"
@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 
 export const metadata = {
-  title: "ContaChile - Facturación Electrónica para Chile",
+  title: "ContAI - Facturación Electrónica para Chile",
   description:
     "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA para empresas chilenas.",
   alternates: { canonical: "/" },
@@ -22,7 +22,7 @@ export const metadata = {
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "ContaChile",
+  name: "ContAI",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   offers: {
@@ -32,7 +32,7 @@ const structuredData = {
   },
   description:
     "Software de facturación electrónica para Chile. Emite DTE, boletas y facturas directamente al SII.",
-  url: "https://contachile.cl",
+  url: "https://ContAI.cl",
 }
 
 const features = [
@@ -130,7 +130,7 @@ export default function HomePage() {
               </div>
               <div className="leading-none hidden sm:block">
                 <span className="block font-display text-lg font-semibold tracking-tightest">
-                  ContaChile
+                  ContAI
                 </span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">
                   Edición Financiera
@@ -489,7 +489,7 @@ export default function HomePage() {
                     <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
                   </div>
                   <span className="font-display text-lg font-semibold tracking-tightest">
-                    ContaChile
+                    ContAI
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -561,12 +561,12 @@ export default function HomePage() {
             </div>
             <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
               <p>
-                © {new Date().getFullYear()} ContaChile · Todos los derechos
+                © {new Date().getFullYear()} ContAI · Todos los derechos
                 reservados
               </p>
               <div className="flex items-center gap-2 mt-3 md:mt-0">
                 <Mail className="h-3 w-3" />
-                <span>hola@contachile.cl</span>
+                <span>hola@ContAI.cl</span>
               </div>
             </div>
           </div>

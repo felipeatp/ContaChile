@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus, X } from "lucide-react"
-import { formatCLP, parseCLP } from "@contachile/validators"
+import { formatCLP, parseCLP } from "@ContAI/validators"
 
 export type ManualEntryAccount = { id: string; code: string; name: string; isActive: boolean }
 

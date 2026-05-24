@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { JsonLd } from "@/components/seo/json-ld"
 import { Check, ArrowRight, Mail } from "lucide-react"
@@ -9,21 +9,21 @@ export const metadata = {
     "Planes desde $0 para siempre. Facturación electrónica DTE, contabilidad y nóminas para pymes chilenas. Sin contratos de permanencia.",
   alternates: { canonical: "/precios" },
   openGraph: {
-    title: "Precios ContaChile — Desde $0 para siempre",
+    title: "Precios ContAI — Desde $0 para siempre",
     description:
       "Planes desde $0. DTE, contabilidad, nóminas e IA para pymes chilenas.",
-    url: "https://contachile.cl/precios",
+    url: "https://ContAI.cl/precios",
   },
 }
 
 const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "ContaChile",
+  name: "ContAI",
   description:
     "Software de facturación electrónica y contabilidad para empresas chilenas.",
-  url: "https://contachile.cl/precios",
-  brand: { "@type": "Brand", name: "ContaChile" },
+  url: "https://ContAI.cl/precios",
+  brand: { "@type": "Brand", name: "ContAI" },
   offers: [
     {
       "@type": "Offer",
@@ -31,7 +31,7 @@ const productSchema = {
       price: "0",
       priceCurrency: "CLP",
       availability: "https://schema.org/InStock",
-      url: "https://contachile.cl/sign-up",
+      url: "https://ContAI.cl/sign-up",
     },
     {
       "@type": "Offer",
@@ -39,7 +39,7 @@ const productSchema = {
       price: "29900",
       priceCurrency: "CLP",
       availability: "https://schema.org/InStock",
-      url: "https://contachile.cl/sign-up",
+      url: "https://ContAI.cl/sign-up",
     },
     {
       "@type": "Offer",
@@ -47,7 +47,7 @@ const productSchema = {
       price: "89900",
       priceCurrency: "CLP",
       availability: "https://schema.org/InStock",
-      url: "https://contachile.cl/sign-up",
+      url: "https://ContAI.cl/sign-up",
     },
   ],
 }
@@ -93,13 +93,13 @@ const breadcrumbSchema = {
       "@type": "ListItem",
       position: 1,
       name: "Inicio",
-      item: "https://contachile.cl",
+      item: "https://ContAI.cl",
     },
     {
       "@type": "ListItem",
       position: 2,
       name: "Precios",
-      item: "https://contachile.cl/precios",
+      item: "https://ContAI.cl/precios",
     },
   ],
 }
@@ -180,7 +180,7 @@ export default function PreciosPage() {
               </div>
               <div className="leading-none">
                 <span className="block font-display text-lg font-semibold tracking-tightest">
-                  ContaChile
+                  ContAI
                 </span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">
                   Edición Financiera
@@ -390,7 +390,7 @@ export default function PreciosPage() {
                     <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
                   </div>
                   <span className="font-display text-lg font-semibold tracking-tightest">
-                    ContaChile
+                    ContAI
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -462,12 +462,12 @@ export default function PreciosPage() {
             </div>
             <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
               <p>
-                © {new Date().getFullYear()} ContaChile · Todos los derechos
+                © {new Date().getFullYear()} ContAI · Todos los derechos
                 reservados
               </p>
               <div className="flex items-center gap-2 mt-3 md:mt-0">
                 <Mail className="h-3 w-3" />
-                <span>hola@contachile.cl</span>
+                <span>hola@ContAI.cl</span>
               </div>
             </div>
           </div>

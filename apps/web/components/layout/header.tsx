@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -219,13 +219,13 @@ function InstallButton() {
 
   const tooltip = isIOS
     ? 'Instalar en iOS: Compartir → Agregar a pantalla de inicio'
-    : canPrompt ? 'Instalar ContaChile como app' : 'Instalar desde la barra del browser'
+    : canPrompt ? 'Instalar ContAI como app' : 'Instalar desde la barra del browser'
 
   return (
     <button
       onClick={handleClick}
       className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-      aria-label="Instalar ContaChile"
+      aria-label="Instalar ContAI"
       title={tooltip}
     >
       <Download className="h-4 w-4" />
@@ -245,7 +245,7 @@ function formatDateEs(d: Date): string {
 export function Header() {
   const pathname = usePathname()
   const crumbs = buildCrumbs(pathname)
-  const title = crumbs[crumbs.length - 1]?.label ?? "ContaChile"
+  const title = crumbs[crumbs.length - 1]?.label ?? "ContAI"
 
   // Hidratación segura: formatear la fecha sólo después del mount para
   // evitar mismatch SSR/CSR (servidor y cliente pueden tener relojes distintos).

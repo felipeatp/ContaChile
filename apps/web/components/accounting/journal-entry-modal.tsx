@@ -1,7 +1,7 @@
-"use client"
+﻿"use client"
 
 import { Modal } from "@/components/ui/modal"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export type JournalLine = {
   id: string

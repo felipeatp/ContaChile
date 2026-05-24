@@ -1,8 +1,8 @@
-import { MetadataRoute } from 'next'
+﻿import { MetadataRoute } from 'next'
 import { blogPosts } from '@/lib/blog'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://contachile.cl'
+  const base = 'https://ContAI.cl'
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: base,                                       lastModified: new Date('2026-05-19'), changeFrequency: 'weekly',  priority: 1.0 },

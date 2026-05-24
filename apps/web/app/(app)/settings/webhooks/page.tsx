@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -103,7 +103,7 @@ export default function WebhooksPage() {
         <h3 className="font-display text-lg font-semibold">Nuevo webhook</h3>
         <div className="flex gap-3">
           <Input
-            placeholder="https://tu-sistema.cl/webhook/contachile"
+            placeholder="https://tu-sistema.cl/webhook/ContAI"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="flex-1"

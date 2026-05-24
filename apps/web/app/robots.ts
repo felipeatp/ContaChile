@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next'
+﻿import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/$', '/precios', '/features/', '/blog/', '/docs/', '/comparar/'],
       disallow: ['/dashboard/', '/documents/', '/emit/', '/settings/', '/api/', '/login', '/sign-up'],
     },
-    sitemap: 'https://contachile.cl/sitemap.xml',
+    sitemap: 'https://ContAI.cl/sitemap.xml',
   }
 }

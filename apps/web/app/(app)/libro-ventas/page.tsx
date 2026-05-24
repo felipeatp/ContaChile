@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
 import { Printer, FileText, Download, Loader2 } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 interface DocumentItem {
   id: string

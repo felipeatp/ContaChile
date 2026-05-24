@@ -56,7 +56,7 @@ function LoginForm() {
             Iniciar sesión
           </h1>
           <p className="text-sm text-muted-foreground">
-            Accede a tu cuenta de ContaChile
+            Accede a tu cuenta de ContAI
           </p>
         </div>
 

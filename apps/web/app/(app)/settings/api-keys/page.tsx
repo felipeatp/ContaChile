@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -175,7 +175,7 @@ export default function ApiKeysPage() {
           Incluye la key en el header <code className="text-xs bg-secondary px-1 rounded">x-api-key</code> de cada petición.
         </p>
         <pre className="text-xs bg-secondary p-3 rounded-sm overflow-x-auto">
-{`curl https://api.contachile.cl/public/v1/documents \\
+{`curl https://api.ContAI.cl/public/v1/documents \\
   -H "x-api-key: ck_live_..."`}
         </pre>
         <p className="text-xs text-muted-foreground">

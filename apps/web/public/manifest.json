@@ -1,7 +1,7 @@
 {
   "lang": "es-CL",
-  "name": "ContaChile",
-  "short_name": "ContaChile",
+  "name": "ContAI",
+  "short_name": "ContAI",
   "description": "Facturación electrónica y contabilidad para Chile",
   "start_url": "/dashboard",
   "scope": "/",

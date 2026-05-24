@@ -1,11 +1,11 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Stat } from "@/components/ui/stat"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export interface F29Data {
   period: { year: number; month: number }
@@ -137,7 +137,7 @@ export function F29Report({
               Período: {MONTHS[(data?.period.month ?? 1) - 1]} {data?.period.year}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Generado por ContaChile — {new Date().toLocaleDateString("es-CL")}
+              Generado por ContAI — {new Date().toLocaleDateString("es-CL")}
             </p>
           </div>
 

@@ -1,11 +1,11 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
 import { FileCode2, Download } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 interface DocumentTableProps {
   documents: Document[]

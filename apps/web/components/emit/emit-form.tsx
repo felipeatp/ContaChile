@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import { useState, useMemo, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EmitDocumentSchema, calcularIVA, calcularTotal, formatCLP } from "@contachile/validators"
+import { EmitDocumentSchema, calcularIVA, calcularTotal, formatCLP } from "@ContAI/validators"
 import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

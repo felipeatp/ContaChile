@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+﻿import type { Metadata } from "next"
 import { Fraunces, DM_Sans, JetBrains_Mono } from "next/font/google"
 import Script from "next/script"
 import { Providers } from "./providers"
@@ -31,19 +31,19 @@ const jetBrainsMono = JetBrains_Mono({
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "ContaChile",
-  url: "https://contachile.cl",
-  logo: "https://contachile.cl/logo.png",
+  name: "ContAI",
+  url: "https://ContAI.cl",
+  logo: "https://ContAI.cl/logo.png",
   sameAs: [
-    "https://twitter.com/contachile",
-    "https://linkedin.com/company/contachile",
+    "https://twitter.com/ContAI",
+    "https://linkedin.com/company/ContAI",
   ],
 }
 
 export const metadata: Metadata = {
   title: {
-    default: "ContaChile - Facturación Electrónica para Chile",
-    template: "%s | ContaChile",
+    default: "ContAI - Facturación Electrónica para Chile",
+    template: "%s | ContAI",
   },
   description:
     "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA para empresas chilenas.",
@@ -56,21 +56,21 @@ export const metadata: Metadata = {
     "contabilidad",
     "software contable Chile",
   ],
-  authors: [{ name: "ContaChile" }],
-  creator: "ContaChile",
-  metadataBase: new URL("https://contachile.cl"),
+  authors: [{ name: "ContAI" }],
+  creator: "ContAI",
+  metadataBase: new URL("https://ContAI.cl"),
   openGraph: {
     type: "website",
     locale: "es_CL",
-    url: "https://contachile.cl",
-    siteName: "ContaChile",
-    title: "ContaChile - Facturación Electrónica para Chile",
+    url: "https://ContAI.cl",
+    siteName: "ContAI",
+    title: "ContAI - Facturación Electrónica para Chile",
     description:
       "Emite DTE, boletas y facturas electrónicas directamente al SII. Automatización contable con IA.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ContaChile - Facturación Electrónica para Chile",
+    title: "ContAI - Facturación Electrónica para Chile",
     description:
       "Emite DTE, boletas y facturas electrónicas directamente al SII.",
   },
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "ContaChile",
+    title: "ContAI",
   },
 }
 

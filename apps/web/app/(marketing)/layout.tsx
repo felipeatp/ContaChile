@@ -1,9 +1,9 @@
-import type { Metadata } from "next"
+﻿import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: {
-    default: "ContaChile - Facturación Electrónica para Chile",
-    template: "%s | ContaChile",
+    default: "ContAI - Facturación Electrónica para Chile",
+    template: "%s | ContAI",
   },
 }
 

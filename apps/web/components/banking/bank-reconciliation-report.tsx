@@ -1,8 +1,8 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Loader2, RefreshCcw, Sparkles, Link as LinkIcon, Eye, Trash2, Landmark } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 import { ConnectBankButton } from "./connect-bank-button"
 
 export type BankStatus = "PENDING" | "SUGGESTED" | "MATCHED_DTE" | "MATCHED_PURCHASE" | "RECONCILED" | "IGNORED"

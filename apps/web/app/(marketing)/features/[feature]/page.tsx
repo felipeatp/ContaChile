@@ -181,7 +181,7 @@ export default async function FeaturePage({
   const softwareApplicationSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: `ContaChile — ${f.title}`,
+    name: `ContAI — ${f.title}`,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: `https://contachile.cl/features/${slug}`,
@@ -232,7 +232,7 @@ export default async function FeaturePage({
               </div>
               <div className="leading-none">
                 <span className="block font-display text-lg font-semibold tracking-tightest">
-                  ContaChile
+                  ContAI
                 </span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">
                   Edición Financiera
@@ -425,7 +425,7 @@ export default async function FeaturePage({
                     <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
                   </div>
                   <span className="font-display text-lg font-semibold tracking-tightest">
-                    ContaChile
+                    ContAI
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -492,7 +492,7 @@ export default async function FeaturePage({
             </div>
             <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
               <p>
-                &copy; {new Date().getFullYear()} ContaChile · Todos los derechos
+                &copy; {new Date().getFullYear()} ContAI · Todos los derechos
                 reservados
               </p>
               <div className="flex items-center gap-2 mt-3 md:mt-0">

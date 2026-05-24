@@ -55,7 +55,7 @@ export default function SignUpClient() {
             Crear cuenta
           </h1>
           <p className="text-sm text-muted-foreground">
-            Empieza a usar ContaChile gratis
+            Empieza a usar ContAI gratis
           </p>
         </div>
 

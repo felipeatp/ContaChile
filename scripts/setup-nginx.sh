@@ -1,18 +1,17 @@
 #!/bin/bash
-# setup-nginx.sh — Configurar Nginx para ContaChile
+# setup-nginx.sh — Configurar Nginx para ContAI (contai.innovatio-it.com)
 # Ejecutar después de setup-vps.sh
 set -e
 
-echo ">>> Configurando Nginx para ContaChile..."
+DOMAIN="contai.innovatio-it.com"
 
-read -p "Tu dominio (ej: contachile.cl, sin www): " DOMAIN
+echo ">>> Configurando Nginx para $DOMAIN..."
 
-# Copiar configuración y reemplazar placeholder
-sudo cp /opt/contachile/nginx/contachile.conf /etc/nginx/sites-available/contachile
-sudo sed -i "s/TU_DOMINIO.cl/$DOMAIN/g" /etc/nginx/sites-available/contachile
+# Copiar configuración
+sudo cp /opt/contai/nginx/contai.conf /etc/nginx/sites-available/contai
 
 # Activar el sitio
-sudo ln -sf /etc/nginx/sites-available/contachile /etc/nginx/sites-enabled/contachile
+sudo ln -sf /etc/nginx/sites-available/contai /etc/nginx/sites-enabled/contai
 
 # Desactivar sitio por defecto si existe
 [ -f /etc/nginx/sites-enabled/default ] && sudo rm /etc/nginx/sites-enabled/default
@@ -28,4 +27,4 @@ sudo systemctl reload nginx
 
 echo ""
 echo "✅ Nginx configurado para $DOMAIN"
-echo "   Siguiente paso: bash /opt/contachile/scripts/setup-ssl.sh"
+echo "   Siguiente paso: bash /opt/contai/scripts/setup-ssl.sh"

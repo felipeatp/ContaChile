@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer, FileBarChart, Sparkles } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export interface F22Line {
   code: string
@@ -130,7 +130,7 @@ export function F22Report({
         {/* Print header */}
         <div className="hidden print-header">
           <h1 className="text-2xl font-bold">F22 - Declaración Anual de Renta {year}</h1>
-          <p className="text-sm">Generado por ContaChile</p>
+          <p className="text-sm">Generado por ContAI</p>
         </div>
 
         {/* Cards resumen */}

@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Loader2, Sparkles } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export type ReconcileAccount = { id: string; code: string; name: string; type: string; isActive: boolean }
 

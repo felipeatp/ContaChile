@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer, AlertTriangle } from "lucide-react"
-import { formatCLP } from "@contachile/validators"
+import { formatCLP } from "@ContAI/validators"
 
 export type TrialBalanceRow = {
   accountId: string

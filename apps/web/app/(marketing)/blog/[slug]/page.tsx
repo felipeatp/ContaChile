@@ -59,10 +59,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     description: post.description,
     datePublished: post.date,
     dateModified: post.lastModified,
-    author: { "@type": "Organization", name: "ContaChile", url: "https://contachile.cl" },
+    author: { "@type": "Organization", name: "ContAI", url: "https://contachile.cl" },
     publisher: {
       "@type": "Organization",
-      name: "ContaChile",
+      name: "ContAI",
       logo: { "@type": "ImageObject", url: "https://contachile.cl/logo.png" },
     },
     url: `https://contachile.cl/blog/${post.slug}`,
@@ -94,7 +94,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 bg-primary" />
               </div>
               <div className="leading-none">
-                <span className="block font-display text-lg font-semibold tracking-tightest">ContaChile</span>
+                <span className="block font-display text-lg font-semibold tracking-tightest">ContAI</span>
                 <span className="block eyebrow !text-[0.55rem] !tracking-[0.2em] mt-0.5 text-muted-foreground/70">Edición Financiera</span>
               </div>
             </Link>
@@ -142,7 +142,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </p>
               <div className="flex items-center gap-3 flex-wrap">
                 <AudienceBadge audience={post.audience} />
-                <span className="text-xs text-muted-foreground/60 font-mono">ContaChile · {new Date(post.date).getFullYear()}</span>
+                <span className="text-xs text-muted-foreground/60 font-mono">ContAI · {new Date(post.date).getFullYear()}</span>
               </div>
             </div>
           </header>
@@ -161,7 +161,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <div className="container max-w-3xl">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                  <span className="eyebrow block mb-2">ContaChile</span>
+                  <span className="eyebrow block mb-2">ContAI</span>
                   <p className="font-display text-2xl font-semibold tracking-tightest">
                     Automatiza tu contabilidad con IA.
                   </p>
@@ -213,7 +213,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* Footer */}
         <footer className="border-t border-border py-8 bg-secondary/30">
           <div className="container flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground/70 font-mono">
-            <p>© {new Date().getFullYear()} ContaChile · Todos los derechos reservados</p>
+            <p>© {new Date().getFullYear()} ContAI · Todos los derechos reservados</p>
             <Link href="/blog" className="mt-2 md:mt-0 hover:text-foreground transition-colors">← Volver al blog</Link>
           </div>
         </footer>
