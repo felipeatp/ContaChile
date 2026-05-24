@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     { method: 'GET', headers: extraHeaders }
   )
 
+  if (status >= 400) return NextResponse.json({ entries: [], total: 0 }, { status: 200 })
   return NextResponse.json(data, { status })
 }
 
