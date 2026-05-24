@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     headers: extraHeaders,
   })
 
+  if (status >= 400) return NextResponse.json({ company: null }, { status: 200 })
   return NextResponse.json(data, { status })
 }
 

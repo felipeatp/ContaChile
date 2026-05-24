@@ -43,6 +43,9 @@ export async function apiFetch(path: string, init?: RequestInit) {
 
     const data = await res.json().catch(() => null)
     return { status: res.status, data }
+  } catch {
+    // Backend unreachable (network error, blocked by global_fetch_strictly_public, etc.)
+    return { status: 503, data: null }
   } finally {
     clearTimeout(timeout)
   }
