@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiFetch } from '@/lib/api-server'
+import { findUpcomingDueDates } from '@contachile/validators'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const query = searchParams.toString()
-  const cookie = req.headers.get('cookie')
-  const extraHeaders: Record<string, string> = {}
-  if (cookie) extraHeaders['Cookie'] = cookie
-  const { status, data } = await apiFetch(`/alerts/upcoming${query ? `?${query}` : ''}`, {
-    method: 'GET',
-    headers: extraHeaders,
-  })
-  return NextResponse.json(data, { status })
+  const daysAheadParam = searchParams.get('daysAhead')
+  const includePastDaysParam = searchParams.get('includePastDays')
+
+  const monthsAhead = daysAheadParam
+    ? Math.max(0, Math.min(3, Math.ceil(parseInt(daysAheadParam, 10) / 30)))
+    : 1
+  const includePastDays = includePastDaysParam ? parseInt(includePastDaysParam, 10) : 7
+
+  const alerts = findUpcomingDueDates(new Date(), { monthsAhead, includePastDays })
+  return NextResponse.json({ alerts })
 }

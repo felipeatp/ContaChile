@@ -29,16 +29,17 @@ export async function GET(req: NextRequest) {
     headers["Cookie"] = cookie
   }
 
-  const upstream = await fetch(`${API_BASE_URL}/ai/insights`, {
-    method: "GET",
-    headers,
-  })
+  try {
+    const upstream = await fetch(`${API_BASE_URL}/ai/insights`, {
+      method: "GET",
+      headers,
+    })
 
-  if (!upstream.ok) {
-    const err = await upstream.json().catch(() => ({ error: "Error del servidor IA" }))
-    return NextResponse.json(err, { status: upstream.status })
+    if (!upstream.ok) return NextResponse.json({ insights: [] })
+
+    const data = await upstream.json()
+    return NextResponse.json(data)
+  } catch {
+    return NextResponse.json({ insights: [] })
   }
-
-  const data = await upstream.json()
-  return NextResponse.json(data)
 }
