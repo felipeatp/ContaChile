@@ -1,11 +1,19 @@
-const { initOpenNextCloudflareForDev } = require("@opennextjs/cloudflare")
 const withPWA = require('@ducanh2912/next-pwa').default
 
-initOpenNextCloudflareForDev()
+// CF dev integration only needed during `next dev` — safe to skip during Docker build
+try {
+  const { initOpenNextCloudflareForDev } = require("@opennextjs/cloudflare")
+  initOpenNextCloudflareForDev()
+} catch {
+  // No-op outside Cloudflare dev context
+}
 
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
+  // Generates a self-contained Node.js server in .next/standalone/ for Docker.
+  // OpenNext CF ignores this output and uses .next/server/ directly — no conflict.
+  output: 'standalone',
   transpilePackages: ['@contachile/validators', '@contachile/auth'],
   poweredByHeader: false,
   async rewrites() {
