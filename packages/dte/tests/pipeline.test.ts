@@ -55,7 +55,7 @@ describe('runPipeline', () => {
       receiver: { rut: '12.345.678-5', name: 'Re', address: 'A', commune: 'C', city: 'S' },
       items: [{ description: 'X', quantity: 1, unitPrice: 100 }],
       paymentMethod: 'CONTADO',
-      emittedAt: '2026-05-01',
+      emittedAt: new Date().toISOString().split('T')[0],
     }
     const result = await runPipeline(data)
     expect(result.xml).toContain('<?xml')
@@ -71,7 +71,7 @@ describe('runPipeline', () => {
       receiver: { rut: '12.345.678-5', name: 'Re', address: 'A', commune: 'C', city: 'S' },
       items: [{ description: 'X', quantity: 1, unitPrice: 100 }],
       paymentMethod: 'CONTADO',
-      emittedAt: '2026-05-01',
+      emittedAt: new Date().toISOString().split('T')[0],
     }
     await expect(runPipeline(data)).rejects.toThrow('XSD validation failed')
   })

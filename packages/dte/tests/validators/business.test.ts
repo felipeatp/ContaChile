@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { validateBusinessRules } from '../../src/validators/business'
 import { DocumentData } from '../../src/types'
 
+const TODAY = new Date().toISOString().split('T')[0]
+
 const baseDoc: DocumentData = {
   type: 33,
   folio: 1,
@@ -23,7 +25,7 @@ const baseDoc: DocumentData = {
   },
   items: [{ description: 'Servicio', quantity: 1, unitPrice: 100000 }],
   paymentMethod: 'CONTADO',
-  emittedAt: '2026-05-01',
+  emittedAt: TODAY,
 }
 
 describe('validateBusinessRules', () => {
