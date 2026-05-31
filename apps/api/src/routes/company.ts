@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import { UpdateCompanySchema, PUC_BASE_ACCOUNTS } from '@contachile/validators'
+import { encryptCertPassword } from '@contachile/auth'
 
 async function seedPucBase(companyId: string): Promise<void> {
   const existingCount = await prisma.ledgerAccount.count({ where: { companyId } })
@@ -76,18 +77,24 @@ export default async function (fastify: FastifyInstance) {
       return reply.code(400).send({ error: 'Certificado inválido o vacío' })
     }
 
+    const encryptedPassword = body.password
+      ? encryptCertPassword(body.password)
+      : null
+
     const company = await prisma.company.upsert({
       where: { id: companyId },
       update: {
         certEncrypted: body.certBase64,
-        certPassword: body.password || null,
+        certPasswordEncrypted: encryptedPassword,
+        certPassword: null,  // clear legacy plaintext field
       },
       create: {
         id: companyId,
         rut: '76.123.456-7',
         name: 'Empresa de Prueba SpA',
         certEncrypted: body.certBase64,
-        certPassword: body.password || null,
+        certPasswordEncrypted: encryptedPassword,
+        certPassword: null,
       },
     })
     await seedPucBase(companyId)

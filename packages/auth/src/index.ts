@@ -39,3 +39,5 @@ export const auth = betterAuth({
 })
 
 export type Session = typeof auth.$Infer.Session
+
+export { encryptCertPassword, decryptCertPassword } from './cert-cipher'

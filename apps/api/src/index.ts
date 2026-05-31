@@ -1,4 +1,11 @@
 import Fastify, { FastifyRequest } from 'fastify'
+
+// ── Security guard ─────────────────────────────────────────────────────────
+if (process.env.NODE_ENV === 'production' && process.env.DEV_BYPASS_AUTH === 'true') {
+  console.error('[SECURITY] DEV_BYPASS_AUTH=true is forbidden in production. Shutting down.')
+  process.exit(1)
+}
+// ──────────────────────────────────────────────────────────────────────────
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'

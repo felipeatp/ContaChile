@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// ── Security guard ─────────────────────────────────────────────────────────
+if (process.env.NODE_ENV === "production" && process.env.DEV_BYPASS_AUTH === "true") {
+  throw new Error("[SECURITY] DEV_BYPASS_AUTH=true is forbidden in production.")
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 const PUBLIC_ROUTES = ["/login", "/sign-up", "/", "/blog", "/api/auth"]
 const AUTH_ROUTES = ["/login", "/sign-up"]
 

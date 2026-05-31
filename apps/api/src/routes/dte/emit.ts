@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { EmitDocumentSchema, calcularIVA, calcularTotal } from '@contachile/validators'
 import { prisma } from '@contachile/db'
 import { runPipeline, extractPrivateKeyFromPfx } from '@contachile/dte'
+import { decryptCertPassword } from '@contachile/auth'
 import { enqueuePollJob } from '../../queues/dte'
 import { createEmailService } from '../../lib/email'
 import { createSalesEntry } from '../../lib/accounting-entries'
@@ -41,22 +42,17 @@ export default async function (fastify: FastifyInstance) {
     const tax = calcularIVA(neto)
     const total = calcularTotal(neto)
 
-    const counter = await prisma.folioCounter.findUnique({
-      where: { companyId_type: { companyId, type: body.type } },
-    })
-
-    const folio = counter ? counter.nextFolio : 1
-
-    if (counter) {
-      await prisma.folioCounter.update({
-        where: { id: counter.id },
-        data: { nextFolio: { increment: 1 } },
-      })
-    } else {
-      await prisma.folioCounter.create({
-        data: { companyId, type: body.type, nextFolio: 2 },
-      })
-    }
+    // Atomic folio assignment: INSERT ... ON CONFLICT DO UPDATE is a single
+    // PostgreSQL statement that acquires a row-level lock, preventing duplicate
+    // folios under concurrent emission.
+    const folioResult = await prisma.$queryRaw<Array<{ folio: bigint }>>`
+      INSERT INTO "FolioCounter" (id, "companyId", type, "nextFolio")
+      VALUES (gen_random_uuid()::text, ${companyId}, ${body.type}::integer, 2)
+      ON CONFLICT ("companyId", type)
+      DO UPDATE SET "nextFolio" = "FolioCounter"."nextFolio" + 1
+      RETURNING "nextFolio" - 1 AS folio
+    `
+    const folio = Number(folioResult[0].folio)
 
     const trackId = `SII-${Date.now()}`
     const emittedAt = new Date().toISOString().split('T')[0]
@@ -68,9 +64,17 @@ export default async function (fastify: FastifyInstance) {
     const hasCert = !!certEncrypted && certEncrypted.length > 100
     if (hasCert) {
       try {
+        // Prefer encrypted password; fall back to legacy plaintext until users re-upload
+        let certPlainPassword = ''
+        if (company.certPasswordEncrypted) {
+          certPlainPassword = decryptCertPassword(company.certPasswordEncrypted)
+        } else if (company.certPassword) {
+          certPlainPassword = company.certPassword
+        }
+
         const privateKeyPem = extractPrivateKeyFromPfx(
           certEncrypted,
-          company.certPassword ?? ''
+          certPlainPassword
         )
 
         const result = await runPipeline({

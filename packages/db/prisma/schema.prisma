@@ -388,9 +388,10 @@ model Company {
   economicActivity    String?
   phone               String?
   email               String?
-  certEncrypted       String?
-  certPassword        String?
-  siiCertified        Boolean  @default(false)
+  certEncrypted            String?
+  certPasswordEncrypted    String?  // AES-256-GCM via CERT_ENCRYPTION_KEY
+  certPassword             String?  // legacy plaintext — kept for migration fallback only
+  siiCertified             Boolean  @default(false)
   defaultPaymentMethod String  @default("CONTADO")
   defaultDocumentType Int      @default(33)
   createdAt           DateTime @default(now())
