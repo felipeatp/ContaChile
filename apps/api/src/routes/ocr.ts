@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
-import { procesarDocumentoOCR } from '@contachile/ai-agents'
+import { procesarDocumentoOCR, validateOCRExtraction } from '@contachile/ai-agents'
 import { calcularIVA } from '@contachile/validators'
 
 export default async function (fastify: FastifyInstance) {
@@ -42,6 +42,25 @@ export default async function (fastify: FastifyInstance) {
         return reply.code(422).send({
           error: 'No se pudo identificar el documento. Intenta con otra imagen más clara.',
           ocr: result,
+        })
+      }
+
+      // Validar datos extraídos antes de guardar
+      const validationErrors = validateOCRExtraction(result)
+      if (validationErrors.length > 0) {
+        await prisma.ocrDocument.update({
+          where: { id: ocrDoc.id },
+          data: {
+            status: 'REQUIRES_REVIEW' as any,
+            extractedData: result as any,
+            errorDetail: validationErrors.join('; '),
+          },
+        })
+        return reply.send({
+          status: 'requires_review',
+          ocr: { ...result, validationErrors },
+          validationErrors,
+          message: 'Los datos extraídos requieren revisión manual antes de guardar.',
         })
       }
 

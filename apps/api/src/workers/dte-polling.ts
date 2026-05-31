@@ -21,10 +21,45 @@ const aceptaClient = new AceptaClient({
   baseURL: process.env.ACEPTA_BASE_URL,
 })
 
+async function notifyDocumentStuck(documentId: string, attempts: number, lastError: string): Promise<void> {
+  try {
+    const doc = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: { companyId: true, folio: true, type: true },
+    })
+    if (!doc?.companyId) return
+
+    const owner = await (prisma as any).companyMembership.findFirst({
+      where: { companyId: doc.companyId, role: 'owner' },
+      select: { userId: true },
+    })
+    if (!owner) return
+
+    const user = await (prisma as any).user.findUnique({
+      where: { id: owner.userId },
+      select: { email: true, name: true },
+    })
+    if (!user?.email) return
+
+    await emailService.sendDocumentStuck({
+      documentId,
+      folio: doc.folio,
+      type: doc.type,
+      attempts,
+      lastError,
+      userEmail: user.email,
+      userName: user.name || user.email,
+    })
+  } catch (notifyErr: unknown) {
+    const msg = notifyErr instanceof Error ? notifyErr.message : String(notifyErr)
+    if (process.env.NODE_ENV !== 'production') console.error(`[dte-worker] notifyDocumentStuck failed: ${msg}`)
+  }
+}
+
 async function initWorker(): Promise<void> {
   if (!(await probeRedis())) return
 
-  new Worker<PollJobData>(
+  const worker = new Worker<PollJobData>(
     'dte-polling',
     async (job) => {
       const { documentId, trackId, source } = job.data
@@ -105,6 +140,26 @@ async function initWorker(): Promise<void> {
     },
     { connection: createRedisClient() }
   )
+
+  // Dead Letter Queue: mark document FAILED and notify owner after all retries exhausted
+  worker.on('failed', async (job, err) => {
+    if (!job) return
+    const maxAttempts = (job.opts.attempts as number | undefined) ?? 24
+    if (job.attemptsMade < maxAttempts) return
+
+    const { documentId } = job.data
+    const errorMsg = err instanceof Error ? err.message : String(err)
+
+    await prisma.document.update({
+      where: { id: documentId },
+      data: {
+        status: 'FAILED',
+        rejectionReason: `SII no respondió después de ${job.attemptsMade} intentos: ${errorMsg}`,
+      },
+    }).catch(() => {})
+
+    await notifyDocumentStuck(documentId, job.attemptsMade, errorMsg)
+  })
 }
 
 void initWorker()

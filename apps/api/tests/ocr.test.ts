@@ -5,6 +5,15 @@ import ocrRoute from '../src/routes/ocr'
 
 vi.mock('@contachile/db', () => ({
   prisma: {
+    companyMembership: {
+      findMany: vi.fn().mockResolvedValue([{ companyId: 'test-company', role: 'owner' }]),
+      create: vi.fn(),
+    },
+    company: {
+      upsert: vi.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+    },
     ocrDocument: {
       create: vi.fn(),
       update: vi.fn(),
@@ -17,6 +26,7 @@ vi.mock('@contachile/db', () => ({
 
 vi.mock('@contachile/ai-agents', () => ({
   procesarDocumentoOCR: vi.fn(),
+  validateOCRExtraction: vi.fn().mockReturnValue([]),  // sin errores de validación por defecto
 }))
 
 vi.mock('@contachile/auth', () => ({
@@ -48,12 +58,12 @@ describe('POST /ocr/document', () => {
     mockOCR.mockResolvedValue({
       tipo: 'factura',
       numero: '123',
-      fecha: '15/05/2026',
-      rutEmisor: '76.123.456-7',
+      fecha: '15/05/2024',  // fecha pasada válida (no futura, no > 10 años)
+      rutEmisor: '76.354.771-K',  // RUT válido (pasa módulo 11)
       nombreEmisor: 'Test SpA',
       montoNeto: 100000,
       iva: 19000,
-      montoTotal: 119000,
+      montoTotal: 119000,  // 100000 + 19000 = 119000 ✓
       descripcion: 'Servicios',
       confianza: 0.95,
     })

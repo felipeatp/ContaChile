@@ -3,6 +3,7 @@ import { prisma } from '@contachile/db'
 import { SIIClient } from '@contachile/transport-sii'
 import { AceptaClient } from '@contachile/transport-acepta'
 import { createEmailService } from '../../lib/email'
+import { enqueuePollJob } from '../../queues/dte'
 
 const siiClient = new SIIClient({
   baseURL: process.env.SII_BASE_URL || 'https://maullin.sii.cl',
@@ -153,5 +154,32 @@ export default async function (fastify: FastifyInstance) {
       previousStatus: doc.status,
       changed: statusResult.status !== doc.status,
     })
+  })
+
+  fastify.post('/documents/:id/retry', async (request, reply) => {
+    const companyId = request.companyId
+    const { id } = request.params as { id: string }
+
+    const doc = await prisma.document.findFirst({
+      where: { id, companyId, status: 'FAILED' },
+    })
+
+    if (!doc) {
+      return reply.code(404).send({ error: 'Documento no encontrado o no está en estado FAILED' })
+    }
+
+    await prisma.document.update({
+      where: { id },
+      data: { status: 'PENDING', rejectionReason: null },
+    })
+
+    const source = doc.trackId?.startsWith('ACEPTA-') ? 'acepta' : 'sii'
+    await enqueuePollJob({
+      documentId: doc.id,
+      trackId: doc.trackId || `SII-${Date.now()}`,
+      source,
+    })
+
+    return reply.send({ id: doc.id, status: 'PENDING', retried: true })
   })
 }

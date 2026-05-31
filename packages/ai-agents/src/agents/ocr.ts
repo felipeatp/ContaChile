@@ -11,6 +11,70 @@ export interface OCRResult {
   montoTotal: number | null
   descripcion: string | null
   confianza: number // 0-1
+  validationErrors?: string[]
+}
+
+function validateRut(rut: string): boolean {
+  const clean = rut.replace(/\./g, '').replace(/-/g, '').toUpperCase()
+  if (clean.length < 2) return false
+  const body = clean.slice(0, -1)
+  const dv = clean.slice(-1)
+  let sum = 0
+  let mult = 2
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += parseInt(body[i], 10) * mult
+    mult = mult === 7 ? 2 : mult + 1
+  }
+  const rem = sum % 11
+  const expected = rem === 0 ? '0' : rem === 1 ? 'K' : String(11 - rem)
+  return dv === expected
+}
+
+function parseChileanDateOCR(dateStr: string): Date | null {
+  const parts = dateStr.split('/')
+  if (parts.length !== 3) return null
+  const [day, month, year] = parts.map(Number)
+  if (!day || !month || !year) return null
+  return new Date(year, month - 1, day)
+}
+
+export function validateOCRExtraction(result: OCRResult): string[] {
+  const errors: string[] = []
+
+  if (result.rutEmisor && !validateRut(result.rutEmisor)) {
+    errors.push(`RUT emisor inválido (falla módulo 11): ${result.rutEmisor}`)
+  }
+
+  if (result.montoNeto !== null && result.iva !== null && result.montoTotal !== null) {
+    const calculated = result.montoNeto + result.iva
+    if (Math.abs(calculated - result.montoTotal) > 1) {
+      errors.push(`Montos inconsistentes: neto ${result.montoNeto} + IVA ${result.iva} = ${calculated}, total extraído = ${result.montoTotal}`)
+    }
+  }
+
+  if (result.fecha) {
+    const date = parseChileanDateOCR(result.fecha)
+    if (!date) {
+      errors.push(`Fecha con formato inválido: ${result.fecha}`)
+    } else {
+      const now = new Date()
+      const tenYearsAgo = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate())
+      if (date > now) {
+        errors.push(`Fecha futura no permitida: ${result.fecha}`)
+      } else if (date < tenYearsAgo) {
+        errors.push(`Fecha anterior a 10 años: ${result.fecha}`)
+      }
+    }
+  }
+
+  if (result.numero !== null) {
+    const folio = parseInt(result.numero.replace(/\D/g, ''), 10)
+    if (isNaN(folio) || folio <= 0) {
+      errors.push(`Folio debe ser entero positivo, recibido: ${result.numero}`)
+    }
+  }
+
+  return errors
 }
 
 const SYSTEM_PROMPT = `Eres un asistente de OCR especializado en documentos tributarios chilenos.

@@ -6,6 +6,16 @@ export interface SendDocumentAcceptedParams {
   receiverEmail: string
 }
 
+export interface SendDocumentStuckParams {
+  documentId: string
+  folio: number
+  type: number
+  attempts: number
+  lastError: string
+  userEmail: string
+  userName: string
+}
+
 export interface SendDueAlertParams {
   recipientEmail: string
   recipientName: string
@@ -20,6 +30,7 @@ export interface EmailService {
   sendDocumentAccepted(params: SendDocumentAcceptedParams): Promise<void>
   sendDocumentEmitted(params: SendDocumentAcceptedParams): Promise<void>
   sendDueAlert(params: SendDueAlertParams): Promise<void>
+  sendDocumentStuck(params: SendDocumentStuckParams): Promise<void>
 }
 
 function formatDate(d: Date): string {
@@ -42,6 +53,10 @@ export class StubEmailService implements EmailService {
       method: 'sendDueAlert',
       params: { ...params, dueDate: params.dueDate.toISOString() },
     })
+  }
+
+  async sendDocumentStuck(params: SendDocumentStuckParams): Promise<void> {
+    this.calls.push({ method: 'sendDocumentStuck', params: { ...params } })
   }
 }
 
@@ -87,6 +102,28 @@ export class ResendEmailService implements EmailService {
         <p>Le notificaremos cuando sea aceptada por el SII.</p>
         <hr/>
         <p><small>Este es un correo automático enviado por ContaChile.</small></p>
+      `,
+    })
+  }
+
+  async sendDocumentStuck(params: SendDocumentStuckParams): Promise<void> {
+    const tipoLabel = params.type === 33 ? 'Factura' : params.type === 39 ? 'Boleta' : `DTE tipo ${params.type}`
+    const appUrl = process.env.APP_URL || 'http://localhost:3000'
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: params.userEmail,
+      subject: `⚠️ ${tipoLabel} N° ${params.folio} no pudo enviarse al SII`,
+      html: `
+        <h2>Documento DTE bloqueado</h2>
+        <p>Hola <strong>${params.userName}</strong>,</p>
+        <p>Tu <strong>${tipoLabel} N° ${params.folio}</strong> no pudo procesarse después de <strong>${params.attempts} intentos</strong>.</p>
+        <p><strong>Último error:</strong> ${params.lastError}</p>
+        <p>Puedes reintentar el envío desde el portal:</p>
+        <p><a href="${appUrl}/documents" style="display:inline-block;padding:10px 16px;background:#dc2626;color:white;border-radius:6px;text-decoration:none;">Ver documento y reintentar</a></p>
+        <hr/>
+        <p><small>ID interno: ${params.documentId}</small></p>
+        <p><small>Este es un correo automático enviado por ContAI.</small></p>
       `,
     })
   }

@@ -1,14 +1,16 @@
 ﻿"use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
-import { FileCode2, Download } from "lucide-react"
+import { FileCode2, Download, RefreshCw } from "lucide-react"
 import { formatCLP } from "@ContAI/validators"
 
 interface DocumentTableProps {
   documents: Document[]
+  onRetried?: (id: string) => void
 }
 
 function handleDownloadXML(doc: Document) {
@@ -30,6 +32,21 @@ function handleDownloadXML(doc: Document) {
     .catch(() => alert("Error al descargar el XML"))
 }
 
+async function handleRetry(docId: string, onRetried?: (id: string) => void) {
+  try {
+    const res = await fetch(`/api/documents/${docId}/retry`, { method: 'POST' })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      alert((err as any).error || 'Error al reintentar el envío')
+      return
+    }
+    alert('Reintento enviado. El documento volverá a procesarse.')
+    onRetried?.(docId)
+  } catch {
+    alert('Error al reintentar el envío')
+  }
+}
+
 function handleDownloadPDF(doc: Document) {
   fetch(`/api/documents/${doc.id}/pdf`)
     .then((res) => {
@@ -49,7 +66,7 @@ function handleDownloadPDF(doc: Document) {
     .catch(() => alert("Error al descargar el PDF"))
 }
 
-export function DocumentTable({ documents }: DocumentTableProps) {
+export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
   if (documents.length === 0) {
     return (
       <div className="card-editorial p-12 text-center">
@@ -100,6 +117,18 @@ export function DocumentTable({ documents }: DocumentTableProps) {
                 </td>
                 <td className="text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {doc.status === "FAILED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                        title="Reintentar envío al SII"
+                        onClick={() => handleRetry(doc.id, onRetried)}
+                      >
+                        <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                        Reintentar
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

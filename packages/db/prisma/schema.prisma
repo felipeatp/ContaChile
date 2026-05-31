@@ -548,6 +548,7 @@ enum OcrStatus {
   PROCESSING
   PROCESSED
   ERROR
+  REQUIRES_REVIEW
 }
 
 model OcrDocument {
