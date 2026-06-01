@@ -1,8 +1,10 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 import { Loader2, Play, FileDown, CheckCircle2 } from 'lucide-react'
 import { formatCLP } from '@ContAI/validators'
 
@@ -41,11 +43,11 @@ export default function LiquidacionesPage() {
   const [data, setData] = useState<Response | null>(null)
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [confirmGenerate, setConfirmGenerate] = useState(false)
+  const [confirmApprove, setConfirmApprove] = useState<string | null>(null)
 
   const fetchData = async () => {
     setLoading(true)
-    setMessage(null)
     try {
       const res = await fetch(`/api/payroll/${year}/${month}`)
       const json = await res.json()
@@ -60,8 +62,8 @@ export default function LiquidacionesPage() {
   }, [year, month])
 
   const handleGenerate = async () => {
+    setConfirmGenerate(false)
     setGenerating(true)
-    setMessage(null)
     try {
       const res = await fetch('/api/payroll/generate', {
         method: 'POST',
@@ -70,10 +72,10 @@ export default function LiquidacionesPage() {
       })
       const result = await res.json()
       if (!res.ok) {
-        setMessage(`Error: ${result.error || 'desconocido'}`)
+        toast.error(result.error || 'Error al generar las liquidaciones')
         return
       }
-      setMessage(`Generadas: ${result.generated} · Saltadas: ${result.skipped}`)
+      toast.success(`Generadas: ${result.generated} liquidación${result.generated !== 1 ? 'es' : ''} · Saltadas: ${result.skipped}`)
       fetchData()
     } finally {
       setGenerating(false)
@@ -81,12 +83,14 @@ export default function LiquidacionesPage() {
   }
 
   const handleApprove = async (id: string) => {
-    if (!confirm('¿Aprobar esta liquidación? Se generará el asiento contable automático.')) return
+    setConfirmApprove(null)
     const res = await fetch(`/api/payroll/item/${id}/approve`, { method: 'POST' })
-    if (res.ok) fetchData()
-    else {
+    if (res.ok) {
+      toast.success('Liquidación aprobada — asiento contable generado')
+      fetchData()
+    } else {
       const err = await res.json()
-      alert(err.error || 'Error al aprobar')
+      toast.error(err.error || 'Error al aprobar la liquidación')
     }
   }
 
@@ -128,18 +132,12 @@ export default function LiquidacionesPage() {
               <option key={i} value={i + 1}>{m}</option>
             ))}
           </select>
-          <Button onClick={handleGenerate} disabled={generating}>
+          <Button onClick={() => setConfirmGenerate(true)} disabled={generating}>
             {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
             Generar mes
           </Button>
         </div>
       </section>
-
-      {message && (
-        <div className="rounded-sm border border-foreground/10 bg-secondary px-4 py-2.5 text-xs text-foreground/80">
-          {message}
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-48">
@@ -217,7 +215,12 @@ export default function LiquidacionesPage() {
                                 <FileDown className="h-4 w-4" />
                               </a>
                               {p.status === 'DRAFT' && (
-                                <Button variant="ghost" size="sm" onClick={() => handleApprove(p.id)} title="Aprobar">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setConfirmApprove(p.id)}
+                                  title="Aprobar"
+                                >
                                   <CheckCircle2 className="h-4 w-4" />
                                 </Button>
                               )}
@@ -242,6 +245,24 @@ export default function LiquidacionesPage() {
           </section>
         </>
       ) : null}
+
+      <ConfirmModal
+        open={confirmGenerate}
+        title="¿Generar liquidaciones del mes?"
+        description={`Se crearán las liquidaciones de ${MONTHS[month - 1]} ${year} para todos los trabajadores activos. Si ya existen, se saltarán.`}
+        confirmLabel="Sí, generar"
+        onConfirm={handleGenerate}
+        onCancel={() => setConfirmGenerate(false)}
+      />
+
+      <ConfirmModal
+        open={!!confirmApprove}
+        title="¿Aprobar esta liquidación?"
+        description="Se generará el asiento contable 5100/2115/2110 automáticamente. Esta acción no se puede revertir."
+        confirmLabel="Aprobar"
+        onConfirm={() => confirmApprove && handleApprove(confirmApprove)}
+        onCancel={() => setConfirmApprove(null)}
+      />
     </div>
   )
 }
