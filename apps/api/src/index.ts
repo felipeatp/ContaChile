@@ -11,6 +11,7 @@ import xmlRoute from './routes/dte/xml'
 import envioDteRoute from './routes/dte/envio-dte'
 import consultorRoute from './routes/ai/consultor'
 import insightsRoute from './routes/ai/insights'
+import aiF22Route from './routes/ai/f22'
 import companyRoute from './routes/company'
 import companiesRoute from './routes/companies'
 import invitationsRoute from './routes/invitations'
@@ -179,6 +180,7 @@ app.register(async (instance) => {
 
   instance.register(consultorRoute)
   instance.register(insightsRoute)
+  instance.register(aiF22Route)
 })
 
 app.get('/health', async () => ({ status: 'ok' }))

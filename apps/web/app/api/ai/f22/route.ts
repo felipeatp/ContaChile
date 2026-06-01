@@ -4,23 +4,22 @@ import { auth } from "@/lib/auth-edge"
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  }
-
-  // Obtener sesión de Better Auth
   const session = await auth.api.getSession({ headers: req.headers }).catch(() => null)
   if (!session?.user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  headers["cookie"] = req.headers.get("cookie") ?? ""
+  const body = await req.json()
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    cookie: req.headers.get("cookie") ?? "",
+  }
+
   const activeCompanyId = req.headers.get("x-active-company-id")
   if (activeCompanyId) headers["x-active-company-id"] = activeCompanyId
 
-  const upstream = await fetch(`${API_BASE_URL}/ai/consultor`, {
+  const upstream = await fetch(`${API_BASE_URL}/ai/f22`, {
     method: "POST",
     headers,
     body: JSON.stringify(body),
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
   })
 
   if (!upstream.ok) {
-    const err = await upstream.json().catch(() => ({ error: "Error del servidor IA" }))
+    const err = await upstream.json().catch(() => ({ error: "Error del análisis F22" }))
     return NextResponse.json(err, { status: upstream.status })
   }
 
