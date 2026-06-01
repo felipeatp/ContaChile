@@ -5,6 +5,8 @@ import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
 import { formatCLP, parseCLP } from '@ContAI/validators'
+import { toast } from 'sonner'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
@@ -40,6 +42,7 @@ export default function TrabajadoresPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Employee | null>(null)
   const [showInactive, setShowInactive] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   const fetchEmployees = async () => {
     setLoading(true)
@@ -59,9 +62,15 @@ export default function TrabajadoresPage() {
   }, [showInactive])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Desactivar este trabajador?')) return
-    await fetch(`/api/employees/${id}`, { method: 'DELETE' })
-    fetchEmployees()
+    setConfirmDelete(null)
+    const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Trabajador desactivado correctamente')
+      fetchEmployees()
+    } else {
+      const err = await res.json().catch(() => ({}))
+      toast.error((err as { error?: string }).error || 'Error al desactivar el trabajador')
+    }
   }
 
   return (
@@ -153,7 +162,7 @@ export default function TrabajadoresPage() {
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         {e.isActive && (
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(e.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(e.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
@@ -174,6 +183,16 @@ export default function TrabajadoresPage() {
           onSaved={() => { setFormOpen(false); fetchEmployees() }}
         />
       )}
+
+      <ConfirmModal
+        open={!!confirmDelete}
+        title="¿Desactivar este trabajador?"
+        description="El trabajador quedará inactivo y no aparecerá en las liquidaciones futuras. Puedes reactivarlo después."
+        confirmLabel="Desactivar"
+        destructive
+        onConfirm={() => confirmDelete && handleDelete(confirmDelete)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   )
 }
