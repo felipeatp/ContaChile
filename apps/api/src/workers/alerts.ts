@@ -68,7 +68,8 @@ export async function processDailyAlerts(now: Date = new Date()): Promise<{
           },
         })
         stats.alertsRegistered++
-      } catch {
+      } catch (err) {
+        console.error(JSON.stringify({ level: 'error', context: 'alerts-worker', companyId: company.id, alertCode: alert.code, err: err instanceof Error ? err.message : String(err), msg: 'Error en worker de alertas' }))
         stats.errors++
       }
     }

@@ -143,12 +143,14 @@ async function initWorker(): Promise<void> {
 
   // Dead Letter Queue: mark document FAILED and notify owner after all retries exhausted
   worker.on('failed', async (job, err) => {
+    const errorMsg = err instanceof Error ? err.message : String(err)
+    console.error(JSON.stringify({ level: 'error', context: 'dte-polling', documentId: job?.data?.documentId, err: errorMsg, msg: 'Error en worker de polling DTE' }))
+
     if (!job) return
     const maxAttempts = (job.opts.attempts as number | undefined) ?? 24
     if (job.attemptsMade < maxAttempts) return
 
     const { documentId } = job.data
-    const errorMsg = err instanceof Error ? err.message : String(err)
 
     await prisma.document.update({
       where: { id: documentId },

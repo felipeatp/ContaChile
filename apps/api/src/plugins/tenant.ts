@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin'
-import { FastifyInstance, FastifyPluginAsync } from 'fastify'
+import { FastifyInstance, FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
 import { auth } from '@contachile/auth'
 import { prisma } from '@contachile/db'
 import { fromNodeHeaders } from 'better-auth/node'
@@ -8,6 +8,20 @@ declare module 'fastify' {
   interface FastifyRequest {
     companyId: string
     userId?: string
+    userMembership?: { role: string }
+  }
+}
+
+/**
+ * Returns a Fastify preHandler hook that enforces RBAC.
+ * Rejects with 403 if the authenticated user's role is not in the allowed list.
+ */
+export function requireRole(roles: string[]) {
+  return async function (request: FastifyRequest, reply: FastifyReply) {
+    const role = request.userMembership?.role
+    if (!role || !roles.includes(role)) {
+      return reply.code(403).send({ error: 'Insufficient permissions' })
+    }
   }
 }
 
@@ -121,6 +135,7 @@ const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // 5. Un solo membership → usar esa empresa
     if (memberships.length === 1) {
       request.companyId = memberships[0].companyId
+      request.userMembership = { role: memberships[0].role }
       return
     }
 
@@ -130,9 +145,11 @@ const tenantPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     if (valid) {
       request.companyId = activeCompanyId
+      request.userMembership = { role: valid.role }
     } else {
       // Fallback a la primera empresa
       request.companyId = memberships[0].companyId
+      request.userMembership = { role: memberships[0].role }
     }
   })
 }

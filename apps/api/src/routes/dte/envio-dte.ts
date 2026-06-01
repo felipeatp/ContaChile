@@ -33,12 +33,16 @@ export default async function (fastify: FastifyInstance) {
 
     const dteXmls = docs.map((d) => d.xmlContent!).filter(Boolean)
 
+    if (!company.certPassword) {
+      return reply.code(400).send({
+        error:
+          'El certificado digital no está configurado. Ve a Configuración → Certificado para subirlo.',
+      })
+    }
+
     let privateKeyPem: string
     try {
-      privateKeyPem = extractPrivateKeyFromPfx(
-        company.certEncrypted,
-        company.certPassword ?? ''
-      )
+      privateKeyPem = extractPrivateKeyFromPfx(company.certEncrypted, company.certPassword)
     } catch {
       return reply.code(400).send({ error: 'No se pudo extraer la clave privada del certificado' })
     }

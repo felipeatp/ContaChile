@@ -144,8 +144,23 @@ app.register(inventoryRoute)
 app.register(ocrRoute)
 app.register(publicApiPlugin)
 app.register(publicApiRoute)
-app.register(apiKeysRoute)
-app.register(webhooksRoute)
+
+// Rate limit estricto para rutas críticas: API keys y webhooks — 5 req/min por tenant
+app.register(async (instance) => {
+  await instance.register(rateLimit, {
+    max: 5,
+    timeWindow: '1 minute',
+    keyGenerator: (req: FastifyRequest) => `sensitive:${(req as any).companyId || req.ip}`,
+    errorResponseBuilder: (_req, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Límite de operaciones sensibles alcanzado. Intenta en ${context.after}`,
+      retryAfter: context.after,
+    }),
+  })
+  instance.register(apiKeysRoute)
+  instance.register(webhooksRoute)
+})
 
 // Rutas de IA streaming — 20 req/min por tenant
 app.register(async (instance) => {
