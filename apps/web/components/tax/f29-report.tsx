@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Stat } from "@/components/ui/stat"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
+import { Tooltip } from "@/components/ui/tooltip"
 import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
 import { formatCLP } from "@ContAI/validators"
 
@@ -200,34 +201,64 @@ export function F29Report({
                 <tbody>
                   <tr>
                     <td className="font-mono">502</td>
-                    <td>Débito fiscal (IVA ventas afectas)</td>
+                    <td>
+                      <span className="inline-flex items-center gap-1.5">
+                        Débito fiscal (IVA ventas afectas)
+                        <Tooltip content="El IVA del 19% que cobraste a tus clientes este mes. Sale del total de tus ventas afectas." />
+                      </span>
+                    </td>
                     <td data-numeric="true">{formatCLP(data?.f29["502"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">503</td>
-                    <td>Crédito fiscal (IVA compras)</td>
+                    <td>
+                      <span className="inline-flex items-center gap-1.5">
+                        Crédito fiscal (IVA compras)
+                        <Tooltip content="El IVA que pagaste tú al comprar. Lo puedes descontar del IVA que le cobraste a tus clientes." />
+                      </span>
+                    </td>
                     <td data-numeric="true">{formatCLP(data?.f29["503"] ?? 0)}</td>
                   </tr>
                   <tr className="bg-secondary/40">
                     <td className="font-mono font-semibold text-primary">595</td>
-                    <td className="font-semibold">IVA determinado <span className="text-muted-foreground font-normal">(502 − 503)</span></td>
+                    <td className="font-semibold">
+                      <span className="inline-flex items-center gap-1.5">
+                        IVA determinado <span className="text-muted-foreground font-normal">(502 − 503)</span>
+                        <Tooltip content="Lo que queda después de restar tu crédito fiscal. Si es positivo, lo debes al SII. Si es negativo, queda como remanente para el mes siguiente." />
+                      </span>
+                    </td>
                     <td data-numeric="true" className="font-semibold text-primary">{formatCLP(data?.f29["595"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">538</td>
-                    <td>Remanente crédito fiscal mes anterior</td>
+                    <td>
+                      <span className="inline-flex items-center gap-1.5">
+                        Remanente crédito fiscal mes anterior
+                        <Tooltip content="Si el mes pasado tu crédito fue mayor al débito, ese exceso se traspasa aquí y te ayuda a pagar menos este mes." />
+                      </span>
+                    </td>
                     <td data-numeric="true">{formatCLP(data?.f29["538"] ?? 0)}</td>
                   </tr>
                   <tr>
                     <td className="font-mono">547</td>
-                    <td>Pago provisional mensual (PPM)</td>
+                    <td>
+                      <span className="inline-flex items-center gap-1.5">
+                        Pago provisional mensual (PPM)
+                        <Tooltip content="Un anticipo del impuesto a la renta anual. El SII lo descuenta automáticamente del F22 que declaras en abril." />
+                      </span>
+                    </td>
                     <td data-numeric="true">{formatCLP(data?.f29["547"] ?? 0)}</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <td className="font-mono font-semibold">91</td>
-                    <td className="font-semibold">Total a pagar o devolver</td>
+                    <td className="font-semibold">
+                      <span className="inline-flex items-center gap-1.5">
+                        Total a pagar o devolver
+                        <Tooltip content="Si es positivo, debes pagarlo antes del vencimiento. Si es negativo, el SII te devuelve ese monto." />
+                      </span>
+                    </td>
                     <td data-numeric="true" className="font-bold text-base">{formatCLP(data?.f29["91"] ?? 0)}</td>
                   </tr>
                 </tfoot>
