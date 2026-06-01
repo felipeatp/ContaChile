@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { Bot, X, Send, Square, Trash2, ChevronDown, ArrowUpRight } from 'lucide-react'
+import { Bot, X, Send, Square, Trash2, ChevronDown, ArrowUpRight, Save } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useConsultor } from '@/hooks/use-consultor'
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,9 @@ export function ChatWidget() {
   const {
     messages,
     isLoading,
+    isSaving,
     error,
+    conversations,
     sendMessage,
     clearMessages,
     stopStreaming,
@@ -176,11 +178,28 @@ export function ChatWidget() {
               </p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              {isSaving && (
+                <span
+                  className="h-7 px-1.5 inline-flex items-center gap-1 text-[0.55rem] uppercase tracking-eyebrow text-muted-foreground/60"
+                  title="Guardando conversación..."
+                >
+                  <Save className="h-3 w-3 animate-pulse" />
+                  <span>Guardando</span>
+                </span>
+              )}
+              {!isSaving && messages.length > 0 && conversations.length > 0 && (
+                <span
+                  className="h-7 px-1.5 inline-flex items-center gap-1 text-[0.55rem] uppercase tracking-eyebrow text-sage"
+                  title="Conversación guardada"
+                >
+                  <Save className="h-3 w-3" />
+                </span>
+              )}
               {messages.length > 0 && (
                 <button
                   onClick={clearMessages}
                   className="h-7 w-7 inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-                  title="Limpiar conversación"
+                  title={conversations.length > 0 ? 'Nueva conversación' : 'Limpiar conversación'}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
