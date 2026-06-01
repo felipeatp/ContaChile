@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus, Trash2, Edit2 } from 'lucide-react'
-import { formatCLP, parseCLP } from '@ContAI/validators'
+import { Loader2, Plus, Trash2, Edit2, CheckCircle2, XCircle } from 'lucide-react'
+import { formatCLP, validateRUT } from '@ContAI/validators'
 import { toast } from 'sonner'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Field } from '@/components/ui/field'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
@@ -35,6 +39,32 @@ const CONTRACT_LABEL: Record<ContractType, string> = {
   PLAZO_FIJO: 'Plazo Fijo',
   HONORARIOS: 'Honorarios',
 }
+
+const EmployeeSchema = z.object({
+  rut: z
+    .string()
+    .min(1, 'El RUT es obligatorio')
+    .refine((v) => validateRUT(v), { message: 'RUT inválido — revisa el dígito verificador' }),
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  position: z.string().min(1, 'El cargo es obligatorio'),
+  startDate: z.string().min(1, 'La fecha de ingreso es obligatoria'),
+  contractType: z.enum(['INDEFINIDO', 'PLAZO_FIJO', 'HONORARIOS']),
+  workHours: z.coerce
+    .number()
+    .int('Debe ser un número entero')
+    .min(1, 'Mínimo 1 hora')
+    .max(45, 'Máximo 45 horas semanales'),
+  baseSalary: z.coerce
+    .number()
+    .int('Debe ser un número entero')
+    .min(1, 'El sueldo debe ser mayor a $0'),
+  afp: z.enum(['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO']),
+  healthPlan: z.enum(['FONASA', 'ISAPRE']),
+  healthAmount: z.coerce.number().optional(),
+})
+
+type EmployeeFormValues = z.infer<typeof EmployeeSchema>
 
 export default function TrabajadoresPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -206,47 +236,51 @@ function EmployeeForm({
   onClose: () => void
   onSaved: () => void
 }) {
-  const [form, setForm] = useState({
-    rut: employee?.rut || '',
-    name: employee?.name || '',
-    email: employee?.email || '',
-    position: employee?.position || '',
-    startDate: employee?.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-    contractType: employee?.contractType || ('INDEFINIDO' as ContractType),
-    workHours: employee?.workHours || 45,
-    baseSalary: employee?.baseSalary || 0,
-    afp: employee?.afp || ('HABITAT' as AfpCode),
-    healthPlan: employee?.healthPlan || ('FONASA' as HealthPlan),
-    healthAmount: employee?.healthAmount || 0,
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<EmployeeFormValues>({
+    resolver: zodResolver(EmployeeSchema),
+    defaultValues: {
+      rut: employee?.rut ?? '',
+      name: employee?.name ?? '',
+      email: employee?.email ?? '',
+      position: employee?.position ?? '',
+      startDate: employee?.startDate?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+      contractType: employee?.contractType ?? 'INDEFINIDO',
+      workHours: employee?.workHours ?? 45,
+      baseSalary: employee?.baseSalary ?? 0,
+      afp: employee?.afp ?? 'HABITAT',
+      healthPlan: employee?.healthPlan ?? 'FONASA',
+      healthAmount: employee?.healthAmount ?? 0,
+    },
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const update = (k: string, v: string | number) => setForm({ ...form, [k]: v })
+  const watchedRut = watch('rut')
+  const watchedHealthPlan = watch('healthPlan')
+  const rutIsValid = watchedRut.length >= 7 && validateRUT(watchedRut)
+  const rutIsInvalid = watchedRut.length >= 7 && !validateRUT(watchedRut)
 
-  const submit = async () => {
-    setError(null)
-    setSaving(true)
-    try {
-      const payload = {
-        ...form,
-        email: form.email || undefined,
-        healthAmount: form.healthPlan === 'ISAPRE' ? form.healthAmount : undefined,
-      }
-      const res = await fetch(employee ? `/api/employees/${employee.id}` : '/api/employees', {
-        method: employee ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || 'Error al guardar')
-        return
-      }
-      onSaved()
-    } finally {
-      setSaving(false)
+  const onSubmit = async (values: EmployeeFormValues) => {
+    const payload = {
+      ...values,
+      email: values.email || undefined,
+      healthAmount: values.healthPlan === 'ISAPRE' ? values.healthAmount : undefined,
     }
+    const res = await fetch(employee ? `/api/employees/${employee.id}` : '/api/employees', {
+      method: employee ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      toast.error(data.error || 'Error al guardar el trabajador')
+      return
+    }
+    toast.success(employee ? 'Trabajador actualizado' : 'Trabajador registrado correctamente')
+    onSaved()
   }
 
   return (
@@ -258,93 +292,129 @@ function EmployeeForm({
       size="md"
       footer={
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
           </Button>
         </div>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Input label="RUT" value={form.rut} onChange={(v) => update('rut', v)} placeholder="12.345.678-5" />
-        <Input label="Nombre completo" value={form.name} onChange={(v) => update('name', v)} />
-        <Input label="Email" value={form.email} onChange={(v) => update('email', v)} type="email" />
-        <Input label="Cargo" value={form.position} onChange={(v) => update('position', v)} />
-        <Input label="Fecha ingreso" value={form.startDate} onChange={(v) => update('startDate', v)} type="date" />
-        <SelectField label="Contrato" value={form.contractType} onChange={(v) => update('contractType', v)} options={[
-          ['INDEFINIDO', 'Indefinido'],
-          ['PLAZO_FIJO', 'Plazo fijo'],
-          ['HONORARIOS', 'Honorarios'],
-        ]} />
-        <Input label="Horas semanales" value={String(form.workHours)} onChange={(v) => update('workHours', Number(v))} type="number" />
-        <Input label="Sueldo base (CLP)" value={String(form.baseSalary)} onChange={(v) => update('baseSalary', parseCLP(v))} type="number" />
-        <SelectField label="AFP" value={form.afp} onChange={(v) => update('afp', v)} options={AFPs.map((a) => [a, a])} />
-        <SelectField label="Salud" value={form.healthPlan} onChange={(v) => update('healthPlan', v)} options={[
-          ['FONASA', 'Fonasa'],
-          ['ISAPRE', 'Isapre'],
-        ]} />
-        {form.healthPlan === 'ISAPRE' && (
-          <Input
-            label="Monto isapre (CLP)"
-            value={String(form.healthAmount)}
-            onChange={(v) => update('healthAmount', parseCLP(v))}
-            type="number"
-          />
-        )}
+        <Field
+          label="RUT"
+          hint="Sin puntos, con guión — ej: 12345678-5"
+          error={errors.rut?.message}
+          required
+        >
+          <div className="relative">
+            <input
+              {...register('rut')}
+              type="text"
+              placeholder="12.345.678-5"
+              className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 pr-8 text-sm"
+            />
+            {rutIsValid && (
+              <CheckCircle2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sage" aria-hidden="true" />
+            )}
+            {rutIsInvalid && (
+              <XCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" aria-hidden="true" />
+            )}
+          </div>
+        </Field>
 
-        {error && (
-          <div className="col-span-2 rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
+        <Field label="Nombre completo" error={errors.name?.message} required>
+          <input
+            {...register('name')}
+            type="text"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="Email" hint="Opcional" error={errors.email?.message}>
+          <input
+            {...register('email')}
+            type="email"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="Cargo" error={errors.position?.message} required>
+          <input
+            {...register('position')}
+            type="text"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="Fecha ingreso" error={errors.startDate?.message} required>
+          <input
+            {...register('startDate')}
+            type="date"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="Tipo de contrato" error={errors.contractType?.message} required>
+          <select
+            {...register('contractType')}
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="INDEFINIDO">Indefinido</option>
+            <option value="PLAZO_FIJO">Plazo fijo</option>
+            <option value="HONORARIOS">Honorarios</option>
+          </select>
+        </Field>
+
+        <Field label="Horas semanales" hint="máx. 45" error={errors.workHours?.message} required>
+          <input
+            {...register('workHours')}
+            type="number"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="Sueldo base (CLP)" hint="Bruto antes de descuentos" error={errors.baseSalary?.message} required>
+          <input
+            {...register('baseSalary')}
+            type="number"
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          />
+        </Field>
+
+        <Field label="AFP" error={errors.afp?.message} required>
+          <select
+            {...register('afp')}
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            {AFPs.map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Plan de salud" error={errors.healthPlan?.message} required>
+          <select
+            {...register('healthPlan')}
+            className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="FONASA">Fonasa</option>
+            <option value="ISAPRE">Isapre</option>
+          </select>
+        </Field>
+
+        {watchedHealthPlan === 'ISAPRE' && (
+          <Field label="Monto isapre (CLP)" hint="Cotización pactada mensual" error={errors.healthAmount?.message}>
+            <input
+              {...register('healthAmount')}
+              type="number"
+              className="mt-0.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            />
+          </Field>
         )}
       </div>
     </Modal>
   )
 }
 
-function Input({
-  label, value, onChange, type = 'text', placeholder,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  placeholder?: string
-}) {
-  return (
-    <div>
-      <label className="text-sm font-medium">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-      />
-    </div>
-  )
-}
-
-function SelectField({
-  label, value, onChange, options,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  options: [string, string][]
-}) {
-  return (
-    <div>
-      <label className="text-sm font-medium">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-      >
-        {options.map(([v, l]) => (
-          <option key={v} value={v}>{l}</option>
-        ))}
-      </select>
-    </div>
-  )
-}
