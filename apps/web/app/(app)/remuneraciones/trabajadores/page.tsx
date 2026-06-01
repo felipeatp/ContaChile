@@ -45,7 +45,7 @@ const EmployeeSchema = z.object({
     .string()
     .min(1, 'El RUT es obligatorio')
     .refine((v) => validateRUT(v), { message: 'RUT inválido — revisa el dígito verificador' }),
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  name: z.string().min(1, 'El nombre es obligatorio'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   position: z.string().min(1, 'El cargo es obligatorio'),
   startDate: z.string().min(1, 'La fecha de ingreso es obligatoria'),
@@ -58,10 +58,10 @@ const EmployeeSchema = z.object({
   baseSalary: z.coerce
     .number()
     .int('Debe ser un número entero')
-    .min(1, 'El sueldo debe ser mayor a $0'),
+    .min(0, 'El sueldo no puede ser negativo'),
   afp: z.enum(['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO']),
   healthPlan: z.enum(['FONASA', 'ISAPRE']),
-  healthAmount: z.coerce.number().optional(),
+  healthAmount: z.coerce.number().int('Debe ser un número entero').optional(),
 })
 
 type EmployeeFormValues = z.infer<typeof EmployeeSchema>

@@ -21,7 +21,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 rounded-sm border border-border bg-paper px-2.5 py-2 text-xs text-foreground shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-50 leading-relaxed"
       >
         {content}
-        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border" />
+        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-paper" />
       </span>
     </span>
   )
