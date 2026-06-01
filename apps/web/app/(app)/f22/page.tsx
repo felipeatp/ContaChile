@@ -40,26 +40,37 @@ export default function F22Page() {
   const handleExplain = async () => {
     if (!data) return
     setExplaining(true)
+    setExplanation("")
     try {
-      const res = await fetch("/api/ai/consultor", {
+      const res = await fetch("/api/ai/f22", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Explica mi F22 del año ${data.year} como si tuviera 15 años. Usa estos datos:
-- Ingresos brutos: $${data.summary.ingresos.toLocaleString("es-CL")}
-- Costos: $${data.summary.costos.toLocaleString("es-CL")}
-- Gastos: $${data.summary.gastos.toLocaleString("es-CL")}
-- Renta líquida: $${data.summary.rentaLiquida.toLocaleString("es-CL")}
-- PPM pagado: $${data.summary.ppmPagado.toLocaleString("es-CL")}
-- Impuesto determinado: $${data.summary.impuesto.toLocaleString("es-CL")}
-- Saldo a pagar: $${data.summary.saldoPagar.toLocaleString("es-CL")}
-- Saldo a devolver: $${data.summary.saldoDevolver.toLocaleString("es-CL")}
-
-Dime si hay algo raro o una oportunidad de optimización.`,
-        }),
+        body: JSON.stringify({ year }),
       })
-      const json = await res.json()
-      setExplanation(json.response || json.answer || "Sin respuesta")
+      if (!res.ok || !res.body) {
+        setExplanation("Error al conectar con el análisis IA")
+        return
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() ?? ""
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            try {
+              const payload = JSON.parse(line.slice(5).trim())
+              if (payload.text) {
+                setExplanation((prev) => (prev ?? "") + payload.text)
+              }
+            } catch { /* ignore malformed SSE lines */ }
+          }
+        }
+      }
     } catch {
       setExplanation("Error al consultar IA")
     } finally {

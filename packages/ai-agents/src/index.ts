@@ -23,3 +23,5 @@ export type { Insight } from './agents/insights'
 
 export { procesarDocumentoOCR, validateOCRExtraction } from './agents/ocr'
 export type { OCRResult } from './agents/ocr'
+
+export { streamF22Assistant } from './agents/f22-assistant'
