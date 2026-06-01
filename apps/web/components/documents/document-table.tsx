@@ -1,7 +1,7 @@
-﻿"use client"
+"use client"
 
-import { useState } from "react"
 import Link from "next/link"
+import { toast } from "sonner"
 import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
@@ -29,21 +29,21 @@ function handleDownloadXML(doc: Document) {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     })
-    .catch(() => alert("Error al descargar el XML"))
+    .catch(() => toast.error("Error al descargar el XML"))
 }
 
 async function handleRetry(docId: string, onRetried?: (id: string) => void) {
   try {
-    const res = await fetch(`/api/documents/${docId}/retry`, { method: 'POST' })
+    const res = await fetch(`/api/documents/${docId}/retry`, { method: "POST" })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      alert((err as any).error || 'Error al reintentar el envío')
+      toast.error((err as { error?: string }).error || "Error al reintentar el envío")
       return
     }
-    alert('Reintento enviado. El documento volverá a procesarse.')
+    toast.success("Reintento enviado — el documento volverá a procesarse en segundos")
     onRetried?.(docId)
   } catch {
-    alert('Error al reintentar el envío')
+    toast.error("Error al reintentar el envío")
   }
 }
 
@@ -63,7 +63,7 @@ function handleDownloadPDF(doc: Document) {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     })
-    .catch(() => alert("Error al descargar el PDF"))
+    .catch(() => toast.error("Error al descargar el PDF"))
 }
 
 export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
@@ -108,7 +108,9 @@ export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
                 </td>
                 <td className="text-muted-foreground">{doc.type}</td>
                 <td>{doc.receiverName}</td>
-                <td data-numeric="true" className="font-semibold">{formatCLP(doc.totalAmount)}</td>
+                <td data-numeric="true" className="font-semibold">
+                  {formatCLP(doc.totalAmount)}
+                </td>
                 <td>
                   <StatusBadge status={doc.status} />
                 </td>
