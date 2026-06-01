@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { Toaster } from "sonner"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 
@@ -35,6 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <ChatWidget />
+      <Toaster position="bottom-right" richColors theme="system" />
     </>
   )
 }
