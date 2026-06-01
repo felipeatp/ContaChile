@@ -1,0 +1,28 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - heading "Iniciar sesión" [level=1] [ref=e8]
+      - paragraph [ref=e9]: Accede a tu cuenta de ContaChile
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - text: Email
+        - textbox "Email" [ref=e12]:
+          - /placeholder: tu@email.com
+      - generic [ref=e13]:
+        - text: Contraseña
+        - textbox "Contraseña" [ref=e14]:
+          - /placeholder: ••••••••
+      - button "Iniciar sesión" [ref=e15] [cursor=pointer]
+    - generic [ref=e20]: O
+    - generic [ref=e21]:
+      - button "Continuar con Google" [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - text: Continuar con Google
+      - button "Continuar con Microsoft" [ref=e28] [cursor=pointer]:
+        - img [ref=e29]
+        - text: Continuar con Microsoft
+    - paragraph [ref=e34]:
+      - text: ¿No tienes cuenta?
+      - link "Regístrate" [ref=e35] [cursor=pointer]:
+        - /url: /sign-up
+  - alert [ref=e36]

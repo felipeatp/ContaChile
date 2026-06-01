@@ -1,0 +1,218 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "C ContaChile Edición Financiera" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: C
+        - generic [ref=e9]:
+          - generic [ref=e10]: ContaChile
+          - generic [ref=e11]: Edición Financiera
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: Certificación SII en proceso
+        - generic [ref=e20]: Vol. I · Ed. 2026
+      - heading "Contabilidad chilena con cabeza editorial." [level=1] [ref=e21]:
+        - text: Contabilidad chilena
+        - emphasis [ref=e22]: con cabeza
+        - text: editorial.
+      - paragraph [ref=e23]: Emite DTE al SII, lleva libro diario y mayor, declara F29 y F22, gestiona remuneraciones e inventario. Una sola plataforma. Sin formularios eternos. Sin tablas que se desbordan.
+      - generic [ref=e24]:
+        - link "Empezar gratis" [ref=e25] [cursor=pointer]:
+          - /url: /sign-up
+          - button "Empezar gratis" [ref=e26]:
+            - text: Empezar gratis
+            - img [ref=e27]
+        - link "Ver demo" [ref=e29] [cursor=pointer]:
+          - /url: /login
+          - button "Ver demo" [ref=e30]
+        - generic [ref=e31]: Sin tarjeta · Cancela cuando quieras
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: I · Lo que incluye
+          - heading "Una redacción contable completa." [level=2] [ref=e37]:
+            - text: Una redacción contable
+            - emphasis [ref=e38]: completa
+            - text: .
+        - paragraph [ref=e39]: Lo que tu contador necesita, en la misma pantalla. Sin pestañas perdidas, sin Excel paralelos.
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]: "01"
+            - img [ref=e44]
+          - heading "DTE directo al SII" [level=3] [ref=e47]
+          - paragraph [ref=e48]: Facturas, boletas, notas de crédito y débito. Firma digital incluida, envío al servidor del SII en menos de un segundo.
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]: "02"
+            - img [ref=e52]
+          - heading "Agentes IA dedicados" [level=3] [ref=e54]
+          - paragraph [ref=e55]: Consultor tributario, clasificador de transacciones bancarias, asistente F22. Conversan con tu plan de cuentas real.
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: "03"
+            - img [ref=e59]
+          - heading "Cumplimiento sin fricción" [level=3] [ref=e61]
+          - paragraph [ref=e62]: F29 mensual, F22 anual, PreviRed, DDJJ 1887. Alertas de vencimiento automáticas. Cierre del año en horas, no semanas.
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]: "04"
+            - img [ref=e66]
+          - heading "Reportes editoriales" [level=3] [ref=e68]
+          - paragraph [ref=e69]: Balance de comprobación, estado de resultados, balance general. Cifras claras, jerarquía pensada para contadores.
+    - generic [ref=e71]:
+      - generic [ref=e72]:
+        - generic [ref=e73]: II · Tres pasos
+        - heading "Del formulario al SII en segundos." [level=2] [ref=e74]:
+          - text: Del formulario al
+          - emphasis [ref=e75]: SII
+          - text: en segundos.
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]: "01"
+            - heading "Completa" [level=3] [ref=e80]
+          - paragraph [ref=e81]: Ingresa receptor, ítems y forma de pago. Calculamos el IVA automáticamente y validamos el RUT.
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]: "02"
+            - heading "Firma" [level=3] [ref=e85]
+          - paragraph [ref=e86]: Firmamos el documento con tu certificado digital. El proceso completo tarda menos de un segundo.
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]: "03"
+            - heading "Distribuye" [level=3] [ref=e90]
+          - paragraph [ref=e91]: Enviamos el documento al SII y notificamos a tu cliente por email cuando es aceptado.
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]: III · Suscripciones
+        - heading "Precios directos." [level=2] [ref=e96]:
+          - text: Precios
+          - emphasis [ref=e97]: directos
+          - text: .
+        - paragraph [ref=e98]: Sin contratos de permanencia. Cancela cuando quieras.
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - heading "Inicio" [level=3] [ref=e101]
+          - paragraph [ref=e102]: Para probar la plataforma con datos reales.
+          - generic [ref=e104]: $0
+          - generic [ref=e105]: para siempre
+          - list [ref=e107]:
+            - listitem [ref=e108]:
+              - img [ref=e109]
+              - generic [ref=e111]: Hasta 10 documentos / mes
+            - listitem [ref=e112]:
+              - img [ref=e113]
+              - generic [ref=e115]: Tipos 33 y 39
+            - listitem [ref=e116]:
+              - img [ref=e117]
+              - generic [ref=e119]: Dashboard básico
+            - listitem [ref=e120]:
+              - img [ref=e121]
+              - generic [ref=e123]: Soporte por email
+          - button "Empezar gratis" [ref=e124] [cursor=pointer]
+        - generic [ref=e125]:
+          - generic [ref=e126]: Más popular
+          - heading "Profesional" [level=3] [ref=e127]
+          - paragraph [ref=e128]: Para emprendedores y pymes que facturan en serio.
+          - generic [ref=e130]: $29.900
+          - generic [ref=e131]: CLP / mes
+          - list [ref=e133]:
+            - listitem [ref=e134]:
+              - img [ref=e135]
+              - generic [ref=e137]: Documentos ilimitados
+            - listitem [ref=e138]:
+              - img [ref=e139]
+              - generic [ref=e141]: Todos los tipos de DTE
+            - listitem [ref=e142]:
+              - img [ref=e143]
+              - generic [ref=e145]: Firma digital incluida
+            - listitem [ref=e146]:
+              - img [ref=e147]
+              - generic [ref=e149]: Conciliación bancaria + IA
+            - listitem [ref=e150]:
+              - img [ref=e151]
+              - generic [ref=e153]: Libro diario y mayor
+            - listitem [ref=e154]:
+              - img [ref=e155]
+              - generic [ref=e157]: F29 y F22 automatizados
+            - listitem [ref=e158]:
+              - img [ref=e159]
+              - generic [ref=e161]: Soporte prioritario
+          - button "Comenzar prueba" [ref=e162] [cursor=pointer]
+        - generic [ref=e163]:
+          - heading "Empresa" [level=3] [ref=e164]
+          - paragraph [ref=e165]: Para empresas con volumen y equipo contable.
+          - generic [ref=e167]: $89.900
+          - generic [ref=e168]: CLP / mes
+          - list [ref=e170]:
+            - listitem [ref=e171]:
+              - img [ref=e172]
+              - generic [ref=e174]: Todo lo de Profesional
+            - listitem [ref=e175]:
+              - img [ref=e176]
+              - generic [ref=e178]: Múltiples usuarios + roles
+            - listitem [ref=e179]:
+              - img [ref=e180]
+              - generic [ref=e182]: Agentes IA avanzados
+            - listitem [ref=e183]:
+              - img [ref=e184]
+              - generic [ref=e186]: API pública + webhooks
+            - listitem [ref=e187]:
+              - img [ref=e188]
+              - generic [ref=e190]: Integración Fintoc
+            - listitem [ref=e191]:
+              - img [ref=e192]
+              - generic [ref=e194]: SLA garantizado
+          - button "Contactar ventas" [ref=e195] [cursor=pointer]
+    - generic [ref=e196]:
+      - generic [ref=e198]:
+        - generic [ref=e199]: Próxima edición
+        - heading "Tu mejor mes contable empieza ahora." [level=2] [ref=e200]:
+          - text: Tu mejor mes contable
+          - emphasis [ref=e201]: empieza ahora
+          - text: .
+        - paragraph [ref=e202]: Únete a cientos de pymes chilenas que ya simplificaron su cumplimiento tributario.
+        - link "Crear cuenta gratis" [ref=e203] [cursor=pointer]:
+          - /url: /sign-up
+          - button "Crear cuenta gratis" [ref=e204]:
+            - text: Crear cuenta gratis
+            - img [ref=e205]
+      - generic: ¶
+    - contentinfo [ref=e207]:
+      - generic [ref=e208]:
+        - generic [ref=e209]:
+          - generic [ref=e210]:
+            - generic [ref=e211]:
+              - generic [ref=e213]: C
+              - generic [ref=e215]: ContaChile
+            - paragraph [ref=e216]: Facturación electrónica y contabilidad automatizada para empresas chilenas. Hecho con cariño en Santiago.
+          - generic [ref=e217]:
+            - heading "Producto" [level=4] [ref=e218]
+            - list [ref=e219]:
+              - listitem [ref=e220]:
+                - link "Características" [ref=e221] [cursor=pointer]:
+                  - /url: "#caracteristicas"
+              - listitem [ref=e222]:
+                - link "Precios" [ref=e223] [cursor=pointer]:
+                  - /url: "#precios"
+              - listitem [ref=e224]: API
+          - generic [ref=e225]:
+            - heading "Empresa" [level=4] [ref=e226]
+            - list [ref=e227]:
+              - listitem [ref=e228]: Nosotros
+              - listitem [ref=e229]:
+                - link "Blog" [ref=e230] [cursor=pointer]:
+                  - /url: /blog
+              - listitem [ref=e231]: Contacto
+          - generic [ref=e232]:
+            - heading "Legal" [level=4] [ref=e233]
+            - list [ref=e234]:
+              - listitem [ref=e235]: Términos
+              - listitem [ref=e236]: Privacidad
+        - generic [ref=e237]:
+          - paragraph [ref=e238]: © 2026 ContaChile · Todos los derechos reservados
+          - generic [ref=e239]:
+            - img [ref=e240]
+            - generic [ref=e243]: hola@contachile.cl
+  - alert [ref=e244]

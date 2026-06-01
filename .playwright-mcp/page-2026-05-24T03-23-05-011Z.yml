@@ -1,0 +1,111 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "C ContaChile Edición Financiera" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]: C
+          - generic [ref=e9]:
+            - generic [ref=e10]: ContaChile
+            - generic [ref=e11]: Edición Financiera
+        - navigation [ref=e12]:
+          - link "Características" [ref=e13] [cursor=pointer]:
+            - /url: /features
+          - link "Precios" [ref=e14] [cursor=pointer]:
+            - /url: /precios
+          - link "Iniciar sesión" [ref=e15] [cursor=pointer]:
+            - /url: /login
+            - button "Iniciar sesión" [ref=e16]
+          - link "Probar gratis" [ref=e17] [cursor=pointer]:
+            - /url: /sign-up
+            - button "Probar gratis" [ref=e18]
+    - generic [ref=e20]:
+      - heading "ContaChile · Blog" [level=1] [ref=e21]
+      - paragraph [ref=e22]: Guías tributarias para empresas y contadores
+      - generic [ref=e23]:
+        - generic [ref=e24]: Todo
+        - generic [ref=e25]: Facturación
+        - generic [ref=e26]: IVA & Impuestos
+        - generic [ref=e27]: Formularios SII
+        - generic [ref=e28]: Para mi negocio
+        - generic [ref=e29]: Para contadores
+    - main [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: Artículo destacado
+        - link "Facturación · 6 min ¿Cómo emitir una factura electrónica al SII sin que te la rechacen? Facturación · 6 min ¿Cómo emitir una factura electrónica al SII sin que te la rechacen? Emitir facturas al SII es obligatorio y más simple de lo que parece. Te explicamos los pasos y qué hacer si algo sale mal. Empresas & Contadores Leer artículo" [ref=e33] [cursor=pointer]:
+          - /url: /blog/como-emitir-dte-sii
+          - generic [ref=e34]:
+            - generic [ref=e35]: Facturación · 6 min
+            - paragraph [ref=e36]: ¿Cómo emitir una factura electrónica al SII sin que te la rechacen?
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: Facturación · 6 min
+              - paragraph [ref=e40]: ¿Cómo emitir una factura electrónica al SII sin que te la rechacen?
+              - paragraph [ref=e41]: Emitir facturas al SII es obligatorio y más simple de lo que parece. Te explicamos los pasos y qué hacer si algo sale mal.
+            - generic [ref=e42]:
+              - generic [ref=e43]: Empresas & Contadores
+              - generic [ref=e44]:
+                - text: Leer artículo
+                - img [ref=e45]
+        - generic [ref=e49]: Últimos artículos
+        - generic [ref=e51]:
+          - 'link "Impuestos · 5 min F29: cómo declarar sin atrasos y qué hacer si ya te atrasaste El F29 es la declaración mensual de IVA. Te explicamos qué datos necesitas, los plazos exactos y las multas por atraso. Para contadores" [ref=e52] [cursor=pointer]':
+            - /url: /blog/que-es-f29-como-declarar
+            - generic [ref=e53]:
+              - generic [ref=e54]: Impuestos · 5 min
+              - 'heading "F29: cómo declarar sin atrasos y qué hacer si ya te atrasaste" [level=2] [ref=e55]'
+              - paragraph [ref=e56]: El F29 es la declaración mensual de IVA. Te explicamos qué datos necesitas, los plazos exactos y las multas por atraso.
+            - generic [ref=e57]:
+              - generic [ref=e58]: Para contadores
+              - img [ref=e59]
+          - link "Facturación · 4 min ¿Boleta o factura? Cómo saber cuál emitir a tu cliente Emitir el documento equivocado puede complicarte el IVA. Te explicamos con ejemplos simples cuándo usar cada uno. Para mi negocio" [ref=e61] [cursor=pointer]:
+            - /url: /blog/diferencia-boleta-factura-chile
+            - generic [ref=e62]:
+              - generic [ref=e63]: Facturación · 4 min
+              - heading "¿Boleta o factura? Cómo saber cuál emitir a tu cliente" [level=2] [ref=e64]
+              - paragraph [ref=e65]: Emitir el documento equivocado puede complicarte el IVA. Te explicamos con ejemplos simples cuándo usar cada uno.
+            - generic [ref=e66]:
+              - generic [ref=e67]: Para mi negocio
+              - img [ref=e68]
+          - 'link "Impuestos · 4 min IVA en Chile: cuánto cobrar y cuándo pagarlo El IVA no es un gasto tuyo: es plata del Estado que tú cobras y guardas hasta el día 12 del mes siguiente. Para mi negocio" [ref=e70] [cursor=pointer]':
+            - /url: /blog/iva-chile-como-calcular
+            - generic [ref=e71]:
+              - generic [ref=e72]: Impuestos · 4 min
+              - 'heading "IVA en Chile: cuánto cobrar y cuándo pagarlo" [level=2] [ref=e73]'
+              - paragraph [ref=e74]: "El IVA no es un gasto tuyo: es plata del Estado que tú cobras y guardas hasta el día 12 del mes siguiente."
+            - generic [ref=e75]:
+              - generic [ref=e76]: Para mi negocio
+              - img [ref=e77]
+          - 'link "Facturación · 7 min Certificación tributaria electrónica: qué necesita tu empresa para emitir legalmente Sin certificación, tu empresa no puede emitir facturas electrónicas válidas. Te explicamos el proceso y cómo acortarlo. Empresas & Contadores" [ref=e79] [cursor=pointer]':
+            - /url: /blog/certificacion-dte-sii
+            - generic [ref=e80]:
+              - generic [ref=e81]: Facturación · 7 min
+              - 'heading "Certificación tributaria electrónica: qué necesita tu empresa para emitir legalmente" [level=2] [ref=e82]'
+              - paragraph [ref=e83]: Sin certificación, tu empresa no puede emitir facturas electrónicas válidas. Te explicamos el proceso y cómo acortarlo.
+            - generic [ref=e84]:
+              - generic [ref=e85]: Empresas & Contadores
+              - img [ref=e86]
+          - 'link "Contabilidad · 5 min Libro de compras y ventas: para qué sirve y los errores que debes evitar El registro de compras y ventas se genera automáticamente desde tus documentos electrónicos. Pero hay errores que siguen ocurriendo. Para contadores" [ref=e88] [cursor=pointer]':
+            - /url: /blog/libro-compras-ventas-chile
+            - generic [ref=e89]:
+              - generic [ref=e90]: Contabilidad · 5 min
+              - 'heading "Libro de compras y ventas: para qué sirve y los errores que debes evitar" [level=2] [ref=e91]'
+              - paragraph [ref=e92]: El registro de compras y ventas se genera automáticamente desde tus documentos electrónicos. Pero hay errores que siguen ocurriendo.
+            - generic [ref=e93]:
+              - generic [ref=e94]: Para contadores
+              - img [ref=e95]
+          - 'link "Impuestos · 5 min PPM: el descuento mensual que adelanta tu impuesto anual El PPM es plata que pagas cada mes y que luego descuentas de tu impuesto anual. Si pagas de más, te devuelven la diferencia. Para mi negocio" [ref=e97] [cursor=pointer]':
+            - /url: /blog/ppm-chile-que-es
+            - generic [ref=e98]:
+              - generic [ref=e99]: Impuestos · 5 min
+              - 'heading "PPM: el descuento mensual que adelanta tu impuesto anual" [level=2] [ref=e100]'
+              - paragraph [ref=e101]: El PPM es plata que pagas cada mes y que luego descuentas de tu impuesto anual. Si pagas de más, te devuelven la diferencia.
+            - generic [ref=e102]:
+              - generic [ref=e103]: Para mi negocio
+              - img [ref=e104]
+    - contentinfo [ref=e106]:
+      - generic [ref=e107]:
+        - paragraph [ref=e108]: © 2026 ContaChile · Todos los derechos reservados
+        - link "contachile.cl" [ref=e109] [cursor=pointer]:
+          - /url: /
+  - alert [ref=e110]
