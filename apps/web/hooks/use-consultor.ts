@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 
 export interface ChatMessage {
   id: string
@@ -10,11 +10,160 @@ export interface ChatMessage {
   toolStatus?: { name: string; running: boolean }
 }
 
+interface ConversationSummary {
+  id: string
+  agentType: string
+  title: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Persistence helpers ──────────────────────────────────────────────────────
+
+async function fetchConversations(): Promise<ConversationSummary[]> {
+  try {
+    const res = await fetch('/api/ai/conversations?agentType=consultor&limit=20')
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.conversations ?? []
+  } catch {
+    return []
+  }
+}
+
+async function loadConversationMessages(id: string): Promise<ChatMessage[]> {
+  try {
+    const res = await fetch(`/api/ai/conversations/${id}`)
+    if (!res.ok) return []
+    const data = await res.json()
+    const raw = data.messages ?? []
+    return raw.map((m: { role: string; content: string; timestamp: string }) => ({
+      id: crypto.randomUUID(),
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }))
+  } catch {
+    return []
+  }
+}
+
+async function createConversation(
+  messages: ChatMessage[],
+  title?: string
+): Promise<string | null> {
+  try {
+    const payload = messages
+      .filter((m) => m.content.trim().length > 0 && !m.isStreaming)
+      .map((m) => ({
+        role: m.role,
+        content: m.content,
+        timestamp: new Date().toISOString(),
+      }))
+
+    if (payload.length === 0) return null
+
+    const res = await fetch('/api/ai/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentType: 'consultor', messages: payload, title }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.id ?? null
+  } catch {
+    return null
+  }
+}
+
+async function saveConversationMessages(
+  id: string,
+  messages: ChatMessage[]
+): Promise<boolean> {
+  try {
+    const payload = messages
+      .filter((m) => m.content.trim().length > 0 && !m.isStreaming)
+      .map((m) => ({
+        role: m.role,
+        content: m.content,
+        timestamp: new Date().toISOString(),
+      }))
+
+    if (payload.length === 0) return false
+
+    const res = await fetch(`/api/ai/conversations/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: payload }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
 export function useConsultor() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conversations, setConversations] = useState<ConversationSummary[]>([])
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Al montar, cargar lista de conversaciones previas y restaurar la más reciente
+  useEffect(() => {
+    let cancelled = false
+
+    async function init() {
+      const convList = await fetchConversations()
+      if (cancelled) return
+      setConversations(convList)
+
+      // Restaurar la conversación más reciente si existe
+      if (convList.length > 0) {
+        const latest = convList[0]
+        const restored = await loadConversationMessages(latest.id)
+        if (cancelled) return
+        if (restored.length > 0) {
+          setMessages(restored)
+          setCurrentConversationId(latest.id)
+        }
+      }
+    }
+
+    init()
+    return () => { cancelled = true }
+  }, [])
+
+  // Guardar mensajes al DB con debounce de 800ms después de cada respuesta completa
+  const scheduleSave = useCallback(
+    (updatedMessages: ChatMessage[], convId: string | null) => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+
+      saveTimeoutRef.current = setTimeout(async () => {
+        setIsSaving(true)
+        try {
+          if (convId) {
+            await saveConversationMessages(convId, updatedMessages)
+          } else {
+            const newId = await createConversation(updatedMessages)
+            if (newId) {
+              setCurrentConversationId(newId)
+              // Refrescar lista de conversaciones
+              const updated = await fetchConversations()
+              setConversations(updated)
+            }
+          }
+        } finally {
+          setIsSaving(false)
+        }
+      }, 800)
+    },
+    []
+  )
 
   const sendMessage = useCallback(async (userText: string) => {
     if (!userText.trim() || isLoading) return
@@ -149,8 +298,8 @@ export function useConsultor() {
       //   genuina → borrar la burbuja y mostrar error.
       if (accumulated.trim().length === 0) {
         if (toolWasUsed && !streamErrored) {
-          setMessages((prev) =>
-            prev.map((m) =>
+          setMessages((prev) => {
+            const updated = prev.map((m) =>
               m.id === assistantId
                 ? {
                     ...m,
@@ -160,17 +309,23 @@ export function useConsultor() {
                   }
                 : m
             )
-          )
+            // Guardar después del fallback
+            scheduleSave(updated, currentConversationId)
+            return updated
+          })
         } else {
           setMessages((prev) => prev.filter((m) => m.id !== assistantId))
           if (!streamErrored) setError('El modelo no devolvió respuesta')
         }
       } else {
-        setMessages((prev) =>
-          prev.map((m) =>
+        setMessages((prev) => {
+          const updated = prev.map((m) =>
             m.id === assistantId ? { ...m, isStreaming: false } : m
           )
-        )
+          // Guardar la conversación completa
+          scheduleSave(updated, currentConversationId)
+          return updated
+        })
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
@@ -181,11 +336,13 @@ export function useConsultor() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading, currentConversationId, scheduleSave])
 
   const clearMessages = useCallback(() => {
     abortRef.current?.abort()
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     setMessages([])
+    setCurrentConversationId(null)
     setError(null)
   }, [])
 
@@ -197,5 +354,15 @@ export function useConsultor() {
     )
   }, [])
 
-  return { messages, isLoading, error, sendMessage, clearMessages, stopStreaming }
+  return {
+    messages,
+    isLoading,
+    isSaving,
+    error,
+    conversations,
+    currentConversationId,
+    sendMessage,
+    clearMessages,
+    stopStreaming,
+  }
 }

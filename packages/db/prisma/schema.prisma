@@ -590,3 +590,16 @@ model Webhook {
   @@index([companyId])
   @@index([active])
 }
+
+model AgentConversation {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String
+  agentType String   // 'consultor' | 'f22' | 'clasificador'
+  title     String?  // primeras palabras del primer mensaje del usuario
+  messages  Json     // array de { role: 'user'|'assistant', content: string, timestamp: string }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, agentType, createdAt])
+}
