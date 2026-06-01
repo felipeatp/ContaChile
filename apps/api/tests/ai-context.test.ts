@@ -1,15 +1,21 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { PrismaClient } from '@contachile/db'
+import { prisma } from '@contachile/db'
 import { buildContextSnapshot, executeConsultorTool } from '@contachile/ai-agents'
 
-// Cliente dedicado para el test. Importar el singleton de @contachile/db
-// causa que $disconnect() en afterAll mate también el cliente usado por
-// los módulos importados (consultor.ts, context.ts) y el worker de vitest
-// crashea en cleanup. Mantener uno aparte.
-const prisma = new PrismaClient()
+// Este suite ejecuta consultas reales contra PostgreSQL. Requiere DATABASE_URL
+// y una base con el schema migrado (docker compose up postgres + prisma db push).
+// Sin DATABASE_URL se omite para no romper CI.
+const hasDb = !!process.env.DATABASE_URL
+
+// Reusa el singleton de @contachile/db. Prisma 7 usa driver adapters y el cliente
+// debe construirse con un adapter (como en packages/db); construir uno suelto
+// requeriría @prisma/adapter-pg, que no es dependencia de apps/api. Cada archivo
+// de test corre aislado, así que no desconectamos el singleton en afterAll para
+// no afectar a los módulos de agentes que lo comparten en este mismo worker.
 const COMPANY_ID = 'test-ai-context-company'
 
 beforeAll(async () => {
+  if (!hasDb) return
   // Clean
   await prisma.documentItem.deleteMany({ where: { document: { companyId: COMPANY_ID } } })
   await prisma.document.deleteMany({ where: { companyId: COMPANY_ID } })
@@ -55,14 +61,14 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  if (!hasDb) return
   await prisma.document.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.purchase.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.employee.deleteMany({ where: { companyId: COMPANY_ID } })
   await prisma.company.deleteMany({ where: { id: COMPANY_ID } })
-  await prisma.$disconnect()
 })
 
-describe('buildContextSnapshot', () => {
+describe.skipIf(!hasDb)('buildContextSnapshot', () => {
   it('builds markdown snapshot with company + metrics', async () => {
     const md = await buildContextSnapshot(COMPANY_ID)
     expect(md).toContain('Test SpA')
@@ -82,7 +88,7 @@ describe('buildContextSnapshot', () => {
   })
 })
 
-describe('executeConsultorTool', () => {
+describe.skipIf(!hasDb)('executeConsultorTool', () => {
   // Reusa seed de buildContextSnapshot describe (mismo COMPANY_ID + datos)
 
   it('get_monthly_summary returns aggregates for current month', async () => {

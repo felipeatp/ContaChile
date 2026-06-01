@@ -6,6 +6,14 @@ import emitBridgeRoute from '../../src/routes/dte/emit-bridge'
 
 vi.mock('@contachile/db', () => ({
   prisma: {
+    company: {
+      findUnique: vi.fn().mockResolvedValue({
+        id: 'company-123',
+        rut: '76.123.456-7',
+        name: 'Emisor SpA',
+        giro: 'Servicios',
+      }),
+    },
     document: {
       findUnique: vi.fn(),
       create: vi.fn(),
@@ -13,8 +21,19 @@ vi.mock('@contachile/db', () => ({
   },
 }))
 
+vi.mock('@contachile/auth', () => ({
+  auth: { api: { getSession: vi.fn().mockResolvedValue(null) } },
+  decryptCertPassword: vi.fn(),
+}))
+
 vi.mock('../../src/queues/dte', () => ({
   enqueuePollJob: vi.fn(),
+}))
+vi.mock('../../src/lib/email', () => ({
+  createEmailService: () => ({ sendDocumentEmitted: vi.fn() }),
+}))
+vi.mock('../../src/lib/accounting-entries', () => ({
+  createSalesEntry: vi.fn().mockResolvedValue(undefined),
 }))
 
 describe('POST /dte/emit-bridge', () => {
@@ -47,6 +66,8 @@ describe('POST /dte/emit-bridge', () => {
           rut: '12345678-5',
           name: 'Cliente',
           address: 'Calle 123',
+          commune: 'Santiago',
+          city: 'Santiago',
         },
         items: [{ description: 'Servicio', quantity: 1, unitPrice: 100000 }],
         paymentMethod: 'CONTADO',
@@ -84,6 +105,8 @@ describe('POST /dte/emit-bridge', () => {
           rut: '12345678-5',
           name: 'Cliente',
           address: 'Calle 123',
+          commune: 'Santiago',
+          city: 'Santiago',
         },
         items: [{ description: 'Servicio', quantity: 1, unitPrice: 100000 }],
         paymentMethod: 'CONTADO',

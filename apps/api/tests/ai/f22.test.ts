@@ -24,8 +24,27 @@ vi.mock('@contachile/auth', () => ({
 import { streamF22Assistant } from '@contachile/ai-agents'
 const mockStream = vi.mocked(streamF22Assistant)
 
-async function* makeGenerator(...events: object[]) {
-  for (const e of events) yield e
+/**
+ * The route consumes a ReadableStream<AgentEvent>. AgentEvent uses `kind`:
+ *   { kind: 'text', value }            → route writes data: { text }
+ *   { kind: 'tool', name, status }     → route writes data: { tool, status }
+ * The stream always terminates with data: [DONE].
+ */
+function makeStream(...events: object[]): ReadableStream<any> {
+  return new ReadableStream({
+    start(controller) {
+      for (const e of events) controller.enqueue(e)
+      controller.close()
+    },
+  })
+}
+
+function makeThrowingStream(error: Error): ReadableStream<any> {
+  return new ReadableStream({
+    start(controller) {
+      controller.error(error)
+    },
+  })
 }
 
 describe('POST /ai/f22', () => {
@@ -50,12 +69,11 @@ describe('POST /ai/f22', () => {
     expect(JSON.parse(res.body).error).toBeTruthy()
   })
 
-  it('emite eventos SSE con text_delta del agente', async () => {
-    mockStream.mockImplementation(() =>
-      makeGenerator(
-        { type: 'text_delta', text: 'Tu F22 del año 2025 ' },
-        { type: 'text_delta', text: 'muestra saldo a pagar de $50.000.' },
-        { type: 'done', fullText: 'Tu F22 del año 2025 muestra saldo a pagar de $50.000.' }
+  it('emite eventos SSE con texto del agente', async () => {
+    mockStream.mockReturnValue(
+      makeStream(
+        { kind: 'text', value: 'Tu F22 del año 2025 ' },
+        { kind: 'text', value: 'muestra saldo a pagar de $50.000.' }
       )
     )
 
@@ -72,13 +90,12 @@ describe('POST /ai/f22', () => {
 
     expect(res.statusCode).toBe(200)
     expect(res.headers['content-type']).toContain('text/event-stream')
-    expect(res.body).toContain('event: delta')
     expect(res.body).toContain('Tu F22 del año 2025')
-    expect(res.body).toContain('event: done')
+    expect(res.body).toContain('data: [DONE]')
   })
 
   it('usa el año actual cuando no se pasa year', async () => {
-    mockStream.mockImplementation(() => makeGenerator({ type: 'done', fullText: 'ok' }))
+    mockStream.mockReturnValue(makeStream({ kind: 'text', value: 'ok' }))
 
     const app = Fastify()
     app.register(tenantPlugin)
@@ -95,9 +112,7 @@ describe('POST /ai/f22', () => {
   })
 
   it('emite evento SSE error cuando el agente lanza excepcion', async () => {
-    mockStream.mockImplementation(async function* () {
-      throw new Error('Anthropic timeout')
-    })
+    mockStream.mockReturnValue(makeThrowingStream(new Error('Anthropic timeout')))
 
     const app = Fastify()
     app.register(tenantPlugin)
@@ -111,6 +126,8 @@ describe('POST /ai/f22', () => {
     })
 
     expect(res.statusCode).toBe(200)
-    expect(res.body).toContain('event: error')
+    const body = res.body
+    expect(body).toContain('"error"')
+    expect(body).toContain('data: [DONE]')
   })
 })

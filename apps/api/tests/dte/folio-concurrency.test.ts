@@ -51,8 +51,11 @@ const MOCK_COMPANY = {
   id: 'company-concurrent',
   rut: '76.354.771-K',
   name: 'Test Concurrencia SpA',
-  certEncrypted: null,
-  certPassword: null,
+  // Cert must be "configured" (>100 chars + password) so the route reaches the
+  // folio assignment + document.create path. runPipeline is mocked to reject,
+  // which the route tolerates (emits unsigned).
+  certEncrypted: 'A'.repeat(120),
+  certPassword: 'cert-pass',
   certPasswordEncrypted: null,
 }
 

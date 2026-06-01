@@ -12,7 +12,12 @@ vi.mock('@contachile/db', () => ({
       findUnique: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
+      update: vi.fn().mockResolvedValue({}),
       updateMany: vi.fn(),
+    },
+    companyMembership: {
+      findMany: vi.fn().mockResolvedValue([{ companyId: 'company-1', role: 'owner' }]),
+      create: vi.fn(),
     },
     webhook: {
       findMany: vi.fn(),
@@ -60,7 +65,8 @@ describe('Public API Integration', () => {
 
   describe('Public endpoints with API key', () => {
     const apiKey = 'ck_live_testkey123'
-    const keyHash = 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'
+    // sha256('ck_live_testkey123') — must match plugins/public-api.ts hashKey().
+    const keyHash = 'e4796c11a0a79566f5f73a03df96cd1205fb1cf8a42a9dd79221e50e475472d8'
 
     beforeEach(() => {
       mockPrisma.apiKey.findUnique.mockImplementation(async ({ where }: any) => {
@@ -102,6 +108,9 @@ describe('Public API Integration', () => {
     })
 
     it('GET /public/v1/company returns 401 without API key', async () => {
+      // No API key and no session → must be rejected.
+      mockSession.mockResolvedValue(null)
+
       const app = Fastify()
       app.register(publicApiPlugin)
       app.register(publicApiRoute)
@@ -176,7 +185,7 @@ describe('Public API Integration', () => {
         method: 'POST',
         url: '/api-keys',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: 'Integration Test Key', scopes: ['read:company'] }),
+        body: JSON.stringify({ name: 'Integration Test Key', scopes: ['dte:read'] }),
       })
 
       expect(response.statusCode).toBe(200)

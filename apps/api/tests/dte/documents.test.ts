@@ -9,9 +9,18 @@ vi.mock('@contachile/db', () => ({
     document: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       count: vi.fn(),
     },
   },
+}))
+
+vi.mock('../../src/queues/dte', () => ({ enqueuePollJob: vi.fn() }))
+vi.mock('../../src/lib/email', () => ({
+  createEmailService: () => ({
+    sendDocumentEmitted: vi.fn(),
+    sendDocumentAccepted: vi.fn(),
+  }),
 }))
 
 const mockDocs = [
@@ -111,7 +120,7 @@ describe('GET /documents/:id', () => {
   })
 
   it('returns a single document with items', async () => {
-    mockPrisma.document.findUnique.mockResolvedValue({
+    mockPrisma.document.findFirst.mockResolvedValue({
       ...mockDocs[0],
       items: [
         { id: 'item-1', description: 'Servicio', quantity: 1, unitPrice: 100000, totalPrice: 100000 },
@@ -136,7 +145,7 @@ describe('GET /documents/:id', () => {
   })
 
   it('returns 404 for non-existent document', async () => {
-    mockPrisma.document.findUnique.mockResolvedValue(null)
+    mockPrisma.document.findFirst.mockResolvedValue(null)
 
     const app = Fastify()
     app.register(tenantPlugin)
