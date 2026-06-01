@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { LogOut, User, Bell, Briefcase, Download, LogIn } from "lucide-react"
 import { CompanySelector } from "@/components/layout/company-selector"
 import { useInstallPrompt } from "@/lib/use-install-prompt"
+import { toast } from "sonner"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -212,10 +213,10 @@ function InstallButton() {
   if (!showable) return null
 
   const handleClick = isIOS
-    ? () => alert('En Safari: toca el ícono Compartir (□↑) y selecciona "Agregar a pantalla de inicio"')
+    ? () => toast.info('En Safari: toca el ícono Compartir (□↑) y selecciona "Agregar a pantalla de inicio"', { duration: 6000 })
     : canPrompt
     ? promptInstall
-    : () => alert('Toca el ícono de instalación (⊕) en la barra de dirección del browser para instalar la app')
+    : () => toast.info('Toca el ícono de instalación (⊕) en la barra de dirección del browser para instalar la app', { duration: 6000 })
 
   const tooltip = isIOS
     ? 'Instalar en iOS: Compartir → Agregar a pantalla de inicio'
