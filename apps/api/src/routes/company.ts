@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import { UpdateCompanySchema, PUC_BASE_ACCOUNTS } from '@contachile/validators'
+import { requireRole } from '../plugins/tenant'
 
 async function seedPucBase(companyId: string): Promise<void> {
   const existingCount = await prisma.ledgerAccount.count({ where: { companyId } })
@@ -42,7 +43,7 @@ export default async function (fastify: FastifyInstance) {
     return reply.send(company)
   })
 
-  fastify.patch('/company', async (request, reply) => {
+  fastify.patch('/company', { preHandler: requireRole(['owner', 'admin']) }, async (request, reply) => {
     const companyId = request.companyId
     const body = request.body as Record<string, unknown>
 
@@ -68,7 +69,7 @@ export default async function (fastify: FastifyInstance) {
     return reply.send(company)
   })
 
-  fastify.post('/company/certificate', async (request, reply) => {
+  fastify.post('/company/certificate', { preHandler: requireRole(['owner', 'admin']), config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
     const companyId = request.companyId
     const body = request.body as { certBase64?: string; password?: string }
 

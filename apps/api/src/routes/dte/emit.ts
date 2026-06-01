@@ -65,46 +65,54 @@ export default async function (fastify: FastifyInstance) {
     let pdfBuffer: Buffer | undefined
 
     const certEncrypted = company.certEncrypted
-    const hasCert = !!certEncrypted && certEncrypted.length > 100
-    if (hasCert) {
-      try {
-        const privateKeyPem = extractPrivateKeyFromPfx(
-          certEncrypted,
-          company.certPassword ?? ''
-        )
+    if (!certEncrypted || certEncrypted.length <= 100) {
+      return reply.code(400).send({
+        error:
+          'El certificado digital no está configurado. Ve a Configuración → Certificado para subirlo.',
+      })
+    }
 
-        const result = await runPipeline({
-          type: body.type,
-          folio,
-          company: {
-            rut: company.rut,
-            name: company.name,
-            address: company.address || 'Dirección no especificada',
-            commune: company.commune || 'Santiago',
-            city: company.city || 'Santiago',
-            giro: company.giro || undefined,
-            economicActivity: company.economicActivity || '620200',
-            cert: privateKeyPem,
-          },
-          receiver: {
-            rut: body.receiver.rut,
-            name: body.receiver.name,
-            address: body.receiver.address,
-            commune: body.receiver.commune,
-            city: body.receiver.city,
-          },
-          items: body.items,
-          paymentMethod: body.paymentMethod,
-          emittedAt,
-          references: body.references,
-        })
+    if (!company.certPassword) {
+      return reply.code(400).send({
+        error:
+          'El certificado digital no está configurado. Ve a Configuración → Certificado para subirlo.',
+      })
+    }
 
-        xmlContent = result.xml
-        pdfBuffer = result.pdf
-      } catch (signErr: unknown) {
-        const message = signErr instanceof Error ? signErr.message : String(signErr)
-        fastify.log.warn({ err: message }, 'Firma DTE falló, emitiendo sin XML firmado')
-      }
+    try {
+      const privateKeyPem = extractPrivateKeyFromPfx(certEncrypted, company.certPassword)
+
+      const result = await runPipeline({
+        type: body.type,
+        folio,
+        company: {
+          rut: company.rut,
+          name: company.name,
+          address: company.address || 'Dirección no especificada',
+          commune: company.commune || 'Santiago',
+          city: company.city || 'Santiago',
+          giro: company.giro || undefined,
+          economicActivity: company.economicActivity || '620200',
+          cert: privateKeyPem,
+        },
+        receiver: {
+          rut: body.receiver.rut,
+          name: body.receiver.name,
+          address: body.receiver.address,
+          commune: body.receiver.commune,
+          city: body.receiver.city,
+        },
+        items: body.items,
+        paymentMethod: body.paymentMethod,
+        emittedAt,
+        references: body.references,
+      })
+
+      xmlContent = result.xml
+      pdfBuffer = result.pdf
+    } catch (signErr: unknown) {
+      const message = signErr instanceof Error ? signErr.message : String(signErr)
+      fastify.log.warn({ err: message }, 'Firma DTE falló, emitiendo sin XML firmado')
     }
 
     const doc = await prisma.document.create({

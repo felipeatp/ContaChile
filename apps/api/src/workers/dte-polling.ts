@@ -24,7 +24,7 @@ const aceptaClient = new AceptaClient({
 async function initWorker(): Promise<void> {
   if (!(await probeRedis())) return
 
-  new Worker<PollJobData>(
+  const worker = new Worker<PollJobData>(
     'dte-polling',
     async (job) => {
       const { documentId, trackId, source } = job.data
@@ -105,6 +105,10 @@ async function initWorker(): Promise<void> {
     },
     { connection: createRedisClient() }
   )
+
+  worker.on('failed', (job, err) => {
+    console.error(JSON.stringify({ level: 'error', context: 'dte-polling', documentId: job?.data?.documentId, err: err.message, msg: 'Error en worker de polling DTE' }))
+  })
 }
 
 void initWorker()

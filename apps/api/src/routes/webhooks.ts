@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import crypto from 'crypto'
+import { requireRole } from '../plugins/tenant'
 
 export default async function (fastify: FastifyInstance) {
-  // Crear webhook
-  fastify.post('/webhooks', async (request, reply) => {
+  // Crear webhook (requiere rol owner o admin)
+  fastify.post('/webhooks', { preHandler: requireRole(['owner', 'admin']) }, async (request, reply) => {
     const companyId = request.companyId
     const body = request.body as {
       url?: string
@@ -58,8 +59,8 @@ export default async function (fastify: FastifyInstance) {
     return reply.send({ success: webhook.count > 0 })
   })
 
-  // Eliminar webhook
-  fastify.delete('/webhooks/:id', async (request, reply) => {
+  // Eliminar webhook (requiere rol owner o admin)
+  fastify.delete('/webhooks/:id', { preHandler: requireRole(['owner', 'admin']) }, async (request, reply) => {
     const companyId = request.companyId
     const { id } = request.params as { id: string }
 
