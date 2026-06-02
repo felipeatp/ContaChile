@@ -18,17 +18,17 @@ enum AccountType {
 }
 
 model LedgerAccount {
-  id          String      @id @default(cuid())
+  id          String        @id @default(cuid())
   companyId   String
   code        String
   name        String
   type        AccountType
   parentCode  String?
   description String?
-  isActive    Boolean     @default(true)
-  isSystem    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  isActive    Boolean       @default(true)
+  isSystem    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   lines       JournalLine[]
 
   @@unique([companyId, code])
@@ -54,18 +54,19 @@ model JournalEntry {
 }
 
 model JournalLine {
-  id             String       @id @default(cuid())
+  id             String  @id @default(cuid())
   journalEntryId String
   accountId      String
-  debit          Int          @default(0)
-  credit         Int          @default(0)
+  debit          Int     @default(0)
+  credit         Int     @default(0)
   description    String?
 
-  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
-  account        LedgerAccount @relation(fields: [accountId], references: [id])
+  journalEntry JournalEntry  @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account      LedgerAccount @relation(fields: [accountId], references: [id])
 
   @@index([journalEntryId])
   @@index([accountId])
+  @@index([accountId, journalEntryId])
 }
 
 enum ContractType {
@@ -213,43 +214,43 @@ enum BankMovementStatus {
 }
 
 model BankAccount {
-  id            String           @id @default(cuid())
-  companyId     String
-  externalId    String
-  institution   String
-  holderName    String
-  holderId      String
-  currency      String           @default("CLP")
-  fintocLinkId  String?
-  mode          BankAccountMode  @default(SIMULATED)
-  lastSyncAt    DateTime?
-  createdAt     DateTime         @default(now())
-  movements     BankMovement[]
+  id           String          @id @default(cuid())
+  companyId    String
+  externalId   String
+  institution  String
+  holderName   String
+  holderId     String
+  currency     String          @default("CLP")
+  fintocLinkId String?
+  mode         BankAccountMode @default(SIMULATED)
+  lastSyncAt   DateTime?
+  createdAt    DateTime        @default(now())
+  movements    BankMovement[]
 
   @@unique([companyId, externalId])
   @@index([companyId])
 }
 
 model BankMovement {
-  id                String              @id @default(cuid())
+  id                String             @id @default(cuid())
   companyId         String
   bankAccountId     String
   externalId        String
   postedAt          DateTime
   amount            Int
-  currency          String              @default("CLP")
+  currency          String             @default("CLP")
   type              BankMovementType
   description       String
   counterpartRut    String?
   counterpartName   String?
-  status            BankMovementStatus  @default(PENDING)
+  status            BankMovementStatus @default(PENDING)
   suggestionPayload Json?
   matchedDocumentId String?
   matchedPurchaseId String?
   journalEntryId    String?
-  createdAt         DateTime            @default(now())
+  createdAt         DateTime           @default(now())
 
-  bankAccount       BankAccount         @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
 
   @@unique([bankAccountId, externalId])
   @@index([companyId, status])
@@ -309,13 +310,13 @@ model QuoteItem {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String              @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String              @unique
+  emailVerified Boolean             @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   sessions      Session[]
   accounts      Account[]
   memberships   CompanyMembership[]
@@ -353,12 +354,12 @@ model Account {
 }
 
 model Verification {
-  id        String   @id @default(cuid())
+  id         String   @id @default(cuid())
   identifier String
-  value     String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
 }
@@ -378,25 +379,25 @@ model CompanyMembership {
 }
 
 model Company {
-  id                  String   @id @default(cuid())
-  rut                 String   @unique
-  name                String
-  giro                String?
-  address             String?
-  commune             String?
-  city                String?
-  economicActivity    String?
-  phone               String?
-  email               String?
-  certEncrypted            String?
-  certPasswordEncrypted    String?  // AES-256-GCM via CERT_ENCRYPTION_KEY
-  certPassword             String?  // legacy plaintext — kept for migration fallback only
-  siiCertified             Boolean  @default(false)
-  defaultPaymentMethod String  @default("CONTADO")
-  defaultDocumentType Int      @default(33)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime? @updatedAt
-  memberships         CompanyMembership[]
+  id                    String              @id @default(cuid())
+  rut                   String              @unique
+  name                  String
+  giro                  String?
+  address               String?
+  commune               String?
+  city                  String?
+  economicActivity      String?
+  phone                 String?
+  email                 String?
+  certEncrypted         String?
+  certPasswordEncrypted String? // AES-256-GCM via CERT_ENCRYPTION_KEY
+  certPassword          String? // legacy plaintext — kept for migration fallback only
+  siiCertified          Boolean             @default(false)
+  defaultPaymentMethod  String              @default("CONTADO")
+  defaultDocumentType   Int                 @default(33)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime?           @updatedAt
+  memberships           CompanyMembership[]
 }
 
 enum DocumentStatus {
@@ -413,7 +414,7 @@ model Document {
   status          DocumentStatus @default(PENDING)
   trackId         String?
   xmlUrl          String?
-  xmlContent      String? @db.Text
+  xmlContent      String?        @db.Text
   pdfUrl          String?
   receiverRut     String
   receiverName    String
@@ -439,6 +440,7 @@ model Document {
   @@index([emittedAt])
   @@index([companyId])
   @@index([companyId, emittedAt])
+  @@index([companyId, status, emittedAt])
 }
 
 model DocumentItem {
@@ -472,7 +474,7 @@ model AuditLog {
 }
 
 model Purchase {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   companyId   String
   type        Int
   folio       Int
@@ -483,10 +485,10 @@ model Purchase {
   taxAmount   Int
   totalAmount Int
   category    String?
-  source      String?   // 'ocr', 'manual', 'import'
+  source      String? // 'ocr', 'manual', 'import'
   status      String    @default("APPROVED") // 'APPROVED' | 'PENDING_APPROVAL'
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
 
   @@index([companyId])
@@ -536,7 +538,7 @@ model InventoryMovement {
   notes          String?
   createdAt      DateTime              @default(now())
 
-  product        Product               @relation(fields: [productId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
   @@index([companyId])
   @@index([productId])
@@ -566,14 +568,14 @@ model OcrDocument {
 }
 
 model ApiKey {
-  id        String   @id @default(cuid())
-  companyId String
-  name      String
-  keyHash   String   @unique
-  scopes    String[] @default(["read:documents", "read:purchases", "read:company"])
+  id         String    @id @default(cuid())
+  companyId  String
+  name       String
+  keyHash    String    @unique
+  scopes     String[]  @default(["read:documents", "read:purchases", "read:company"])
   lastUsedAt DateTime?
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  revoked    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
 
   @@index([companyId])
   @@index([keyHash])
@@ -597,9 +599,9 @@ model AgentConversation {
   id        String   @id @default(cuid())
   companyId String
   userId    String
-  agentType String   // 'consultor' | 'f22' | 'clasificador'
-  title     String?  // primeras palabras del primer mensaje del usuario
-  messages  Json     // array de { role: 'user'|'assistant', content: string, timestamp: string }
+  agentType String // 'consultor' | 'f22' | 'clasificador'
+  title     String? // primeras palabras del primer mensaje del usuario
+  messages  Json // array de { role: 'user'|'assistant', content: string, timestamp: string }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
