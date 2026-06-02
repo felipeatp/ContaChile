@@ -17,8 +17,14 @@ function formatCLP(n: number): string {
   return `$${n.toLocaleString('es-CL')}`
 }
 
+function pctChange(current: number, previous: number): string {
+  if (previous === 0) return current > 0 ? '+100%' : '0%'
+  const pct = ((current - previous) / previous) * 100
+  const sign = pct >= 0 ? '+' : ''
+  return `${sign}${pct.toFixed(0)}%`
+}
+
 function nextF29DueDate(today: Date): { date: Date; daysUntil: number } {
-  // F29 vence el 20 del mes siguiente al mes facturado (ajuste fin de semana fuera de scope).
   const year = today.getFullYear()
   const month = today.getMonth()
   const candidate = new Date(year, month, 20)
@@ -27,9 +33,32 @@ function nextF29DueDate(today: Date): { date: Date; daysUntil: number } {
   return { date: candidate, daysUntil: Math.ceil(ms / (1000 * 60 * 60 * 24)) }
 }
 
+function buildObligations(today: Date): string[] {
+  const obligations: string[] = []
+  const horizon = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+  const { date: f29Date, daysUntil: f29Days } = nextF29DueDate(today)
+  if (f29Date <= horizon) {
+    if (f29Days === 0) {
+      obligations.push(`⚠️ F29 (declaración de IVA) vence HOY.`)
+    } else if (f29Days < 0) {
+      obligations.push(`🚨 F29 VENCIDO hace ${Math.abs(f29Days)} día${Math.abs(f29Days) === 1 ? '' : 's'}.`)
+    } else {
+      obligations.push(`⚠️ F29 vence el ${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]} — en ${f29Days} día${f29Days === 1 ? '' : 's'}.`)
+    }
+  }
+
+  // PPM vence el mismo día que el F29
+  if (f29Date <= horizon && f29Days >= 0) {
+    obligations.push(`⚠️ PPM (pago provisional mensual) vence el mismo día que el F29.`)
+  }
+
+  return obligations
+}
+
 /**
  * Construye un snapshot en markdown con el contexto actual del tenant:
- * empresa, métricas del mes en curso, próxima obligación tributaria.
+ * empresa, métricas del mes en curso, comparación YoY y próximas obligaciones.
  *
  * Si alguna query falla, retorna un snapshot mínimo (solo fecha) sin
  * bloquear el chat. Diseñado para inyectarse en el system prompt del LLM.
@@ -37,14 +66,21 @@ function nextF29DueDate(today: Date): { date: Date; daysUntil: number } {
 export async function buildContextSnapshot(companyId: string): Promise<string> {
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfSameMonthLastYear = new Date(now.getFullYear() - 1, now.getMonth(), 1)
+  const endOfSameMonthLastYear = new Date(now.getFullYear() - 1, now.getMonth() + 1, 1)
   const periodLabel = `${MONTHS_ES[now.getMonth()].replace(/^./, c => c.toUpperCase())} ${now.getFullYear()}`
+  const prevPeriodLabel = `${MONTHS_ES[now.getMonth()].replace(/^./, c => c.toUpperCase())} ${now.getFullYear() - 1}`
 
   try {
-    const [company, docs, purchases, employeesActive] = await Promise.all([
+    const [company, docs, docsPrevYear, purchases, employeesActive] = await Promise.all([
       prisma.company.findUnique({ where: { id: companyId } }),
       prisma.document.findMany({
         where: { companyId, emittedAt: { gte: startOfMonth } },
         select: { status: true, totalAmount: true, totalTax: true, totalNet: true },
+      }),
+      prisma.document.findMany({
+        where: { companyId, emittedAt: { gte: startOfSameMonthLastYear, lt: endOfSameMonthLastYear } },
+        select: { status: true, totalNet: true },
       }),
       prisma.purchase.findMany({
         where: { companyId, date: { gte: startOfMonth } },
@@ -60,7 +96,11 @@ export async function buildContextSnapshot(companyId: string): Promise<string> {
     const ivaDebito = accepted.reduce((s, d) => s + d.totalTax, 0)
     const comprasNeto = purchases.reduce((s, p) => s + p.netAmount, 0)
     const ivaCredito = purchases.reduce((s, p) => s + p.taxAmount, 0)
-    const { date: f29Date, daysUntil: f29Days } = nextF29DueDate(now)
+
+    const acceptedPrev = docsPrevYear.filter(d => d.status === 'ACCEPTED')
+    const ventasNetoPrev = acceptedPrev.reduce((s, d) => s + d.totalNet, 0)
+
+    const obligations = buildObligations(now)
 
     const lines: string[] = []
     lines.push('## CONTEXTO ACTUAL')
@@ -77,25 +117,28 @@ export async function buildContextSnapshot(companyId: string): Promise<string> {
     lines.push('')
     lines.push(`### Estado de ${periodLabel}`)
     lines.push(`- DTE emitidos: ${docs.length} · Aceptados: ${accepted.length} · Pendientes: ${pending.length} · Rechazados: ${rejected.length}`)
-    lines.push(`- Ventas netas acumuladas (aceptadas): ${formatCLP(ventasNeto)}`)
-    lines.push(`- IVA débito acumulado: ${formatCLP(ivaDebito)}`)
+    lines.push(`- Ventas netas (aceptadas): ${formatCLP(ventasNeto)}`)
+    if (ventasNetoPrev > 0 || ventasNeto > 0) {
+      lines.push(`  ↳ Mismo período ${prevPeriodLabel}: ${formatCLP(ventasNetoPrev)} (${pctChange(ventasNeto, ventasNetoPrev)} vs año anterior)`)
+    }
+    lines.push(`- IVA débito: ${formatCLP(ivaDebito)}`)
     lines.push(`- Compras del mes: ${purchases.length} · IVA crédito: ${formatCLP(ivaCredito)}`)
+    lines.push(`- IVA a pagar estimado: ${formatCLP(Math.max(0, ivaDebito - ivaCredito))}`)
 
     lines.push('')
     lines.push('### Personal')
     lines.push(`- Trabajadores activos: ${employeesActive}`)
 
-    lines.push('')
-    lines.push('### Próxima obligación')
-    if (f29Days === 0) {
-      lines.push(`- F29 vence hoy (${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]}).`)
-    } else {
-      lines.push(`- F29 vence el ${f29Date.getDate()} de ${MONTHS_ES[f29Date.getMonth()]} (en ${f29Days} día${f29Days === 1 ? '' : 's'}).`)
+    if (obligations.length > 0) {
+      lines.push('')
+      lines.push('### Próximas obligaciones (30 días)')
+      for (const ob of obligations) {
+        lines.push(`- ${ob}`)
+      }
     }
 
     return lines.join('\n')
   } catch (err) {
-    // buildContextSnapshot failed
     return `## CONTEXTO\nHoy es ${formatLongDate(now)}.`
   }
 }
