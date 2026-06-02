@@ -4,8 +4,9 @@ const dateRegex = /^\d{4}-\d{2}-\d{2}$/
 
 function isValidDate(s: string): boolean {
   if (!dateRegex.test(s)) return false
-  const d = new Date(s)
-  return !isNaN(d.getTime())
+  const [y, m, d] = s.split('-').map(Number)
+  const dt = new Date(s)
+  return !isNaN(dt.getTime()) && dt.getUTCFullYear() === y && dt.getUTCMonth() + 1 === m && dt.getUTCDate() === d
 }
 
 export const BankMovementListSchema = z.object({

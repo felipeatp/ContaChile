@@ -37,7 +37,7 @@ export type CreateProductInput = z.infer<typeof CreateProductSchema>
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>
 export type InventoryMovementInput = z.infer<typeof InventoryMovementSchema>
 
-const pageSchema = z.string().regex(/^\d+$/).default('1').transform(Number)
+const pageSchema = z.string().regex(/^\d+$/).default('1').transform(Number).pipe(z.number().min(1))
 const limitSchema = z.string().regex(/^\d+$/).default('50').transform(Number).pipe(z.number().max(100))
 
 export const InventoryProductListSchema = z.object({

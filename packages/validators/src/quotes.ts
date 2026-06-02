@@ -27,7 +27,7 @@ export const QuoteListQuerySchema = z.object({
   status: z.enum(['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'INVOICED', 'EXPIRED']).optional(),
   from: z.string().regex(dateRegex).optional(),
   to: z.string().regex(dateRegex).optional(),
-  page: z.string().regex(/^\d+$/).default('1').transform(Number),
+  page: z.string().regex(/^\d+$/).default('1').transform(Number).pipe(z.number().min(1)),
   limit: z.string().regex(/^\d+$/).default('50').transform(Number).pipe(z.number().max(100)),
 })
 
