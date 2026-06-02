@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { Bot, X, Send, Square, Trash2, ChevronDown, ArrowUpRight, Save } from 'lucide-react'
+import { Bot, X, Send, Square, Trash2, ChevronDown, ArrowUpRight, Save, Copy, History } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useConsultor } from '@/hooks/use-consultor'
 import { Button } from '@/components/ui/button'
@@ -24,11 +25,13 @@ function MessageEntry({
   content,
   isStreaming,
   toolStatus,
+  timestamp,
 }: {
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
   toolStatus?: { name: string; running: boolean }
+  timestamp?: string
 }) {
   const isUser = role === 'user'
 
@@ -50,10 +53,9 @@ function MessageEntry({
           {isUser ? 'Tú' : 'Consultor'}
         </span>
         <span className="text-[0.6rem] font-mono text-muted-foreground/40">
-          {new Date().toLocaleTimeString('es-CL', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          {timestamp
+            ? new Date(timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+            : new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
 
@@ -84,6 +86,20 @@ function MessageEntry({
           <span className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-primary opacity-80" />
         )}
       </div>
+      {!isUser && content && !isStreaming && (
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(content).then(() =>
+              toast.success('Copiado al portapapeles')
+            )
+          }}
+          className="absolute top-1 right-0 h-6 w-6 inline-flex items-center justify-center rounded-sm text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Copiar respuesta"
+          aria-label="Copiar respuesta"
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+      )}
     </div>
   )
 }
@@ -98,15 +114,18 @@ const SUGGESTIONS = [
 export function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
   const {
     messages,
     isLoading,
     isSaving,
     error,
     conversations,
+    currentConversationId,
     sendMessage,
     clearMessages,
     stopStreaming,
+    loadConversation,
   } = useConsultor()
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -195,6 +214,21 @@ export function ChatWidget() {
                   <Save className="h-3 w-3" />
                 </span>
               )}
+              {conversations.length > 0 && (
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  className={cn(
+                    'h-7 w-7 inline-flex items-center justify-center rounded-sm transition-colors',
+                    showHistory
+                      ? 'bg-secondary/80 text-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  )}
+                  title="Historial de conversaciones"
+                  aria-label="Historial de conversaciones"
+                >
+                  <History className="h-3.5 w-3.5" />
+                </button>
+              )}
               {messages.length > 0 && (
                 <button
                   onClick={clearMessages}
@@ -215,6 +249,39 @@ export function ChatWidget() {
           </div>
         </div>
 
+        {/* Panel historial */}
+        {showHistory && conversations.length > 0 && (
+          <div className="border-b border-border bg-card px-3 py-2 max-h-40 overflow-y-auto">
+            <p className="eyebrow !text-[0.55rem] mb-1.5 text-muted-foreground/70">Conversaciones anteriores</p>
+            <div className="space-y-0.5">
+              {conversations.map((conv) => (
+                <button
+                  key={conv.id}
+                  onClick={() => {
+                    loadConversation(conv.id)
+                    setShowHistory(false)
+                  }}
+                  className={cn(
+                    'w-full text-left rounded-sm px-2 py-1.5 text-xs transition-colors',
+                    conv.id === currentConversationId
+                      ? 'bg-secondary text-foreground font-medium'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                  )}
+                >
+                  <span className="block truncate">
+                    {conv.title ?? 'Conversación sin título'}
+                  </span>
+                  <span className="text-[0.6rem] font-mono text-muted-foreground/50">
+                    {new Date(conv.updatedAt).toLocaleDateString('es-CL', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Transcript */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
           {messages.length === 0 ? (
@@ -228,12 +295,18 @@ export function ChatWidget() {
                   content={msg.content}
                   isStreaming={msg.isStreaming}
                   toolStatus={msg.toolStatus}
+                  timestamp={msg.timestamp}
                 />
               ))}
               {error && (
                 <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                   {error}
                 </div>
+              )}
+              {messages.length > 0 && (
+                <p className="text-[0.6rem] text-muted-foreground/40 text-center px-2 leading-relaxed">
+                  Este consultor es orientativo — confirma con tu contador para decisiones importantes.
+                </p>
               )}
               <div ref={bottomRef} />
             </>
