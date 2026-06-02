@@ -164,4 +164,19 @@ describe('computeBalanceSheet', () => {
     // balanced: 1_190_000 === 1_190_000
     expect(result.balanced).toBe(true)
   })
+
+  it('reporta balanced=false cuando activo no cuadra con pasivo+patrimonio+utilidad', async () => {
+    // Solo activo, sin pasivo ni ingresos que compensen
+    mockGroupBy
+      .mockResolvedValueOnce([
+        { accountId: 'acc-clientes', _sum: { debit: 500_000, credit: 0 } },
+      ])
+      .mockResolvedValueOnce([]) // sin INGRESO/COSTO/GASTO en el año
+
+    const result = await computeBalanceSheet(COMPANY, new Date('2026-03-31'))
+
+    expect(result.balanced).toBe(false)
+    expect(result.activo.total).toBeGreaterThan(0)
+    expect(result.totalPasivoPatrimonio).toBe(0) // sin pasivo, sin patrimonio, sin utilidad
+  })
 })
