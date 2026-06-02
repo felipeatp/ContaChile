@@ -8,6 +8,7 @@ export interface ChatMessage {
   content: string
   isStreaming?: boolean
   toolStatus?: { name: string; running: boolean }
+  timestamp?: string
 }
 
 interface ConversationSummary {
@@ -41,6 +42,7 @@ async function loadConversationMessages(id: string): Promise<ChatMessage[]> {
       id: crypto.randomUUID(),
       role: m.role as 'user' | 'assistant',
       content: m.content,
+      timestamp: m.timestamp,
     }))
   } catch {
     return []
@@ -174,6 +176,7 @@ export function useConsultor() {
       id: crypto.randomUUID(),
       role: 'user',
       content: userText.trim(),
+      timestamp: new Date().toISOString(),
     }
 
     const assistantId = crypto.randomUUID()
@@ -182,6 +185,7 @@ export function useConsultor() {
       role: 'assistant',
       content: '',
       isStreaming: true,
+      timestamp: new Date().toISOString(),
     }
 
     setMessages((prev) => [...prev, userMsg, assistantMsg])
@@ -354,6 +358,16 @@ export function useConsultor() {
     )
   }, [])
 
+  const loadConversation = useCallback(async (id: string) => {
+    if (isLoading) return
+    const msgs = await loadConversationMessages(id)
+    if (msgs.length > 0) {
+      setMessages(msgs)
+      setCurrentConversationId(id)
+      setError(null)
+    }
+  }, [isLoading])
+
   return {
     messages,
     isLoading,
@@ -364,5 +378,6 @@ export function useConsultor() {
     sendMessage,
     clearMessages,
     stopStreaming,
+    loadConversation,
   }
 }
