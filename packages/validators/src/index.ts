@@ -100,3 +100,5 @@ export type {
   InventoryProductListQuery,
   InventoryMovementListQuery,
 } from './inventory'
+export { BankMovementListSchema } from './bank'
+export type { BankMovementListQuery } from './bank'

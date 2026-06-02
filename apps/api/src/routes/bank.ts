@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '@contachile/db'
 import { clasificarTransaccion } from '@contachile/ai-agents'
+import { BankMovementListSchema } from '@contachile/validators'
 import {
   syncBankAccounts,
   syncMovements,
@@ -104,15 +105,19 @@ export default async function (fastify: FastifyInstance) {
 
   fastify.get('/bank/movements', async (request, reply) => {
     const companyId = request.companyId
-    const query = request.query as { status?: string; from?: string; to?: string; bankAccountId?: string }
+    const parsed = BankMovementListSchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Parámetros inválidos', issues: parsed.error.issues })
+    }
+    const { status, bankAccountId, from, to } = parsed.data
 
     const where: Record<string, unknown> = { companyId }
-    if (query.status) where.status = query.status
-    if (query.bankAccountId) where.bankAccountId = query.bankAccountId
-    if (query.from || query.to) {
+    if (status) where.status = status
+    if (bankAccountId) where.bankAccountId = bankAccountId
+    if (from || to) {
       const range: Record<string, Date> = {}
-      if (query.from) range.gte = new Date(query.from)
-      if (query.to) range.lte = new Date(query.to + 'T23:59:59')
+      if (from) range.gte = new Date(from)
+      if (to) range.lte = new Date(to + 'T23:59:59')
       where.postedAt = range
     }
 
