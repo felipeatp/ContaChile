@@ -103,11 +103,14 @@ describe('calcularLiquidacion', () => {
         utmValue: 67_000,
       })
       // afp=507_150, salud=315_000, cesantia=27_000
-      // baseImponible=3_650_850; baseInUtm=54.49 → tramo 4
-      expect(r.impuesto).toBeGreaterThan(0)
-      const baseInUtm = r.baseImponible / 67_000
-      expect(baseInUtm).toBeGreaterThan(50)
-      expect(baseInUtm).toBeLessThanOrEqual(70)
+      // baseImponible=3_650_850; baseInUtm=54.4903 → tramo 4
+      // taxInUtm = 54.4903 * 0.135 - 4.49 = 2.8656... → round(2.8656 * 67_000) = 192_035
+      expect(r.afp).toBe(507_150)
+      expect(r.salud).toBe(315_000)
+      expect(r.cesantia).toBe(27_000)
+      expect(r.baseImponible).toBe(3_650_850)
+      expect(r.impuesto).toBe(192_035)
+      expect(r.liquido).toBe(3_458_815)
     })
 
     // Tramo 5: 70 < baseInUtm <= 90 → 23%, deducción 11.14
@@ -119,10 +122,15 @@ describe('calcularLiquidacion', () => {
         contractType: 'INDEFINIDO',
         utmValue: 67_000,
       })
-      const baseInUtm = r.baseImponible / 67_000
-      expect(baseInUtm).toBeGreaterThan(70)
-      expect(baseInUtm).toBeLessThanOrEqual(90)
-      expect(r.impuesto).toBeGreaterThan(0)
+      // afp=676_200, salud=420_000, cesantia=36_000
+      // baseImponible=4_867_800; baseInUtm=72.6537 → tramo 5
+      // taxInUtm = 72.6537 * 0.23 - 11.14 = 5.5681... → round(5.5681 * 67_000) = 373_214
+      expect(r.afp).toBe(676_200)
+      expect(r.salud).toBe(420_000)
+      expect(r.cesantia).toBe(36_000)
+      expect(r.baseImponible).toBe(4_867_800)
+      expect(r.impuesto).toBe(373_214)
+      expect(r.liquido).toBe(4_494_586)
     })
   })
 
