@@ -23,7 +23,8 @@ export default async function (fastify: FastifyInstance) {
     if (!parsed.success) {
       return reply.code(400).send({ error: 'Parámetros inválidos', issues: parsed.error.issues })
     }
-    const { status, from, to } = parsed.data
+    const { status, from, to, page, limit } = parsed.data
+    const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = { companyId }
     if (status) where.status = status
@@ -34,13 +35,18 @@ export default async function (fastify: FastifyInstance) {
       where.date = range
     }
 
-    const quotes = await prisma.quote.findMany({
-      where,
-      orderBy: { date: 'desc' },
-      include: { items: true },
-    })
+    const [quotes, total] = await Promise.all([
+      prisma.quote.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit,
+        include: { items: true },
+      }),
+      prisma.quote.count({ where }),
+    ])
 
-    return reply.send({ quotes })
+    return reply.send({ quotes, total, page, limit })
   })
 
   fastify.get('/quotes/:id', async (request, reply) => {
