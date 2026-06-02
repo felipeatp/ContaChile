@@ -115,9 +115,10 @@ describe('generatePayrollForMonth', () => {
       makeEmployee({ id: 'emp-ok' }),
       makeEmployee({ id: 'emp-fail' }),
     ])
-    mockPayrollCreate
-      .mockResolvedValueOnce({ id: 'pay-1' })
-      .mockRejectedValueOnce(new Error('DB constraint'))
+    mockPayrollCreate.mockImplementation(({ data }: { data: { employeeId: string } }) => {
+      if (data.employeeId === 'emp-fail') return Promise.reject(new Error('DB constraint'))
+      return Promise.resolve({ id: 'pay-1' })
+    })
 
     const result = await generatePayrollForMonth(COMPANY, 2026, 5)
 
