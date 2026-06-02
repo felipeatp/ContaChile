@@ -81,6 +81,9 @@ importers:
       '@types/pdfkit':
         specifier: ^0.17.6
         version: 0.17.6
+      '@vitest/coverage-v8':
+        specifier: ^1.6.0
+        version: 1.6.0(vitest@1.6.1)
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
