@@ -143,4 +143,62 @@ describe('T-4.3 — Folio counter: unicidad bajo carga concurrente', () => {
     // El viejo folioCounter.findUnique no debe existir en el mock
     expect(mockPrisma.folioCounter).toBeUndefined()
   })
+
+  it('10 requests concurrentes: cada uno obtiene un folio único de $queryRaw', async () => {
+    let seq = 0
+
+    mockPrisma.$queryRaw.mockClear()
+    mockPrisma.document.create.mockClear()
+    mockPrisma.company.findUnique.mockResolvedValue(MOCK_COMPANY)
+    mockPrisma.document.findUnique.mockResolvedValue(null)
+    mockPrisma.documentItem.findMany.mockResolvedValue([])
+    mockPrisma.$queryRaw.mockImplementation(async () => {
+      seq++
+      return [{ folio: BigInt(seq) }]
+    })
+    mockPrisma.document.create.mockImplementation(async (args: any) => ({
+      id: `doc-${seq}`,
+      type: args.data.type ?? 33,
+      folio: args.data.folio ?? seq,
+      status: 'PENDING',
+      trackId: `SII-${Date.now()}`,
+      emittedAt: new Date(),
+      receiverEmail: null,
+      companyId: 'company-concurrent',
+    }))
+
+    const app = Fastify()
+    app.register(tenantPlugin)
+    app.register(emitRoute)
+    await app.ready()
+
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () =>
+        app.inject({
+          method: 'POST',
+          url: '/dte/emit',
+          headers: { 'x-company-id': 'company-concurrent' },
+          payload: PAYLOAD,
+        })
+      )
+    )
+
+    // Todos los requests deben tener éxito
+    for (const r of results) {
+      expect(
+        r.statusCode,
+        `Request falló (${r.statusCode}): ${r.body.substring(0, 200)}`
+      ).toBe(201)
+    }
+
+    // $queryRaw se llamó exactamente una vez por request
+    expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(10)
+
+    // Los folios asignados deben ser todos distintos
+    const createArgs = mockPrisma.document.create.mock.calls.map(
+      (c: any[]) => c[0].data.folio as number
+    )
+    const uniqueFolios = new Set(createArgs)
+    expect(uniqueFolios.size).toBe(10)
+  })
 })
