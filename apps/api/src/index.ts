@@ -13,6 +13,7 @@ import tenantPlugin from './plugins/tenant'
 import emitRoute from './routes/dte/emit'
 import emitBridgeRoute from './routes/dte/emit-bridge'
 import documentsRoute from './routes/dte/documents'
+import reSignRoute from './routes/dte/re-sign'
 import pdfRoute from './routes/dte/pdf'
 import xmlRoute from './routes/dte/xml'
 import envioDteRoute from './routes/dte/envio-dte'
@@ -119,6 +120,7 @@ app.register(async (instance) => {
 })
 
 app.register(documentsRoute)
+app.register(reSignRoute)
 app.register(pdfRoute)
 app.register(xmlRoute)
 app.register(envioDteRoute)
