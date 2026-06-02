@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Field } from "@/components/ui/field"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AlertCircle, CheckCircle2, Loader2, Trash2, Plus, Send, Building2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Trash2, Plus, Send, Building2 } from "lucide-react"
+import { validateRUT } from "@ContAI/validators"
+import { EmitPreviewModal, type PreviewData } from "./emit-preview-modal"
 
 const DTE_TYPES = [
   { value: 33, label: "Factura electrónica", desc: "Venta de bienes o servicios" },
@@ -70,6 +72,10 @@ export function EmitForm() {
     control: form.control,
     name: "items",
   })
+
+  const [showPreview, setShowPreview] = useState(false)
+  const [pendingData, setPendingData] = useState<ReturnType<typeof form.getValues> | null>(null)
+  const [rutValid, setRutValid] = useState<boolean | null>(null)
 
   const items = form.watch("items")
   const rutValue = form.watch("receiver.rut")
@@ -178,11 +184,43 @@ export function EmitForm() {
     return () => clearTimeout(timer)
   }, [rutValue])
 
+  useEffect(() => {
+    if (!rutValue || rutValue.length < 7) {
+      setRutValid(null)
+      return
+    }
+    const timer = setTimeout(() => {
+      const cleanRut = rutValue.replace(/[\.\-]/g, '')
+      if (cleanRut.length >= 7) setRutValid(validateRUT(rutValue))
+      else setRutValid(null)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [rutValue])
+
   const onSubmit = form.handleSubmit((data) => {
+    setPendingData(data)
+    setShowPreview(true)
+  })
+
+  const handleConfirmEmit = () => {
+    if (!pendingData) return
     const idempotencyKey = crypto.randomUUID()
     const emit = mode === "direct" ? emitDirect : emitBridge
-    emit.mutate({ body: data, idempotencyKey })
-  })
+    emit.mutate({ body: pendingData, idempotencyKey })
+    setShowPreview(false)
+  }
+
+  function mapSIIError(msg: string): string {
+    const m = msg.toLowerCase()
+    if (m.includes('certificado') || m.includes('cert')) return 'Tu certificado digital no está configurado. Ve a Configuración → Certificado para subirlo.'
+    if (m.includes('rut') && m.includes('receptor')) return 'El RUT del receptor es inválido. Verifica que el número y dígito verificador sean correctos.'
+    if (m.includes('folio')) return 'El número de folio ya fue usado o venció. Intenta emitir de nuevo.'
+    if (m.includes('rate limit') || m.includes('429')) return 'El sistema está ocupado. Espera unos segundos e intenta de nuevo.'
+    if (m.includes('timeout') || m.includes('timed out')) return 'El envío al SII tardó demasiado. El documento puede haberse emitido — revisa en Documentos antes de reintentar.'
+    if (m.includes('conexion') || m.includes('network') || m.includes('fetch')) return 'Sin conexión con el SII. Verifica tu internet e intenta de nuevo.'
+    if (m.includes('actividad económica') || m.includes('giro')) return 'Tu empresa no tiene la actividad económica configurada. Ve a Configuración para completarla.'
+    return `Error al emitir: ${msg}`
+  }
 
   const isPending = emitDirect.isPending || emitBridge.isPending
   const isSuccess = emitDirect.isSuccess || emitBridge.isSuccess
@@ -272,6 +310,12 @@ export function EmitForm() {
               />
               {suggestionsLoading && (
                 <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
+              {!suggestionsLoading && rutValid === true && (
+                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sage pointer-events-none" aria-hidden="true" />
+              )}
+              {!suggestionsLoading && rutValid === false && (
+                <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive pointer-events-none" aria-hidden="true" />
               )}
               {showSuggestions && receiverSuggestions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full rounded-sm border border-border bg-card shadow-lg">
@@ -427,11 +471,28 @@ export function EmitForm() {
           </p>
         </div>
       )}
-      {isError && (
+      {isError && error && (
         <div className="flex items-center gap-3 rounded-sm border border-destructive/40 bg-destructive/5 p-4 text-destructive">
           <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">Error al emitir: {error?.message}</p>
+          <p className="text-sm">{mapSIIError(error.message)}</p>
         </div>
+      )}
+
+      {pendingData && (
+        <EmitPreviewModal
+          open={showPreview}
+          data={{
+            type: pendingData.type,
+            receiver: pendingData.receiver,
+            items: pendingData.items,
+            totals,
+            paymentMethod: pendingData.paymentMethod ?? "CONTADO",
+            mode,
+          }}
+          isPending={isPending}
+          onConfirm={handleConfirmEmit}
+          onCancel={() => setShowPreview(false)}
+        />
       )}
     </form>
   )
