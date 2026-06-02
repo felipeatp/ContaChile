@@ -28,6 +28,8 @@ export default async function (fastify: FastifyInstance) {
       to?: string
       type?: string
       search?: string
+      sort?: string
+      order?: string
     }
     const where: Record<string, unknown> = { companyId }
 
@@ -64,10 +66,17 @@ export default async function (fastify: FastifyInstance) {
     const limit = parseInt(query.limit || '20', 10)
     const skip = (page - 1) * limit
 
+    const ALLOWED_SORT_FIELDS = ['emittedAt', 'totalAmount', 'status', 'folio'] as const
+    type SortField = (typeof ALLOWED_SORT_FIELDS)[number]
+    const sortField: SortField = ALLOWED_SORT_FIELDS.includes(query.sort as SortField)
+      ? (query.sort as SortField)
+      : 'emittedAt'
+    const sortOrder = query.order === 'asc' ? 'asc' : 'desc'
+
     const [documents, total] = await Promise.all([
       prisma.document.findMany({
         where,
-        orderBy: { emittedAt: 'desc' },
+        orderBy: { [sortField]: sortOrder },
         skip,
         take: limit,
       }),

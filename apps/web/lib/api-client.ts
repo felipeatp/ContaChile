@@ -18,7 +18,7 @@ async function apiClient<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T
 }
 
-export function getDocuments(params?: { status?: string; page?: number; limit?: number; from?: string; to?: string; type?: number; search?: string }): Promise<DocumentsResponse> {
+export function getDocuments(params?: { status?: string; page?: number; limit?: number; from?: string; to?: string; type?: number; search?: string; sort?: string; order?: 'asc' | 'desc' }): Promise<DocumentsResponse> {
   const search = new URLSearchParams()
   if (params?.status) search.set('status', params.status)
   if (params?.page) search.set('page', String(params.page))
@@ -27,6 +27,8 @@ export function getDocuments(params?: { status?: string; page?: number; limit?: 
   if (params?.to) search.set('to', params.to)
   if (params?.type) search.set('type', String(params.type))
   if (params?.search) search.set('search', params.search)
+  if (params?.sort) search.set('sort', params.sort)
+  if (params?.order) search.set('order', params.order)
   const query = search.toString()
   return apiClient(`/documents${query ? `?${query}` : ''}`)
 }

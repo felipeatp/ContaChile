@@ -5,12 +5,41 @@ import { toast } from "sonner"
 import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
-import { FileCode2, Download, RefreshCw } from "lucide-react"
+import { FileCode2, Download, RefreshCw, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 import { formatCLP } from "@ContAI/validators"
 
 interface DocumentTableProps {
   documents: Document[]
   onRetried?: (id: string) => void
+  sort?: string
+  order?: 'asc' | 'desc'
+  onSort?: (field: string) => void
+}
+
+function SortIcon({ field, currentSort, currentOrder }: { field: string; currentSort?: string; currentOrder?: 'asc' | 'desc' }) {
+  if (currentSort !== field) return <ChevronsUpDown className="inline h-3 w-3 ml-1 text-muted-foreground/40" />
+  return currentOrder === 'asc'
+    ? <ChevronUp className="inline h-3 w-3 ml-1 text-primary" />
+    : <ChevronDown className="inline h-3 w-3 ml-1 text-primary" />
+}
+
+function SortableHeader({ field, label, currentSort, currentOrder, onSort }: {
+  field: string
+  label: string
+  currentSort?: string
+  currentOrder?: 'asc' | 'desc'
+  onSort?: (field: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      className="flex items-center gap-0.5 hover:text-foreground transition-colors"
+      onClick={() => onSort?.(field)}
+    >
+      {label}
+      <SortIcon field={field} currentSort={currentSort} currentOrder={currentOrder} />
+    </button>
+  )
 }
 
 function handleDownloadXML(doc: Document) {
@@ -66,16 +95,12 @@ function handleDownloadPDF(doc: Document) {
     .catch(() => toast.error("Error al descargar el PDF"))
 }
 
-export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
+export function DocumentTable({ documents, onRetried, sort, order, onSort }: DocumentTableProps) {
   if (documents.length === 0) {
     return (
       <div className="card-editorial p-12 text-center">
-        <p className="font-display text-lg text-muted-foreground mb-1">
-          Sin documentos
-        </p>
-        <p className="text-xs text-muted-foreground/70">
-          Ajusta los filtros o emite tu primer DTE.
-        </p>
+        <p className="font-display text-lg text-muted-foreground mb-1">Sin documentos</p>
+        <p className="text-xs text-muted-foreground/70">Ajusta los filtros o emite tu primer DTE.</p>
       </div>
     )
   }
@@ -86,12 +111,20 @@ export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
         <table className="table-editorial">
           <thead>
             <tr>
-              <th>Folio</th>
-              <th>Tipo</th>
+              <th>
+                <SortableHeader field="folio" label="Folio" currentSort={sort} currentOrder={order} onSort={onSort} />
+              </th>
+              <th className="hidden md:table-cell">Tipo</th>
               <th>Receptor</th>
-              <th data-numeric="true">Total</th>
-              <th>Estado</th>
-              <th>Fecha</th>
+              <th data-numeric="true">
+                <SortableHeader field="totalAmount" label="Total" currentSort={sort} currentOrder={order} onSort={onSort} />
+              </th>
+              <th>
+                <SortableHeader field="status" label="Estado" currentSort={sort} currentOrder={order} onSort={onSort} />
+              </th>
+              <th className="hidden sm:table-cell">
+                <SortableHeader field="emittedAt" label="Fecha" currentSort={sort} currentOrder={order} onSort={onSort} />
+              </th>
               <th></th>
             </tr>
           </thead>
@@ -99,22 +132,15 @@ export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
             {documents.map((doc) => (
               <tr key={doc.id}>
                 <td className="font-mono">
-                  <Link
-                    href={`/documents/${doc.id}`}
-                    className="font-medium underline-offset-4 hover:underline"
-                  >
+                  <Link href={`/documents/${doc.id}`} className="font-medium underline-offset-4 hover:underline">
                     {doc.folio}
                   </Link>
                 </td>
-                <td className="text-muted-foreground">{doc.type}</td>
-                <td>{doc.receiverName}</td>
-                <td data-numeric="true" className="font-semibold">
-                  {formatCLP(doc.totalAmount)}
-                </td>
-                <td>
-                  <StatusBadge status={doc.status} />
-                </td>
-                <td className="font-mono text-xs text-muted-foreground">
+                <td className="text-muted-foreground hidden md:table-cell">{doc.type}</td>
+                <td className="max-w-[140px] truncate">{doc.receiverName}</td>
+                <td data-numeric="true" className="font-semibold">{formatCLP(doc.totalAmount)}</td>
+                <td><StatusBadge status={doc.status} /></td>
+                <td className="font-mono text-xs text-muted-foreground hidden sm:table-cell">
                   {new Date(doc.emittedAt).toLocaleDateString("es-CL")}
                 </td>
                 <td className="text-right">
@@ -131,22 +157,10 @@ export function DocumentTable({ documents, onRetried }: DocumentTableProps) {
                         Reintentar
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      title="Descargar XML"
-                      onClick={() => handleDownloadXML(doc)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar XML" onClick={() => handleDownloadXML(doc)}>
                       <FileCode2 className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      title="Descargar PDF"
-                      onClick={() => handleDownloadPDF(doc)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar PDF" onClick={() => handleDownloadPDF(doc)}>
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>

@@ -36,7 +36,19 @@ export default function DocumentsPage() {
   const [to, setTo] = useState<string>("")
   const [search, setSearch] = useState<string>("")
   const [page, setPage] = useState<number>(1)
-  const limit = 20
+  const [limit, setLimit] = useState<number>(25)
+  const [sort, setSort] = useState<string>("emittedAt")
+  const [order, setOrder] = useState<"asc" | "desc">("desc")
+
+  function handleSort(field: string) {
+    if (sort === field) {
+      setOrder((o) => (o === "asc" ? "desc" : "asc"))
+    } else {
+      setSort(field)
+      setOrder("desc")
+    }
+    setPage(1)
+  }
 
   const { data, isLoading } = useDocuments({
     status: status || undefined,
@@ -46,6 +58,8 @@ export default function DocumentsPage() {
     search: search || undefined,
     page,
     limit,
+    sort,
+    order,
   })
 
   const [envioLoading, setEnvioLoading] = useState(false)
@@ -127,7 +141,7 @@ export default function DocumentsPage() {
         <div className="flex items-center justify-between mb-3">
           <span className="eyebrow">Filtros</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
           <div>
             <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Estado</label>
             <select
@@ -180,6 +194,18 @@ export default function DocumentsPage() {
               />
             </div>
           </div>
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-eyebrow font-semibold text-muted-foreground/80 mb-1 block">Por página</label>
+            <select
+              value={limit}
+              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1) }}
+              className="h-10 w-full px-3 text-sm"
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
       </section>
 
@@ -189,7 +215,12 @@ export default function DocumentsPage() {
         </div>
       ) : (
         <>
-          <DocumentTable documents={data?.documents || []} />
+          <DocumentTable
+            documents={data?.documents || []}
+            sort={sort}
+            order={order}
+            onSort={handleSort}
+          />
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
