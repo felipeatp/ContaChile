@@ -90,9 +90,13 @@ export {
   CreateProductSchema,
   UpdateProductSchema,
   InventoryMovementSchema,
+  InventoryProductListSchema,
+  InventoryMovementListSchema,
 } from './inventory'
 export type {
   CreateProductInput,
   UpdateProductInput,
   InventoryMovementInput,
+  InventoryProductListQuery,
+  InventoryMovementListQuery,
 } from './inventory'

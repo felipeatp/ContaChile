@@ -4,13 +4,20 @@ import {
   CreateProductSchema,
   UpdateProductSchema,
   InventoryMovementSchema,
+  InventoryProductListSchema,
+  InventoryMovementListSchema,
 } from '@contachile/validators'
 import { recordInventoryMovement } from '../lib/inventory-service'
 
 export default async function (fastify: FastifyInstance) {
   fastify.get('/inventory/products', async (request, reply) => {
     const companyId = request.companyId
-    const { active, search } = request.query as { active?: string; search?: string }
+    const parsed = InventoryProductListSchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.code(400).send({ error: 'Parámetros inválidos', issues: parsed.error.issues })
+    }
+    const { active, search, page, limit } = parsed.data
+    const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = { companyId }
     if (active === 'true') where.isActive = true
@@ -22,11 +29,11 @@ export default async function (fastify: FastifyInstance) {
       ]
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { name: 'asc' },
-    })
-    return reply.send({ products })
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({ where, orderBy: { name: 'asc' }, skip, take: limit }),
+      prisma.product.count({ where }),
+    ])
+    return reply.send({ products, total, page, limit })
   })
 
   fastify.get('/inventory/products/:id', async (request, reply) => {
@@ -118,7 +125,12 @@ export default async function (fastify: FastifyInstance) {
   fastify.get('/inventory/movements/:productId', async (request, reply) => {
     const companyId = request.companyId
     const { productId } = request.params as { productId: string }
-    const { from, to } = request.query as { from?: string; to?: string }
+    const parsedQuery = InventoryMovementListSchema.safeParse(request.query)
+    if (!parsedQuery.success) {
+      return reply.code(400).send({ error: 'Parámetros inválidos', issues: parsedQuery.error.issues })
+    }
+    const { from, to, page, limit } = parsedQuery.data
+    const skip = (page - 1) * limit
 
     const product = await prisma.product.findFirst({ where: { id: productId, companyId } })
     if (!product) return reply.code(404).send({ error: 'Producto no encontrado' })
@@ -131,22 +143,23 @@ export default async function (fastify: FastifyInstance) {
       where.createdAt = range
     }
 
-    const movements = await prisma.inventoryMovement.findMany({
-      where,
-      orderBy: { createdAt: 'asc' },
-    })
+    const [movements, total] = await Promise.all([
+      prisma.inventoryMovement.findMany({
+        where,
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.inventoryMovement.count({ where }),
+    ])
 
     let runningStock = 0
     const kardex = movements.map((m) => {
       runningStock += m.type === 'IN' ? m.quantity : -m.quantity
-      return {
-        ...m,
-        balance: runningStock,
-        value: m.quantity * m.unitCost,
-      }
+      return { ...m, balance: runningStock, value: m.quantity * m.unitCost }
     })
 
-    return reply.send({ product, movements: kardex })
+    return reply.send({ product, movements: kardex, total, page, limit })
   })
 
   fastify.post('/inventory/movements', async (request, reply) => {

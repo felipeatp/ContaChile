@@ -36,3 +36,23 @@ export const InventoryMovementSchema = z.object({
 export type CreateProductInput = z.infer<typeof CreateProductSchema>
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>
 export type InventoryMovementInput = z.infer<typeof InventoryMovementSchema>
+
+const pageSchema = z.string().regex(/^\d+$/).default('1').transform(Number)
+const limitSchema = z.string().regex(/^\d+$/).default('50').transform(Number).pipe(z.number().max(100))
+
+export const InventoryProductListSchema = z.object({
+  active: z.enum(['true', 'false']).optional(),
+  search: z.string().max(100).optional(),
+  page: pageSchema,
+  limit: limitSchema,
+})
+
+export const InventoryMovementListSchema = z.object({
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  page: pageSchema,
+  limit: limitSchema,
+})
+
+export type InventoryProductListQuery = z.infer<typeof InventoryProductListSchema>
+export type InventoryMovementListQuery = z.infer<typeof InventoryMovementListSchema>
