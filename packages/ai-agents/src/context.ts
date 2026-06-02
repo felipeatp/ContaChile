@@ -1,4 +1,24 @@
+import Redis from 'ioredis'
 import { prisma } from '@contachile/db'
+
+const CACHE_TTL_SECONDS = 300
+
+function getRedisClient(): Redis | null {
+  try {
+    if (process.env.REDIS_URL) {
+      return new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: 1, enableReadyCheck: false, lazyConnect: true })
+    }
+    return new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      maxRetriesPerRequest: 1,
+      enableReadyCheck: false,
+      lazyConnect: true,
+    })
+  } catch {
+    return null
+  }
+}
 
 const MONTHS_ES = [
   'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -63,7 +83,7 @@ function buildObligations(today: Date): string[] {
  * Si alguna query falla, retorna un snapshot mínimo (solo fecha) sin
  * bloquear el chat. Diseñado para inyectarse en el system prompt del LLM.
  */
-export async function buildContextSnapshot(companyId: string): Promise<string> {
+async function buildContextSnapshotFresh(companyId: string): Promise<string> {
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfSameMonthLastYear = new Date(now.getFullYear() - 1, now.getMonth(), 1)
@@ -141,4 +161,35 @@ export async function buildContextSnapshot(companyId: string): Promise<string> {
   } catch (err) {
     return `## CONTEXTO\nHoy es ${formatLongDate(now)}.`
   }
+}
+
+export async function buildContextSnapshot(companyId: string): Promise<string> {
+  const redis = getRedisClient()
+  const cacheKey = `ctx:snapshot:${companyId}`
+
+  if (redis) {
+    try {
+      await redis.connect().catch(() => {})
+      const cached = await redis.get(cacheKey).catch(() => null)
+      if (cached) {
+        redis.disconnect()
+        return cached
+      }
+    } catch {
+      // Redis unavailable — proceed without cache
+    }
+  }
+
+  const snapshot = await buildContextSnapshotFresh(companyId)
+
+  if (redis) {
+    try {
+      await redis.set(cacheKey, snapshot, 'EX', CACHE_TTL_SECONDS).catch(() => {})
+      redis.disconnect()
+    } catch {
+      // ignore cache write failure
+    }
+  }
+
+  return snapshot
 }
