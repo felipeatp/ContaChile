@@ -95,7 +95,13 @@ describe('GET /f22 — cálculos tributarios anuales', () => {
     // PPM = 12 meses × floor(1_000_000 * 0.005) = 12 × 5_000 = 60_000
     mockDocumentAggregate.mockResolvedValue({ _sum: { totalAmount: 5_000_000 } })
     mockPurchaseAggregate.mockResolvedValue({ _sum: { totalAmount: 0 } })
-    mockDocumentFindMany.mockResolvedValue([{ totalAmount: 1_000_000 }])
+    // New query selects emittedAt too; provide one doc per month so PPM = 12 × 5_000 = 60_000
+    mockDocumentFindMany.mockResolvedValue(
+      Array.from({ length: 12 }, (_, i) => ({
+        emittedAt: new Date(2026, i, 15),
+        totalAmount: 1_000_000,
+      }))
+    )
 
     const app = buildApp()
     const res = await app.inject({ method: 'GET', url: '/f22?year=2026', headers })

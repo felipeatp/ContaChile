@@ -76,22 +76,17 @@ export default async function (fastify: FastifyInstance) {
     const rentaLiquida = Math.max(0, totalIngresos - totalCostos - totalGastos)
 
     // PPM aproximado: 0.5% de ingresos brutos mensuales del año
-    const ppmByMonth = await Promise.all(
-      Array.from({ length: 12 }, async (_, i) => {
-        const monthStart = new Date(year, i, 1)
-        const monthEnd = new Date(year, i + 1, 1)
-        const docs = await prisma.document.findMany({
-          where: {
-            companyId,
-            type: 33,
-            emittedAt: { gte: monthStart, lt: monthEnd },
-          },
-          select: { totalAmount: true },
-        })
-        const ingresosMes = docs.reduce((s, d) => s + d.totalAmount, 0)
-        return Math.floor(ingresosMes * 0.005)
-      })
-    )
+    // Single query: fetch all type-33 docs for the year, group by month in JS
+    const ppmDocs = await prisma.document.findMany({
+      where: { companyId, type: 33, emittedAt: { gte: start, lt: end } },
+      select: { emittedAt: true, totalAmount: true },
+    })
+    const ppmByMonth = Array.from({ length: 12 }, (_, i) => {
+      const ingresosMes = ppmDocs
+        .filter((d) => d.emittedAt.getMonth() === i)
+        .reduce((s, d) => s + d.totalAmount, 0)
+      return Math.floor(ingresosMes * 0.005)
+    })
     const ppmTotal = ppmByMonth.reduce((s, p) => s + p, 0)
 
     const impuesto = calcularImpuestoRenta(rentaLiquida)
