@@ -6,7 +6,7 @@ import { Document } from "@/types"
 import { StatusBadge } from "./status-badge"
 import { Button } from "@/components/ui/button"
 import { FileCode2, Download, RefreshCw, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 interface DocumentTableProps {
   documents: Document[]

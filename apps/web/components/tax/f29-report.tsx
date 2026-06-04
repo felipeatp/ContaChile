@@ -6,7 +6,7 @@ import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "@/components/ui/tooltip"
 import { Loader2, FileBarChart, Printer, Download } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export interface F29Data {
   period: { year: number; month: number }

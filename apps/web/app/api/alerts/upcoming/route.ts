@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
-import { findUpcomingDueDates } from '@ContAI/validators'
+import { findUpcomingDueDates } from '@contachile/validators'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

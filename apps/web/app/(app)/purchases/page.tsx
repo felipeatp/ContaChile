@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus, FileCode2, Upload } from "lucide-react"
-import { formatCLP, parseCLP } from "@ContAI/validators"
+import { formatCLP, parseCLP } from "@contachile/validators"
 import { RutField } from "@/components/forms/rut-field"
 
 interface Purchase {

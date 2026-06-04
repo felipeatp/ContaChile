@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer, FileBarChart, Sparkles } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export interface F22Line {
   code: string

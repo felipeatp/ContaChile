@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { EmitDocumentSchema, calcularIVA, calcularTotal, formatCLP } from "@ContAI/validators"
+import { EmitDocumentSchema, calcularIVA, calcularTotal, formatCLP } from "@contachile/validators"
 import { useEmitDocument, useEmitBridgeDocument } from "@/hooks/use-emit-document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Select } from "@/components/ui/select"
 import { Field } from "@/components/ui/field"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AlertCircle, CheckCircle2, XCircle, Loader2, Trash2, Plus, Send, Building2 } from "lucide-react"
-import { validateRUT } from "@ContAI/validators"
+import { validateRUT } from "@contachile/validators"
 import { EmitPreviewModal, type PreviewData } from "./emit-preview-modal"
 
 const DTE_TYPES = [
@@ -74,7 +74,8 @@ export function EmitForm() {
   })
 
   const [showPreview, setShowPreview] = useState(false)
-  const [pendingData, setPendingData] = useState<ReturnType<typeof form.getValues> | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pendingData, setPendingData] = useState<any>(null)
   const [rutValid, setRutValid] = useState<boolean | null>(null)
 
   const items = form.watch("items")

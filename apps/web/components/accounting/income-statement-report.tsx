@@ -4,7 +4,7 @@ import { Stat } from "@/components/ui/stat"
 import { RuleOrnament } from "@/components/ui/rule-ornament"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export type IncomeStatementAccountRow = { accountId: string; code: string; name: string; value: number }
 export type IncomeStatementSection = { total: number; rows: IncomeStatementAccountRow[] }

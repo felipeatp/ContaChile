@@ -3,7 +3,7 @@
 import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
 import { Loader2, Printer, AlertTriangle } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export type TrialBalanceRow = {
   accountId: string

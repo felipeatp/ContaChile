@@ -6,7 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
 import { Loader2, Play, FileDown, CheckCircle2 } from 'lucide-react'
-import { formatCLP } from '@ContAI/validators'
+import { formatCLP } from '@contachile/validators'
 
 type Payroll = {
   id: string

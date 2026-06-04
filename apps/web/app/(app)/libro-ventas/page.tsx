@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Stat } from "@/components/ui/stat"
 import { Button } from "@/components/ui/button"
 import { Printer, FileText, Download, Loader2 } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 interface DocumentItem {
   id: string

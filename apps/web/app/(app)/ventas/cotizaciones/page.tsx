@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
-import { formatCLP, parseCLP } from '@ContAI/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
 
 type Status = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'INVOICED' | 'EXPIRED'

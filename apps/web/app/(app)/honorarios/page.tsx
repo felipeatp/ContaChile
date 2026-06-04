@@ -6,7 +6,7 @@ import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, X, Trash2 } from 'lucide-react'
-import { formatCLP, parseCLP } from '@ContAI/validators'
+import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
 
 type HonorarioType = 'ISSUED' | 'RECEIVED'

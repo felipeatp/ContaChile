@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Stat } from "@/components/ui/stat"
 import { Loader2 } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export type LedgerAccount = { id: string; code: string; name: string; type: string }
 

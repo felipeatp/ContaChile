@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Loader2, Sparkles } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 export type ReconcileAccount = { id: string; code: string; name: string; type: string; isActive: boolean }
 

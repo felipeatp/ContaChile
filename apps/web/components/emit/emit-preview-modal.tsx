@@ -3,7 +3,7 @@
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 
 const DTE_TYPE_LABELS: Record<number, string> = {
   33: "Factura electrónica",

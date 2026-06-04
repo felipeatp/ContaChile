@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus } from "lucide-react"
-import { formatCLP } from "@ContAI/validators"
+import { formatCLP } from "@contachile/validators"
 import type { JournalEntry } from "./journal-entry-modal"
 
 export type { JournalEntry, JournalLine } from "./journal-entry-modal"
