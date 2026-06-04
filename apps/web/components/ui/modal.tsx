@@ -48,6 +48,20 @@ interface ModalProps {
   children: React.ReactNode
 }
 
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  const selectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ]
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(selectors.join(","))
+  ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null)
+}
+
 export function Modal({
   open,
   onClose,
@@ -60,19 +74,68 @@ export function Modal({
   dismissOnBackdrop = true,
   children,
 }: ModalProps) {
-  // ESC para cerrar
+  const panelRef = React.useRef<HTMLDivElement>(null)
+  const previousFocusRef = React.useRef<HTMLElement | null>(null)
+
+  // ESC para cerrar + body scroll lock + focus management
   React.useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    document.addEventListener("keydown", onKey)
+
+    // Guardar foco previo
+    previousFocusRef.current = document.activeElement as HTMLElement
+
     // Lock body scroll
     const prev = document.body.style.overflow
     document.body.style.overflow = "hidden"
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose()
+        return
+      }
+      if (e.key !== "Tab" || !panelRef.current) return
+
+      const focusables = getFocusableElements(panelRef.current)
+      if (focusables.length === 0) {
+        e.preventDefault()
+        return
+      }
+
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKey)
+
+    // Mover foco al primer elemento focusable o al panel
+    requestAnimationFrame(() => {
+      if (panelRef.current) {
+        const focusables = getFocusableElements(panelRef.current)
+        if (focusables.length > 0) {
+          focusables[0].focus()
+        } else {
+          panelRef.current.focus()
+        }
+      }
+    })
+
     return () => {
       document.removeEventListener("keydown", onKey)
       document.body.style.overflow = prev
+      // Restaurar foco
+      previousFocusRef.current?.focus()
     }
   }, [open, onClose])
 
@@ -98,12 +161,14 @@ export function Modal({
 
           {/* Panel */}
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
+            tabIndex={-1}
             className={cn(
               "relative w-full rounded-sm border border-border bg-paper",
               "shadow-[0_32px_80px_-16px_hsl(var(--ink)/0.4)]",
-              "max-h-[90vh] flex flex-col",
+              "max-h-[90vh] flex flex-col outline-none",
               sizeMap[size]
             )}
             initial={{ opacity: 0, y: 12, scale: 0.98 }}

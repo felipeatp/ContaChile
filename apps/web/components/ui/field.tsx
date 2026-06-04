@@ -36,6 +36,19 @@ export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
 )
 Label.displayName = "Label"
 
+/* ── Field context for aria-describedby wiring ── */
+
+interface FieldContextValue {
+  errorId?: string
+  hasError?: boolean
+}
+
+const FieldContext = React.createContext<FieldContextValue>({})
+
+export function useFieldContext(): FieldContextValue {
+  return React.useContext(FieldContext)
+}
+
 /**
  * Field wraps a label + input + optional error/hint in editorial style.
  *
@@ -60,17 +73,24 @@ export function Field({
   className,
   children,
 }: FieldProps) {
+  const id = React.useId()
+  const errorId = error ? `${id}-error` : undefined
+
   return (
-    <div className={cn("space-y-0", className)}>
-      {label && (
-        <Label hint={hint} required={required}>
-          {label}
-        </Label>
-      )}
-      {children}
-      {error && (
-        <p className="mt-1.5 text-xs text-destructive">{error}</p>
-      )}
-    </div>
+    <FieldContext.Provider value={{ errorId, hasError: !!error }}>
+      <div className={cn("space-y-0", className)}>
+        {label && (
+          <Label hint={hint} required={required}>
+            {label}
+          </Label>
+        )}
+        {children}
+        {error && (
+          <p id={errorId} className="mt-1.5 text-xs text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </FieldContext.Provider>
   )
 }

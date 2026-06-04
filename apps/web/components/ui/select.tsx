@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useFieldContext } from "./field"
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
 
@@ -12,7 +13,11 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
  * </Select>
  */
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, ...props }, ref) => {
+  ({ className, children, "aria-describedby": ariaDescribedBy, "aria-invalid": ariaInvalid, ...props }, ref) => {
+    const field = useFieldContext()
+    const mergedDescribedBy = [field.errorId, ariaDescribedBy].filter(Boolean).join(" ") || undefined
+    const mergedInvalid = ariaInvalid ?? (field.hasError ? "true" : undefined)
+
     return (
       <select
         className={cn(
@@ -26,6 +31,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           className
         )}
         ref={ref}
+        aria-describedby={mergedDescribedBy}
+        aria-invalid={mergedInvalid}
         {...props}
       >
         {children}

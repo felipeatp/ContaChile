@@ -1,11 +1,16 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { useFieldContext } from "./field"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, "aria-describedby": ariaDescribedBy, "aria-invalid": ariaInvalid, ...props }, ref) => {
+    const field = useFieldContext()
+    const mergedDescribedBy = [field.errorId, ariaDescribedBy].filter(Boolean).join(" ") || undefined
+    const mergedInvalid = ariaInvalid ?? (field.hasError ? "true" : undefined)
+
     return (
       <input
         type={type}
@@ -22,6 +27,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className
         )}
         ref={ref}
+        aria-describedby={mergedDescribedBy}
+        aria-invalid={mergedInvalid}
         {...props}
       />
     )

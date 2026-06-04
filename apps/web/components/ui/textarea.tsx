@@ -1,10 +1,15 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useFieldContext } from "./field"
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, "aria-describedby": ariaDescribedBy, "aria-invalid": ariaInvalid, ...props }, ref) => {
+    const field = useFieldContext()
+    const mergedDescribedBy = [field.errorId, ariaDescribedBy].filter(Boolean).join(" ") || undefined
+    const mergedInvalid = ariaInvalid ?? (field.hasError ? "true" : undefined)
+
     return (
       <textarea
         className={cn(
@@ -16,6 +21,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           className
         )}
         ref={ref}
+        aria-describedby={mergedDescribedBy}
+        aria-invalid={mergedInvalid}
         {...props}
       />
     )
