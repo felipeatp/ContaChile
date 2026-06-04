@@ -41,6 +41,7 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@opennextjs/cloudflare": "^1.19.11",
     "@playwright/test": "^1.60.0",
