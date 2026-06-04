@@ -9,16 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-function getPasswordStrength(password: string) {
-  let score = 0
-  if (password.length >= 8) score++
-  if (/[A-Z]/.test(password)) score++
-  if (/[0-9]/.test(password)) score++
-  if (/[^A-Za-z0-9]/.test(password)) score++
-  const labels = ['Muy corta', 'Débil', 'Regular', 'Buena', 'Fuerte']
-  const colors = ['bg-muted-foreground/20', 'bg-destructive', 'bg-ochre', 'bg-sage', 'bg-sage']
-  return { score, label: labels[score], color: colors[score] }
-}
+import { getPasswordStrength } from "@/lib/password-strength"
 
 export default function SignUpClient() {
   const router = useRouter()

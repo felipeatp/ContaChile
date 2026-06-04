@@ -59,7 +59,13 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   ]
   return Array.from(
     container.querySelectorAll<HTMLElement>(selectors.join(","))
-  ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null)
+  ).filter(
+    (el) =>
+      !el.hasAttribute("disabled") &&
+      !el.hasAttribute("hidden") &&
+      el.style.display !== "none" &&
+      el.style.visibility !== "hidden"
+  )
 }
 
 export function Modal({
