@@ -61,7 +61,7 @@ export default async function DashboardPage() {
                 })}
               </span>
             </div>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
               Estado de tu{" "}
               <em className="font-display font-medium not-italic text-primary">
                 operación tributaria

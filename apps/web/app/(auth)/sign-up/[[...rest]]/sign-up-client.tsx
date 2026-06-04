@@ -1,12 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signUp, signIn } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+function getPasswordStrength(password: string) {
+  let score = 0
+  if (password.length >= 8) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/[0-9]/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+  const labels = ['Muy corta', 'Débil', 'Regular', 'Buena', 'Fuerte']
+  const colors = ['bg-muted-foreground/20', 'bg-destructive', 'bg-ochre', 'bg-sage', 'bg-sage']
+  return { score, label: labels[score], color: colors[score] }
+}
 
 export default function SignUpClient() {
   const router = useRouter()
@@ -15,6 +27,7 @@ export default function SignUpClient() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const strength = useMemo(() => getPasswordStrength(password), [password])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -97,9 +110,29 @@ export default function SignUpClient() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={8}
+              aria-describedby="password-strength"
             />
+            {password.length > 0 && (
+              <div id="password-strength" className="space-y-1">
+                <div className="flex gap-1">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-1 flex-1 rounded-full transition-colors",
+                        i < strength.score ? strength.color : "bg-muted-foreground/20"
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="text-[0.65rem] text-muted-foreground">
+                  {strength.label} · Mínimo 8 caracteres, una mayúscula y un número
+                </p>
+              </div>
+            )}
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || strength.score < 3}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Crear cuenta
           </Button>

@@ -134,7 +134,7 @@ export default function SettingsPage() {
             {company?.siiCertified ? "Certificado SII" : "Pre-certificación"}
           </span>
         </div>
-        <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+        <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
           Datos de tu{' '}
           <em className="text-primary not-italic font-medium">empresa</em>
         </h2>

@@ -112,7 +112,7 @@ export default function AIPage() {
                 {liveCount} en operación · {agents.length} totales
               </span>
             </div>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+            <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
               Tu redacción{' '}
               <em className="text-primary not-italic font-medium">
                 contable inteligente
@@ -142,7 +142,7 @@ export default function AIPage() {
                 Al aire · ahora mismo
               </span>
             </div>
-            <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tightest mb-1">
+            <h3 className="font-display text-xl md:text-2xl font-semibold tracking-tightest mb-1">
               Consultor{' '}
               <em className="text-primary not-italic font-medium">
                 Tributario

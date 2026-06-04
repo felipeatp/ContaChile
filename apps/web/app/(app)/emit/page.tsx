@@ -9,7 +9,7 @@ export default function EmitPage() {
           <span className="h-px w-10 bg-foreground/20" />
           <span className="eyebrow text-muted-foreground/60">Factura · Boleta · Nota</span>
         </div>
-        <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+        <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
           Emitir{' '}
           <em className="text-primary not-italic font-medium">documento tributario</em>
         </h2>

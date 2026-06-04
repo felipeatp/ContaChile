@@ -107,7 +107,7 @@ export default function LiquidacionesPage() {
               {data?.payrolls.length ?? 0} ítems
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+          <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
             {MONTHS[month - 1]}{' '}
             <em className="text-primary not-italic font-medium">{year}</em>
           </h2>

@@ -84,7 +84,7 @@ export default function HonorariosPage() {
               Retención 13,75 %
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
+          <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
             Boletas{' '}
             <em className="text-primary not-italic font-medium">de honorarios</em>
           </h2>

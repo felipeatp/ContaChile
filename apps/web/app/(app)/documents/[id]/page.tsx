@@ -120,7 +120,7 @@ export default function DocumentDetailPage() {
               {typeLabel} · Tipo {doc.type}
             </span>
           </div>
-          <h2 className="font-display text-3xl md:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground flex items-baseline gap-3">
+          <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground flex items-baseline gap-3">
             Folio{' '}
             <em className="text-primary not-italic font-medium font-mono tabular-nums">{doc.folio}</em>
             <StatusBadge status={doc.status} />

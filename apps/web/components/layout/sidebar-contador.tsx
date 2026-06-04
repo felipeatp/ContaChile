@@ -117,7 +117,13 @@ function SidebarContent({ collapsed }: { collapsed: boolean }) {
 
       <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-5">
         {navSections.map((section, idx) => (
-          <div key={section.label ?? `top-${idx}`} className="space-y-0.5">
+          <div
+            key={section.label ?? `top-${idx}`}
+            className={cn(
+              "space-y-0.5",
+              collapsed && idx > 0 && "border-t border-border/40 pt-3"
+            )}
+          >
             {section.label && !collapsed && (
               <div className="px-3 pb-1 eyebrow !text-[0.62rem]">
                 {section.label}
