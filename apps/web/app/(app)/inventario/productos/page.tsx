@@ -169,7 +169,7 @@ export default function ProductosPage() {
                         </td>
                         <td className="text-right">
                           {p.isActive && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)}>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)} aria-label="Eliminar producto">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}

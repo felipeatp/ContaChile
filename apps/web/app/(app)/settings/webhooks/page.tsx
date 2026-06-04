@@ -144,7 +144,7 @@ export default function WebhooksPage() {
                   <Button size="sm" variant="ghost" onClick={() => toggleWebhook(wh.id, !wh.active)}>
                     {wh.active ? "Pausar" : "Activar"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => deleteWebhook(wh.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => deleteWebhook(wh.id)} aria-label="Eliminar webhook">
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>

@@ -157,10 +157,10 @@ export function DocumentTable({ documents, onRetried, sort, order, onSort }: Doc
                         Reintentar
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar XML" onClick={() => handleDownloadXML(doc)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar XML" aria-label="Descargar XML" onClick={() => handleDownloadXML(doc)}>
                       <FileCode2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar PDF" onClick={() => handleDownloadPDF(doc)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Descargar PDF" aria-label="Descargar PDF" onClick={() => handleDownloadPDF(doc)}>
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>

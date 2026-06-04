@@ -125,7 +125,7 @@ export function AccountTable({ onEdit }: { onEdit: (account: Account) => void })
                       </td>
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => onEdit(account)}>
+                          <Button variant="ghost" size="sm" onClick={() => onEdit(account)} aria-label="Editar cuenta">
                             <Pencil className="h-4 w-4" />
                           </Button>
                           {!account.isSystem && (
@@ -134,6 +134,7 @@ export function AccountTable({ onEdit }: { onEdit: (account: Account) => void })
                               size="sm"
                               onClick={() => del.mutate(account.id)}
                               disabled={del.isPending}
+                              aria-label="Eliminar cuenta"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>

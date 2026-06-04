@@ -159,7 +159,7 @@ export default function ApiKeysPage() {
                   </div>
                 </div>
                 {!key.revoked && (
-                  <Button size="sm" variant="ghost" onClick={() => revokeKey(key.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => revokeKey(key.id)} aria-label="Revocar API key">
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 )}

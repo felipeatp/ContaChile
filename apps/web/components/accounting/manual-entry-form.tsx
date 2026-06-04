@@ -187,7 +187,7 @@ export function ManualEntryForm({ accounts, onClose, onSaved }: ManualEntryFormP
                 </td>
                 <td className="text-right">
                   {lines.length > 2 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeLine(i)}>
+                    <Button variant="ghost" size="sm" onClick={() => removeLine(i)} aria-label="Eliminar línea">
                       <X className="h-4 w-4" />
                     </Button>
                   )}

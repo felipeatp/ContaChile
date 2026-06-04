@@ -188,11 +188,11 @@ export default function TrabajadoresPage() {
                     </td>
                     <td className="text-right">
                       <div className="flex gap-1 justify-end">
-                        <Button variant="ghost" size="sm" onClick={() => { setEditing(e); setFormOpen(true) }}>
+                        <Button variant="ghost" size="sm" onClick={() => { setEditing(e); setFormOpen(true) }} aria-label="Editar trabajador">
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         {e.isActive && (
-                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(e.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(e.id)} aria-label="Desactivar trabajador">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}

@@ -228,7 +228,7 @@ export default function HonorariosPage() {
                         {formatCLP(h.netAmount)}
                       </td>
                       <td className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(h.id)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(h.id)} aria-label="Eliminar boleta de honorarios">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </td>

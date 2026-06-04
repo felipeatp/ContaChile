@@ -342,6 +342,7 @@ export function ChatWidget() {
                 onClick={stopStreaming}
                 className="h-[38px] w-[38px] shrink-0"
                 title="Detener"
+                aria-label="Detener generación"
               >
                 <Square className="h-3.5 w-3.5" />
               </Button>
@@ -352,6 +353,7 @@ export function ChatWidget() {
                 disabled={!input.trim()}
                 className="h-[38px] w-[38px] shrink-0"
                 title="Enviar"
+                aria-label="Enviar mensaje"
               >
                 <Send className="h-3.5 w-3.5" />
               </Button>

@@ -268,6 +268,7 @@ export function BankReconciliationReport({
                                 disabled={busyId === m.id}
                                 onClick={() => onAction(m.id, "match-auto")}
                                 title="Buscar match con DTE/Compra"
+                                aria-label="Buscar match con DTE/Compra"
                               >
                                 <LinkIcon className="h-4 w-4" />
                               </Button>
@@ -277,6 +278,7 @@ export function BankReconciliationReport({
                                 disabled={busyId === m.id}
                                 onClick={() => onAction(m.id, "classify")}
                                 title="Sugerir con IA"
+                                aria-label="Sugerir con IA"
                               >
                                 <Sparkles className="h-4 w-4" />
                               </Button>
@@ -285,6 +287,7 @@ export function BankReconciliationReport({
                                 variant="ghost"
                                 onClick={() => onReconcile(m)}
                                 title="Conciliar"
+                                aria-label="Conciliar movimiento"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -294,6 +297,7 @@ export function BankReconciliationReport({
                                 disabled={busyId === m.id}
                                 onClick={() => onAction(m.id, "ignore")}
                                 title="Ignorar"
+                                aria-label="Ignorar movimiento"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

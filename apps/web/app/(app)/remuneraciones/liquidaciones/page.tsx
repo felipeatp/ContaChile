@@ -220,6 +220,7 @@ export default function LiquidacionesPage() {
                                   size="sm"
                                   onClick={() => setConfirmApprove(p.id)}
                                   title="Aprobar"
+                                  aria-label="Aprobar liquidación"
                                 >
                                   <CheckCircle2 className="h-4 w-4" />
                                 </Button>

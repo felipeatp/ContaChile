@@ -217,27 +217,27 @@ export default function CotizacionesPage() {
                           <FileDown className="h-4 w-4" />
                         </a>
                         {q.status === "DRAFT" && (
-                          <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, "send")} title="Enviar">
+                          <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, "send")} title="Enviar" aria-label="Enviar cotización">
                             <Send className="h-4 w-4" />
                           </Button>
                         )}
                           {(q.status === 'DRAFT' || q.status === 'SENT') && (
                             <>
-                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'accept')} title="Aceptar">
+                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'accept')} title="Aceptar" aria-label="Aceptar cotización">
                                 <CheckCircle2 className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'reject')} title="Rechazar">
+                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'reject')} title="Rechazar" aria-label="Rechazar cotización">
                                 <XCircle className="h-4 w-4" />
                               </Button>
                             </>
                           )}
                           {q.status === 'ACCEPTED' && (
-                            <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'to-invoice')} title="Convertir a factura">
+                            <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'to-invoice')} title="Convertir a factura" aria-label="Convertir a factura">
                               <FileText className="h-4 w-4" />
                             </Button>
                           )}
                           {q.status === 'DRAFT' && (
-                            <Button size="sm" variant="ghost" onClick={() => remove(q.id)} title="Eliminar">
+                            <Button size="sm" variant="ghost" onClick={() => remove(q.id)} title="Eliminar" aria-label="Eliminar cotización">
                               <X className="h-4 w-4" />
                             </Button>
                           )}
@@ -400,7 +400,7 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
                     <td className="py-1 px-2 text-right font-mono text-sm">{formatCLP(it.quantity * it.unitPrice)}</td>
                     <td className="py-1 px-2 text-right">
                       {items.length > 1 && (
-                        <Button variant="ghost" size="sm" onClick={() => removeItem(i)}>
+                        <Button variant="ghost" size="sm" onClick={() => removeItem(i)} aria-label="Eliminar ítem">
                           <X className="h-4 w-4" />
                         </Button>
                       )}
