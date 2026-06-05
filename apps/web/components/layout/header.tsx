@@ -10,6 +10,7 @@ import { LogOut, User, Bell, Briefcase, Download, LogIn } from "lucide-react"
 import { CompanySelector } from "@/components/layout/company-selector"
 import { useInstallPrompt } from "@/lib/use-install-prompt"
 import { toast } from "sonner"
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 
 const sectionTitles: Record<string, string> = {
   dashboard: "Resumen",
@@ -78,40 +79,48 @@ function UserMenu() {
   }
 
   const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : user.email?.slice(0, 2).toUpperCase() || "??"
 
   return (
-    <div className="relative group">
-      <button className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center text-xs font-semibold hover:bg-secondary/80 transition-colors">
-        {initials}
-      </button>
-      <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-border bg-paper shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-        <div className="px-3 py-2 border-b border-border">
-          <p className="text-sm font-medium truncate">{user.name || user.email}</p>
-          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-        </div>
-        <Link
-          href="/selector"
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 transition-colors"
-        >
-          <Briefcase className="h-4 w-4" />
-          Cambiar perfil
-        </Link>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
         <button
-          onClick={() => signOut()}
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary/50 transition-colors"
+          className="h-8 w-8 rounded-full ring-1 ring-border bg-secondary flex items-center justify-center text-xs font-semibold hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Menú de usuario"
         >
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
+          {initials}
         </button>
-      </div>
-    </div>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align="end"
+          sideOffset={8}
+          className="z-50 w-48 rounded-md border border-border bg-paper shadow-lg p-0 overflow-hidden"
+        >
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-sm font-medium truncate">{user.name || user.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/selector"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-secondary/50 focus:bg-secondary/50 outline-none cursor-pointer transition-colors"
+            >
+              <Briefcase className="h-4 w-4" />
+              Cambiar perfil
+            </Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onSelect={() => signOut()}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary/50 focus:bg-secondary/50 outline-none cursor-pointer transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Cerrar sesión
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
 
