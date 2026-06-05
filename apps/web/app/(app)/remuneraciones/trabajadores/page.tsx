@@ -1,37 +1,28 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Loader2, Plus, Trash2, Edit2, CheckCircle2, XCircle } from 'lucide-react'
 import { formatCLP, validateRUT } from '@contachile/validators'
 import { toast } from 'sonner'
-import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { QueryState } from '@/components/ui/query-state'
+import { useConfirm } from '@/components/ui/confirm-provider'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Field } from '@/components/ui/field'
+import {
+  useEmployees,
+  useCreateEmployee,
+  useUpdateEmployee,
+  useDeleteEmployee,
+  type Employee,
+} from '@/hooks/use-employees'
 
 type ContractType = 'INDEFINIDO' | 'PLAZO_FIJO' | 'HONORARIOS'
 type AfpCode = 'CAPITAL' | 'CUPRUM' | 'HABITAT' | 'MODELO' | 'PLANVITAL' | 'PROVIDA' | 'UNO'
 type HealthPlan = 'FONASA' | 'ISAPRE'
-
-type Employee = {
-  id: string
-  rut: string
-  name: string
-  email?: string | null
-  position: string
-  startDate: string
-  endDate?: string | null
-  contractType: ContractType
-  workHours: number
-  baseSalary: number
-  afp: AfpCode
-  healthPlan: HealthPlan
-  healthAmount?: number | null
-  isActive: boolean
-}
 
 const AFPs: AfpCode[] = ['CAPITAL', 'CUPRUM', 'HABITAT', 'MODELO', 'PLANVITAL', 'PROVIDA', 'UNO']
 const CONTRACT_LABEL: Record<ContractType, string> = {
@@ -67,40 +58,26 @@ const EmployeeSchema = z.object({
 type EmployeeFormValues = z.infer<typeof EmployeeSchema>
 
 export default function TrabajadoresPage() {
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Employee | null>(null)
   const [showInactive, setShowInactive] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
-  const fetchEmployees = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (!showInactive) params.set('active', 'true')
-      const res = await fetch(`/api/employees?${params}`)
-      const data = await res.json()
-      setEmployees(data.employees || [])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchEmployees()
-  }, [showInactive])
+  const { data: employees = [], isLoading, isError, refetch } = useEmployees(!showInactive)
+  const deleteEmployee = useDeleteEmployee()
+  const confirm = useConfirm()
 
   const handleDelete = async (id: string) => {
-    setConfirmDelete(null)
-    const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      toast.success('Trabajador desactivado correctamente')
-      fetchEmployees()
-    } else {
-      const err = await res.json().catch(() => ({}))
-      toast.error((err as { error?: string }).error || 'Error al desactivar el trabajador')
-    }
+    const ok = await confirm({
+      title: '¿Desactivar este trabajador?',
+      description: 'El trabajador quedará inactivo y no aparecerá en las liquidaciones futuras. Puedes reactivarlo después.',
+      confirmLabel: 'Desactivar',
+      destructive: true,
+    })
+    if (!ok) return
+    deleteEmployee.mutate(id, {
+      onSuccess: () => toast.success('Trabajador desactivado correctamente'),
+      onError: (e) => toast.error(e.message),
+    })
   }
 
   return (
@@ -138,20 +115,14 @@ export default function TrabajadoresPage() {
       </section>
 
       <div className="card-editorial overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : employees.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-display text-lg text-muted-foreground mb-1">
-              Sin trabajadores registrados
-            </p>
-            <p className="text-xs text-muted-foreground/70">
-              Registra el primero con &ldquo;Nuevo trabajador&rdquo;.
-            </p>
-          </div>
-        ) : (
+        <QueryState
+          isLoading={isLoading}
+          isError={isError}
+          isEmpty={employees.length === 0}
+          onRetry={() => refetch()}
+          errorMessage="No pudimos cargar los trabajadores."
+          emptyMessage="Sin trabajadores registrados"
+        >
           <div className="overflow-x-auto">
             <table className="table-editorial">
               <thead>
@@ -192,8 +163,18 @@ export default function TrabajadoresPage() {
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         {e.isActive && (
-                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(e.id)} aria-label="Desactivar trabajador">
-                            <Trash2 className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(e.id)}
+                            disabled={deleteEmployee.isPending}
+                            aria-label="Desactivar trabajador"
+                          >
+                            {deleteEmployee.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                       </div>
@@ -203,26 +184,16 @@ export default function TrabajadoresPage() {
               </tbody>
             </table>
           </div>
-        )}
+        </QueryState>
       </div>
 
       {formOpen && (
         <EmployeeForm
           employee={editing}
           onClose={() => setFormOpen(false)}
-          onSaved={() => { setFormOpen(false); fetchEmployees() }}
+          onSaved={() => setFormOpen(false)}
         />
       )}
-
-      <ConfirmModal
-        open={!!confirmDelete}
-        title="¿Desactivar este trabajador?"
-        description="El trabajador quedará inactivo y no aparecerá en las liquidaciones futuras. Puedes reactivarlo después."
-        confirmLabel="Desactivar"
-        destructive
-        onConfirm={() => confirmDelete && handleDelete(confirmDelete)}
-        onCancel={() => setConfirmDelete(null)}
-      />
     </div>
   )
 }
@@ -236,11 +207,16 @@ function EmployeeForm({
   onClose: () => void
   onSaved: () => void
 }) {
+  const createEmployee = useCreateEmployee()
+  const updateEmployee = useUpdateEmployee()
+
+  const isPending = createEmployee.isPending || updateEmployee.isPending
+
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(EmployeeSchema),
     defaultValues: {
@@ -263,24 +239,33 @@ function EmployeeForm({
   const rutIsValid = watchedRut.length >= 7 && validateRUT(watchedRut)
   const rutIsInvalid = watchedRut.length >= 7 && !validateRUT(watchedRut)
 
-  const onSubmit = async (values: EmployeeFormValues) => {
+  const onSubmit = (values: EmployeeFormValues) => {
     const payload = {
       ...values,
       email: values.email || undefined,
       healthAmount: values.healthPlan === 'ISAPRE' ? values.healthAmount : undefined,
     }
-    const res = await fetch(employee ? `/api/employees/${employee.id}` : '/api/employees', {
-      method: employee ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      toast.error(data.error || 'Error al guardar el trabajador')
-      return
+
+    if (employee) {
+      updateEmployee.mutate(
+        { id: employee.id, body: payload },
+        {
+          onSuccess: () => {
+            toast.success('Trabajador actualizado')
+            onSaved()
+          },
+          onError: (e) => toast.error(e.message),
+        }
+      )
+    } else {
+      createEmployee.mutate(payload, {
+        onSuccess: () => {
+          toast.success('Trabajador registrado correctamente')
+          onSaved()
+        },
+        onError: (e) => toast.error(e.message),
+      })
     }
-    toast.success(employee ? 'Trabajador actualizado' : 'Trabajador registrado correctamente')
-    onSaved()
   }
 
   return (
@@ -292,11 +277,11 @@ function EmployeeForm({
       size="md"
       footer={
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          <Button onClick={handleSubmit(onSubmit)} disabled={isPending}>
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
           </Button>
         </div>
       }
@@ -417,4 +402,3 @@ function EmployeeForm({
     </Modal>
   )
 }
-
