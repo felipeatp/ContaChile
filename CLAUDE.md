@@ -1,79 +1,68 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para Claude Code al trabajar en este repositorio.
 
-## Project Overview
+## Qué es
 
-This is **ContaChile**, a planning and knowledge repository for a Chilean accounting and tax SaaS (competitor to Nubox/Defontana). It is currently a **documentation-only repo** — there is no active codebase, build system, or tests here. All files are Markdown planning documents.
+**ContAI / ContaChile** — SaaS chileno de contabilidad y tributación (DTE, F29/F22,
+remuneraciones, inventario, conciliación bancaria, agentes IA). Monorepo Turborepo en
+producción, NO es documentación-only.
 
-The project targets Chilean tax compliance: DTE (electronic invoicing), F29/F22 declarations, payroll, and AI-powered automation via Claude agents.
-
-## Repository Structure
+## Estructura
 
 ```
-plan/          — Strategic documents (vision, roadmap, business model, tech stack)
-agentes/       — AI agent architecture and specifications (Claude tool-use agents)
-legal/         — SII certification process and tax regulation references
-dev/           — Development setup guide and Claude workflow recommendations
+apps/web        — Next.js 14 (App Router) — dashboard + API routes (proxy)
+apps/api        — Fastify REST API
+apps/mobile     — app móvil
+packages/dte    — generación XML DTE, firma, envoltorio SII
+packages/db     — Prisma schema + cliente
+packages/auth   — Better Auth
+packages/validators — esquemas Zod + helpers (RUT, IVA, formato CLP)
+packages/ai-agents  — agentes Claude (tool use)
+packages/transport-sii / transport-acepta / fintoc-client — clientes externos
+docs/superpowers/specs  — diseños (brainstorming)
+docs/superpowers/plans  — planes de implementación
 ```
 
-Key files to read for context:
-- `plan/04-stack-tecnologico.md` — Tech stack decisions, multi-tenant architecture (schema-per-tenant in PostgreSQL), planned monorepo layout (Turborepo), DTE flow, and AI agent orchestration pattern.
-- `agentes/00-arquitectura-ia.md` — Agent inventory (transaction classifier, F29 assistant, tax consultant RAG, auditor, OCR), tool-use implementation pattern with Anthropic SDK, and cost estimates.
-- `legal/certificacion-sii.md` — DTE XML structure, certification steps with SII, test server (maullin.sii.cl), and validation checklist.
-- `dev/setup.md` — Planned development environment (Node 20, pnpm, Prisma, Fastify, Next.js 14) and monorepo commands.
-- `dev/claude-workflows.md` — Recommended Claude usage patterns for this project, including prompt templates by area (DTE/XML, tax calculations, agents, database).
-
-## Architecture (Planned)
-
-### Multi-tenancy
-Schema-per-tenant in PostgreSQL. Public schema holds `users`, `companies` (the tenant), and `subscriptions`. Each company gets its own schema (`tenant_{company_id}`) for isolated accounting data.
-
-### Monorepo Layout (Future)
-```
-apps/web       — Next.js 14 dashboard
-apps/api       — Fastify REST API
-packages/dte   — DTE XML generation, digital signing, SII envelope (critical)
-packages/db    — Prisma schema + shared client
-packages/ai-agents — Claude agents with tool use
-packages/validators — Shared Zod schemas
-```
-
-### DTE Flow
-Form → Zod validation → `packages/dte` generates XML (ISO-8859-1) → xmldsig signing → EnvioDTE envelope → POST to SII (maullin for testing, api.sii.cl for prod) → Cloudflare R2 storage → DB update → email via Resend.
-
-### AI Agents
-All agents use the same tool-use loop with Anthropic SDK (`claude-haiku-4-5` for high-volume tasks, `claude-sonnet-4-6` for complex reasoning). The orchestrator lives in `packages/ai-agents`. Agents interact with DB, SII APIs, and Fintoc via typed tool definitions.
-
-## Development Commands (When Code Exists)
-
-The planned commands (from `dev/setup.md`) for when the monorepo is initialized:
+## Comandos
 
 ```bash
-# Root monorepo commands
-pnpm dev          # Start all services
-pnpm build        # Production build
-pnpm test         # Run all package tests
-pnpm lint         # Lint entire project
-
-# Per-app/package
-pnpm --filter web dev
-pnpm --filter api dev
+pnpm dev                         # turbo: todos los servicios
+pnpm build                       # turbo build
+pnpm test                        # turbo test
+pnpm lint                        # turbo lint
+pnpm --filter web dev            # solo web
+pnpm --filter api dev            # solo api
 pnpm --filter @contachile/dte test
 ```
 
-Currently, this repo has no `package.json` or build system. Changes here are Markdown edits only.
+> Nota tests web: el runner Jest deja open handles; correr con
+> `--forceExit --runInBand` (vía `node apps/web/node_modules/jest/bin/jest.js`) para
+> evitar que el proceso quede colgado.
 
-## Critical Domain Constraints
+## Patrones clave
 
-- **RUT validation**: Chilean tax ID uses modulo 11 algorithm.
-- **IVA calculation**: 19% of net amount, rounded down to integer.
-- **DTE encoding**: XML must be ISO-8859-1, not UTF-8.
-- **SII certification**: Mandatory for legal DTE issuance. Process takes 30-120 days via maullin.sii.cl. A bridge provider (Acepta.com recommended) is planned for the MVP to avoid blocking on certification.
-- **Digital certificates**: Stored AES-256 encrypted; encryption key must be separate from the certificate (AWS KMS or Cloudflare KV planned).
+- **Tenancy:** el API resuelve la empresa en `apps/api/src/plugins/tenant.ts` →
+  `request.companyId`. TODA query de datos filtra por `companyId`.
+- **Web → API:** Server Components usan `apps/web/lib/api-server.ts` (`apiFetch`) que
+  reenvía cookie/headers vía `headers()`. Componentes cliente usan
+  `apps/web/lib/api-client.ts` (`apiClient`) que pega a las API routes de Next en
+  `apps/web/app/api/*`, las cuales reenvían al Fastify. NO hacer `fetch` directo a la
+  API propia sin reenviar cookie desde un Server Component.
+- **Feedback UI:** toasts con `sonner` (`toast.success/error/info`); confirmaciones con
+  `useConfirm()` (`components/ui/confirm-provider.tsx`). Nunca `alert()`/`confirm()`.
+- **Estado servidor:** React Query. Listas envuelven con `<QueryState>`.
+- **Design system:** tokens en `apps/web/app/globals.css` (paleta editorial
+  oxblood/ochre/sage/rust), serif display, `tabular-nums` en números.
 
-## Working in This Repo
+## Restricciones de dominio
 
-- This is documentation, not implementation. Prefer editing and refining Markdown over generating code.
-- When the user asks to "implement" something, check whether they mean updating the plan documents or creating actual code. The planned source locations are specified in `dev/setup.md` and `plan/04-stack-tecnologico.md`.
-- Tax calculations (IVA, PPM, retentions) and DTE XML generation must be validated against SII XSDs and official examples. Reference `legal/certificacion-sii.md` for the validation checklist.
+- **RUT:** validación módulo 11 (`@contachile/validators`).
+- **IVA:** 19% del neto, truncado a entero.
+- **DTE:** XML en ISO-8859-1 (no UTF-8).
+- **Certificación SII:** maullin.sii.cl (test) / api.sii.cl (prod). Bridge Acepta para MVP.
+
+## Testing
+
+- API: Vitest en `apps/api/tests/`. Web unit: en `apps/web/__tests__`. E2E: Playwright
+  en `apps/web/e2e/`. Gate de cobertura 80% en CI.
