@@ -45,3 +45,11 @@ export interface EmitDocumentResponse {
   trackId: string | null
   createdAt: string
 }
+
+export interface DocumentStats {
+  total: number
+  emittedToday: number
+  byStatus: { pending: number; accepted: number; rejected: number; failed: number }
+  monthly: Array<{ month: string; count: number; totalAmount: number }>
+  yoy: { current: number; previous: number; deltaPct: number }
+}
