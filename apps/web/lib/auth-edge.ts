@@ -26,6 +26,13 @@ export const auth = betterAuth({
     "http://localhost:3001",
     ...(baseURL !== "http://localhost:3000" ? [baseURL] : []),
     ...(process.env.WEB_URL ? [stripBom(process.env.WEB_URL)] : []),
+    // Origen LAN explícito vía env (p.ej. http://192.168.1.15:3000)
+    ...(process.env.LAN_URL ? [stripBom(process.env.LAN_URL)] : []),
+    // Dev-only: permitir cualquier IP privada de la LAN para probar en otros
+    // dispositivos. Gated a no-producción (en CF Workers NODE_ENV==="production").
+    ...(process.env.NODE_ENV !== "production"
+      ? ["http://192.168.*:3000", "http://10.*:3000", "http://172.*:3000"]
+      : []),
   ],
   plugins: [bearer()],
   emailAndPassword: {

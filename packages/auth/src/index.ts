@@ -12,6 +12,19 @@ export const auth = betterAuth({
     "http://localhost:3001",
     ...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
     ...(process.env.WEB_URL ? [process.env.WEB_URL] : []),
+    // Origen LAN explícito vía env (p.ej. http://192.168.1.15:3000)
+    ...(process.env.LAN_URL ? [process.env.LAN_URL] : []),
+    // Dev-only: permitir IPs privadas de la LAN para probar en otros dispositivos.
+    ...(process.env.NODE_ENV !== "production"
+      ? [
+          "http://192.168.*:3000",
+          "http://192.168.*:3001",
+          "http://10.*:3000",
+          "http://10.*:3001",
+          "http://172.*:3000",
+          "http://172.*:3001",
+        ]
+      : []),
   ],
   plugins: [bearer()],
   emailAndPassword: {
