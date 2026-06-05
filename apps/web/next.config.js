@@ -15,6 +15,9 @@ const nextConfig = {
   // OpenNext CF ignores this output and uses .next/server/ directly — no conflict.
   output: 'standalone',
   transpilePackages: ['@contachile/validators', '@contachile/auth'],
+  // Permitir el acceso de desarrollo desde la LAN (otros dispositivos) sin el
+  // warning de cross-origin sobre /_next/*. Agrega aquí la IP/host que uses.
+  allowedDevOrigins: ['192.168.1.15'],
   // pg se requiere en runtime (no se bundlea); evita que webpack intente resolver
   // su dependencia nativa opcional 'pg-native' y emita un warning.
   serverExternalPackages: ['pg'],
