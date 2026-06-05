@@ -1,6 +1,8 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { Toaster } from "sonner"
+import { useTheme } from "next-themes"
 import { SidebarContador } from "@/components/layout/sidebar-contador"
 import { Header } from "@/components/layout/header"
 
@@ -13,6 +15,7 @@ import { cn } from "@/lib/utils"
 
 export default function ContadorLayout({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebarState()
+  const { resolvedTheme } = useTheme()
 
   return (
     <div className="theme-contador min-h-screen">
@@ -35,6 +38,7 @@ export default function ContadorLayout({ children }: { children: React.ReactNode
         </main>
       </div>
       <ChatWidget />
+      <Toaster position="bottom-right" richColors theme={resolvedTheme === "dark" ? "dark" : "light"} />
     </div>
   )
 }
