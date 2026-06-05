@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useSession, signOut } from "@/lib/auth-client"
@@ -65,6 +65,7 @@ function buildCrumbs(pathname: string): Array<{ label: string; href: string }> {
 function UserMenu() {
   const { data: session } = useSession()
   const user = session?.user
+  const router = useRouter()
 
   if (!user) {
     return (
@@ -112,7 +113,11 @@ function UserMenu() {
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item
-            onSelect={() => signOut()}
+            onSelect={async () => {
+              await signOut()
+              router.push("/")
+              router.refresh()
+            }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-secondary/50 focus:bg-secondary/50 outline-none cursor-pointer transition-colors"
           >
             <LogOut className="h-4 w-4" />

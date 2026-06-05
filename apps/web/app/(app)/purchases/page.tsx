@@ -1,25 +1,19 @@
-﻿"use client"
+"use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { toast } from "sonner"
 import { Modal } from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { QueryState } from "@/components/ui/query-state"
 import { Loader2, Plus, FileCode2, Upload } from "lucide-react"
 import { formatCLP, parseCLP } from "@contachile/validators"
 import { RutField } from "@/components/forms/rut-field"
-
-interface Purchase {
-  id: string
-  type: number
-  folio: number
-  issuerRut: string
-  issuerName: string
-  date: string
-  netAmount: number
-  taxAmount: number
-  totalAmount: number
-  category: string | null
-}
+import {
+  usePurchases,
+  useCreatePurchase,
+  useImportPurchaseXml,
+} from "@/hooks/use-purchases"
 
 const TYPE_LABEL: Record<number, string> = {
   33: "Factura",
@@ -28,122 +22,69 @@ const TYPE_LABEL: Record<number, string> = {
   61: "N. Crédito",
 }
 
+const EMPTY_FORM = {
+  type: 33,
+  folio: "",
+  issuerRut: "",
+  issuerName: "",
+  date: new Date().toISOString().split("T")[0],
+  netAmount: "",
+  taxAmount: "",
+  totalAmount: "",
+  category: "",
+}
+
 export default function PurchasesPage() {
-  const [purchases, setPurchases] = useState<Purchase[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: purchases = [], isLoading, isError, refetch } = usePurchases()
+  const createPurchase = useCreatePurchase()
+  const importXml = useImportPurchaseXml()
+
   const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ text: string; tone: "error" | "ok" } | null>(null)
-  const [xmlLoading, setXmlLoading] = useState(false)
   const [xmlFile, setXmlFile] = useState<File | null>(null)
-
-  const [form, setForm] = useState({
-    type: 33,
-    folio: "",
-    issuerRut: "",
-    issuerName: "",
-    date: new Date().toISOString().split("T")[0],
-    netAmount: "",
-    taxAmount: "",
-    totalAmount: "",
-    category: "",
-  })
-
-  const fetchPurchases = () => {
-    setLoading(true)
-    fetch("/api/purchases")
-      .then((res) => res.json())
-      .then((data) => {
-        setPurchases(data.purchases || [])
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-        setMessage({ text: "Error al cargar compras", tone: "error" })
-      })
-  }
-
-  useEffect(() => {
-    fetchPurchases()
-  }, [])
+  const [form, setForm] = useState(EMPTY_FORM)
 
   const handleChange = (field: string, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async () => {
-    setSaving(true)
-    setMessage(null)
-
-    const payload = {
-      type: Number(form.type),
-      folio: Number(form.folio),
-      issuerRut: form.issuerRut,
-      issuerName: form.issuerName,
-      date: form.date,
-      netAmount: parseCLP(form.netAmount),
-      taxAmount: parseCLP(form.taxAmount),
-      totalAmount: parseCLP(form.totalAmount),
-      category: form.category || undefined,
-    }
-
-    const res = await fetch("/api/purchases", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-
-    if (res.ok) {
-      setMessage({ text: "Compra registrada correctamente", tone: "ok" })
-      setShowForm(false)
-      setForm({
-        type: 33,
-        folio: "",
-        issuerRut: "",
-        issuerName: "",
-        date: new Date().toISOString().split("T")[0],
-        netAmount: "",
-        taxAmount: "",
-        totalAmount: "",
-        category: "",
-      })
-      fetchPurchases()
-    } else {
-      const err = await res.json().catch(() => ({}))
-      setMessage({ text: err.error || "Error al registrar compra", tone: "error" })
-    }
-    setSaving(false)
+  const handleSubmit = () => {
+    createPurchase.mutate(
+      {
+        type: Number(form.type),
+        folio: Number(form.folio),
+        issuerRut: form.issuerRut,
+        issuerName: form.issuerName,
+        date: form.date,
+        netAmount: parseCLP(form.netAmount),
+        taxAmount: parseCLP(form.taxAmount),
+        totalAmount: parseCLP(form.totalAmount),
+        category: form.category || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Compra registrada correctamente")
+          setShowForm(false)
+          setForm(EMPTY_FORM)
+        },
+        onError: (e) => toast.error(e.message),
+      }
+    )
   }
 
-  const handleXmlUpload = async () => {
+  const handleXmlUpload = () => {
     if (!xmlFile) return
-    setXmlLoading(true)
-    setMessage(null)
-
     const reader = new FileReader()
     reader.readAsText(xmlFile)
-    reader.onload = async () => {
-      const xmlContent = reader.result as string
-      const res = await fetch("/api/purchases/import-xml", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ xmlContent }),
+    reader.onload = () => {
+      importXml.mutate(reader.result as string, {
+        onSuccess: () => {
+          toast.success("Compra importada desde XML correctamente")
+          setXmlFile(null)
+        },
+        onError: (e) => toast.error(e.message),
       })
-
-      if (res.ok) {
-        setMessage({ text: "Compra importada desde XML correctamente", tone: "ok" })
-        setXmlFile(null)
-        fetchPurchases()
-      } else {
-        const err = await res.json().catch(() => ({}))
-        setMessage({ text: err.error || "Error al importar XML", tone: "error" })
-      }
-      setXmlLoading(false)
     }
-    reader.onerror = () => {
-      setMessage({ text: "Error al leer el archivo XML", tone: "error" })
-      setXmlLoading(false)
-    }
+    reader.onerror = () => toast.error("Error al leer el archivo XML")
   }
 
   const totals = purchases.reduce(
@@ -181,18 +122,6 @@ export default function PurchasesPage() {
         </Button>
       </section>
 
-      {message && (
-        <div
-          className={`rounded-sm border px-4 py-2 text-xs ${
-            message.tone === "error"
-              ? "border-destructive/30 bg-destructive/5 text-destructive"
-              : "border-sage/30 bg-sage/5 text-sage"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
       {/* XML import block */}
       <section className="card-editorial p-5">
         <div className="flex items-center gap-2 mb-3">
@@ -218,9 +147,9 @@ export default function PurchasesPage() {
           <Button
             variant="outline"
             onClick={handleXmlUpload}
-            disabled={!xmlFile || xmlLoading}
+            disabled={!xmlFile || importXml.isPending}
           >
-            {xmlLoading ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
+            {importXml.isPending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
             Importar XML
           </Button>
         </div>
@@ -246,20 +175,14 @@ export default function PurchasesPage() {
         </div>
 
         <div className="card-editorial overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : purchases.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="font-display text-lg text-muted-foreground mb-1">
-                Sin compras registradas
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                Registra la primera con &ldquo;Registrar compra&rdquo; o importa un XML.
-              </p>
-            </div>
-          ) : (
+          <QueryState
+            isLoading={isLoading}
+            isError={isError}
+            isEmpty={purchases.length === 0}
+            onRetry={() => refetch()}
+            errorMessage="No pudimos cargar las compras."
+            emptyMessage="Sin compras registradas"
+          >
             <div className="overflow-x-auto">
               <table className="table-editorial">
                 <thead>
@@ -313,7 +236,7 @@ export default function PurchasesPage() {
                 </tfoot>
               </table>
             </div>
-          )}
+          </QueryState>
         </div>
       </section>
 
@@ -327,11 +250,11 @@ export default function PurchasesPage() {
         size="lg"
         footer={
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowForm(false)} disabled={saving}>
+            <Button variant="outline" onClick={() => setShowForm(false)} disabled={createPurchase.isPending}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={saving}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            <Button onClick={handleSubmit} disabled={createPurchase.isPending}>
+              {createPurchase.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Guardar compra
             </Button>
           </div>
