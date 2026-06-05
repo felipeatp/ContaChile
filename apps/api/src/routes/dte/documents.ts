@@ -4,6 +4,7 @@ import { SIIClient } from '@contachile/transport-sii'
 import { AceptaClient } from '@contachile/transport-acepta'
 import { createEmailService } from '../../lib/email'
 import { enqueuePollJob } from '../../queues/dte'
+import { createRedisClient } from '../../lib/redis'
 
 const siiClient = new SIIClient({
   baseURL: process.env.SII_BASE_URL || 'https://maullin.sii.cl',
@@ -84,6 +85,111 @@ export default async function (fastify: FastifyInstance) {
     ])
 
     return reply.send({ documents, total, page, limit, totalPages: Math.ceil(total / limit) })
+  })
+
+  fastify.get('/documents/stats', async (request, reply) => {
+    const companyId = request.companyId
+
+    const redis = createRedisClient()
+    const cacheKey = `stats:documents:${companyId}`
+    try {
+      const cached = await redis.get(cacheKey)
+      if (cached) {
+        await redis.quit()
+        return reply.send(JSON.parse(cached))
+      }
+    } catch {
+      // Redis no disponible → seguir sin cache
+    }
+
+    const startOfToday = new Date()
+    startOfToday.setHours(0, 0, 0, 0)
+
+    const now = new Date()
+    const startOfYear = new Date(now.getFullYear(), 0, 1)
+    const startOfPrevYear = new Date(now.getFullYear() - 1, 0, 1)
+    const startOfWindow = new Date(now.getFullYear() - 1, now.getMonth() - 11, 1)
+
+    const [total, emittedToday, grouped, windowRows, curAgg, prevAgg] =
+      await Promise.all([
+        prisma.document.count({ where: { companyId } }),
+        prisma.document.count({
+          where: { companyId, emittedAt: { gte: startOfToday } },
+        }),
+        prisma.document.groupBy({
+          by: ['status'],
+          where: { companyId },
+          _count: { _all: true },
+        }),
+        prisma.document.findMany({
+          where: { companyId, emittedAt: { gte: startOfWindow } },
+          select: { emittedAt: true, totalAmount: true },
+        }),
+        prisma.document.aggregate({
+          where: { companyId, emittedAt: { gte: startOfYear } },
+          _sum: { totalAmount: true },
+        }),
+        prisma.document.aggregate({
+          where: {
+            companyId,
+            emittedAt: { gte: startOfPrevYear, lt: startOfYear },
+          },
+          _sum: { totalAmount: true },
+        }),
+      ])
+
+    const countOf = (s: string) =>
+      grouped.find((g: any) => g.status === s)?._count?._all ?? 0
+
+    const byStatus = {
+      pending: countOf('PENDING'),
+      accepted: countOf('ACCEPTED'),
+      rejected: countOf('REJECTED'),
+      failed: countOf('FAILED'),
+    }
+
+    const monthlyMap = new Map<string, { count: number; totalAmount: number }>()
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      monthlyMap.set(key, { count: 0, totalAmount: 0 })
+    }
+    for (const row of windowRows) {
+      const d = new Date(row.emittedAt)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const cur = monthlyMap.get(key)
+      if (cur) {
+        cur.count += 1
+        cur.totalAmount += row.totalAmount ?? 0
+      }
+    }
+    const monthly = Array.from(monthlyMap.entries()).map(([month, v]) => ({
+      month,
+      count: v.count,
+      totalAmount: v.totalAmount,
+    }))
+
+    const current = curAgg._sum.totalAmount ?? 0
+    const previous = prevAgg._sum.totalAmount ?? 0
+    const deltaPct =
+      previous > 0 ? Math.round(((current - previous) / previous) * 100) : 0
+
+    const stats = {
+      total,
+      emittedToday,
+      byStatus,
+      monthly,
+      yoy: { current, previous, deltaPct },
+    }
+
+    try {
+      await redis.setex(cacheKey, 300, JSON.stringify(stats))
+      await redis.quit()
+    } catch {
+      // ignore
+    }
+
+    return reply.send(stats)
   })
 
   fastify.get('/documents/:id', async (request, reply) => {
