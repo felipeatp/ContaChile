@@ -1,5 +1,5 @@
 import { DocumentTable } from "@/components/documents/document-table"
-import { DocumentsResponse } from "@/types"
+import { DocumentsResponse, DocumentStats } from "@/types"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { DocumentsChart } from "@/components/dashboard/documents-chart"
 import { StatusChart } from "@/components/dashboard/status-chart"
@@ -9,19 +9,24 @@ import { RuleOrnament } from "@/components/ui/rule-ornament"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, ArrowUpRight } from "lucide-react"
+import { apiFetch } from "@/lib/api-server"
 
-async function getStats() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/documents?limit=1000`,
-      { next: { revalidate: 60 } }
-    )
-    const json = (await res.json()) as DocumentsResponse
-    const docs = json?.documents || []
-    return { documents: docs, recent: docs.slice(0, 5) }
-  } catch (e) {
-    return { documents: [], recent: [] }
-  }
+const EMPTY_STATS: DocumentStats = {
+  total: 0,
+  emittedToday: 0,
+  byStatus: { pending: 0, accepted: 0, rejected: 0, failed: 0 },
+  monthly: [],
+  yoy: { current: 0, previous: 0, deltaPct: 0 },
+}
+
+async function getDashboardData(): Promise<{ stats: DocumentStats; recent: DocumentsResponse["documents"] }> {
+  const [statsRes, recentRes] = await Promise.all([
+    apiFetch("/documents/stats", { method: "GET" }),
+    apiFetch("/documents?limit=5", { method: "GET" }),
+  ])
+  const stats = (statsRes.status < 400 && statsRes.data ? statsRes.data : EMPTY_STATS) as DocumentStats
+  const recent = (recentRes.status < 400 && recentRes.data?.documents ? recentRes.data.documents : []) as DocumentsResponse["documents"]
+  return { stats, recent }
 }
 
 const MONTHS_ES = [
@@ -40,7 +45,7 @@ const MONTHS_ES = [
 ]
 
 export default async function DashboardPage() {
-  const { documents, recent } = await getStats()
+  const { stats, recent } = await getDashboardData()
   const today = new Date()
   const periodLabel = `${MONTHS_ES[today.getMonth()]} ${today.getFullYear()}`
 
@@ -97,10 +102,10 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <span className="eyebrow">I · Métricas operativas</span>
           <span className="text-xs text-muted-foreground/60 font-mono">
-            {documents.length} documentos en archivo
+            {stats.total} documentos en archivo
           </span>
         </div>
-        <StatsCards documents={documents} />
+        <StatsCards stats={stats} />
       </section>
 
       <RuleOrnament ornament="diamond" />
@@ -111,8 +116,8 @@ export default async function DashboardPage() {
           <span className="eyebrow">II · Tendencias</span>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <DocumentsChart documents={documents} />
-          <StatusChart documents={documents} />
+          <DocumentsChart stats={stats} />
+          <StatusChart stats={stats} />
         </div>
       </section>
 
