@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
+import { useConfirm } from '@/components/ui/confirm-provider'
 import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ type Product = {
 }
 
 export default function ProductosPage() {
+  const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
@@ -49,7 +51,13 @@ export default function ProductosPage() {
 
   const handleSearch = () => fetch_()
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Desactivar este producto?')) return
+    const ok = await confirm({
+      title: "Desactivar producto",
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Desactivar",
+      destructive: true,
+    })
+    if (!ok) return
     await fetch(`/api/inventory/products/${id}`, { method: 'DELETE' })
     fetch_()
   }

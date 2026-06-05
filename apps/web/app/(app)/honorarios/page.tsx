@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
+import { useConfirm } from '@/components/ui/confirm-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
@@ -41,6 +42,7 @@ type Response = {
 const MONTHS = ['Todos', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 export default function HonorariosPage() {
+  const confirm = useConfirm()
   const today = new Date()
   const [type, setType] = useState<'' | HonorarioType>('')
   const [year, setYear] = useState(today.getFullYear())
@@ -68,7 +70,13 @@ export default function HonorariosPage() {
   }, [type, year, month])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar esta boleta?')) return
+    const ok = await confirm({
+      title: "Eliminar boleta de honorarios",
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      destructive: true,
+    })
+    if (!ok) return
     await fetch(`/api/honorarios/${id}`, { method: 'DELETE' })
     fetchData()
   }

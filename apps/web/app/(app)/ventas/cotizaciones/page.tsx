@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/ui/confirm-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
@@ -51,6 +52,7 @@ const STATUS_COLOR: Record<Status, string> = {
 }
 
 export default function CotizacionesPage() {
+  const confirm = useConfirm()
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<'' | Status>('')
@@ -75,7 +77,15 @@ export default function CotizacionesPage() {
   }, [statusFilter])
 
   const action = async (id: string, what: 'send' | 'accept' | 'reject' | 'to-invoice') => {
-    if (what === 'to-invoice' && !confirm('¿Convertir esta cotización en factura? Se asignará folio y creará el DTE.')) return
+    if (what === 'to-invoice') {
+      const ok = await confirm({
+        title: "Convertir cotización en factura",
+        description: "Se asignará folio y creará el DTE. Esta acción no se puede deshacer.",
+        confirmLabel: "Convertir",
+        destructive: false,
+      })
+      if (!ok) return
+    }
     if (what === 'reject') {
       const reason = prompt('Motivo del rechazo (opcional):')
       setBusyId(id)
@@ -112,7 +122,13 @@ export default function CotizacionesPage() {
   }
 
   const remove = async (id: string) => {
-    if (!confirm('¿Eliminar esta cotización?')) return
+    const ok = await confirm({
+      title: "Eliminar cotización",
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      destructive: true,
+    })
+    if (!ok) return
     await fetch(`/api/quotes/${id}`, { method: 'DELETE' })
     fetchQuotes()
   }
