@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { toast } from "sonner"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useDocuments } from "@/hooks/use-documents"
 import { DocumentTable } from "@/components/documents/document-table"
@@ -72,7 +73,7 @@ export default function DocumentsPage() {
       (d: any) => d.status === "PENDING" && d.xmlContent
     )
     if (!pendingWithXml || pendingWithXml.length === 0) {
-      alert("No hay documentos pendientes con XML firmado para enviar")
+      toast.info("No hay documentos pendientes con XML firmado para enviar")
       return
     }
 
@@ -86,7 +87,7 @@ export default function DocumentsPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        alert(err.error || "Error al generar EnvioDTE")
+        toast.error(err.error || "Error al generar EnvioDTE")
         setEnvioLoading(false)
         return
       }
@@ -101,7 +102,7 @@ export default function DocumentsPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch {
-      alert("Error al generar EnvioDTE")
+      toast.error("Error al generar EnvioDTE")
     }
     setEnvioLoading(false)
   }
