@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
@@ -84,7 +85,7 @@ export default function CotizacionesPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reason: reason || undefined }),
         })
-        if (!res.ok) alert((await res.json()).error || 'Error')
+        if (!res.ok) toast.error((await res.json()).error || 'Error')
         await fetchQuotes()
       } finally {
         setBusyId(null)
@@ -100,9 +101,9 @@ export default function CotizacionesPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        alert(data.error || 'Error')
+        toast.error(data.error || 'Error')
       } else if (what === 'to-invoice' && data.document) {
-        alert(`Factura creada con folio ${data.document.folio}`)
+        toast.success(`Factura creada con folio ${data.document.folio}`)
       }
       await fetchQuotes()
     } finally {

@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/documents/status-badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, Copy, FileCode2, RefreshCw, FilePlus, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 import { formatCLP } from "@contachile/validators"
 
 const DTE_LABELS: Record<number, string> = {
@@ -42,7 +43,7 @@ export default function DocumentDetailPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch {
-      alert("Error al descargar el PDF")
+      toast.error("Error al descargar el PDF")
     }
   }
 
@@ -78,7 +79,7 @@ export default function DocumentDetailPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch {
-      alert("Error al descargar el XML")
+      toast.error("Error al descargar el XML")
     }
   }
 

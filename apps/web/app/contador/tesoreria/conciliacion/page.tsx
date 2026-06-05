@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import {
   BankReconciliationReport,
   type BankAccount,
@@ -80,11 +81,11 @@ export default function ContadorConciliacionPage() {
       })
       const result = await res.json()
       if (action === "match-auto" && !result.matched) {
-        alert(`No se encontró match: ${result.reason || "sin candidatos"}`)
+        toast.info(`No se encontró match: ${result.reason || "sin candidatos"}`)
       }
       await loadMovements()
     } catch (err) {
-      alert((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setBusyId(null)
     }
@@ -98,7 +99,7 @@ export default function ContadorConciliacionPage() {
     })
     const data = await res.json()
     if (data.error) {
-      alert(data.error)
+      toast.error(data.error)
       return
     }
     await loadAccounts()
