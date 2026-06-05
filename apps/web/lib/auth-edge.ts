@@ -2,18 +2,27 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { bearer } from "better-auth/plugins"
 import { neon } from "@neondatabase/serverless"
-import { drizzle } from "drizzle-orm/neon-http"
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-http"
+import { drizzle as drizzleNode } from "drizzle-orm/node-postgres"
+import { Pool } from "pg"
 import { schema } from "./db-schema"
 
-// Edge-compatible auth for Cloudflare Workers.
-// Uses Drizzle + Neon HTTP instead of Prisma+pg (Prisma needs TCP, not available in CF Workers).
+// Auth para web. En producción/edge (Cloudflare Workers) usa Drizzle + Neon HTTP
+// (Prisma/pg necesitan TCP, no disponible en CF Workers). En desarrollo local el
+// driver Neon HTTP no puede hablar con un Postgres estándar, así que se usa el
+// driver pg (node-postgres) contra el Postgres local.
 // CF secrets set via wrangler on Windows sometimes carry a UTF-8 BOM prefix
 // (U+FEFF). Strip it from every env var we read.
 const stripBom = (s: string) =>
   s.charCodeAt(0) === 0xfeff ? s.slice(1) : s
 
-const sql = neon(stripBom(process.env.DATABASE_URL!))
-const db = drizzle(sql, { schema })
+const databaseUrl = stripBom(process.env.DATABASE_URL!)
+
+// Selección de driver por host: Neon cloud → HTTP; cualquier otro (localhost) → pg.
+const usesNeon = /neon\.tech/i.test(databaseUrl)
+const db = usesNeon
+  ? drizzleNeon(neon(databaseUrl), { schema })
+  : drizzleNode(new Pool({ connectionString: databaseUrl }), { schema })
 
 const baseURL = stripBom(process.env.BETTER_AUTH_URL || "http://localhost:3000")
 
