@@ -15,6 +15,9 @@ const nextConfig = {
   // OpenNext CF ignores this output and uses .next/server/ directly — no conflict.
   output: 'standalone',
   transpilePackages: ['@contachile/validators', '@contachile/auth'],
+  // pg se requiere en runtime (no se bundlea); evita que webpack intente resolver
+  // su dependencia nativa opcional 'pg-native' y emita un warning.
+  serverExternalPackages: ['pg'],
   poweredByHeader: false,
   async rewrites() {
     return []
