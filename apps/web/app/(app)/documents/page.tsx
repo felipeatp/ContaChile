@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useDebounce } from "@/hooks/use-debounce"
 import { useDocuments } from "@/hooks/use-documents"
 import { DocumentTable } from "@/components/documents/document-table"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,7 @@ export default function DocumentsPage() {
   const [from, setFrom] = useState<string>("")
   const [to, setTo] = useState<string>("")
   const [search, setSearch] = useState<string>("")
+  const debouncedSearch = useDebounce(search, 300)
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(25)
   const [sort, setSort] = useState<string>("emittedAt")
@@ -55,7 +57,7 @@ export default function DocumentsPage() {
     type: type ? parseInt(type, 10) : undefined,
     from: from || undefined,
     to: to || undefined,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page,
     limit,
     sort,
