@@ -27,3 +27,7 @@ apps/web/.wrangler/
 
 # Production secrets — never commit; copy from .env.production.example
 .env.production
+
+# Capturas de prueba / scratch
+/login-test*.png
+/mobile-*.png
