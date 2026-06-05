@@ -5,6 +5,7 @@ import { Toaster } from "sonner"
 import { useTheme } from "next-themes"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
+import { ConfirmProvider } from "@/components/ui/confirm-provider"
 
 const ChatWidget = dynamic(
   () => import("@/components/ai/chat-widget").then((m) => m.ChatWidget),
@@ -18,7 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme()
 
   return (
-    <>
+    <ConfirmProvider>
       <Sidebar />
       <div
         className={cn(
@@ -39,6 +40,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
       <ChatWidget />
       <Toaster position="bottom-right" richColors theme={resolvedTheme === "dark" ? "dark" : "light"} />
-    </>
+    </ConfirmProvider>
   )
 }
