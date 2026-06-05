@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useDocuments } from "@/hooks/use-documents"
 import { DocumentTable } from "@/components/documents/document-table"
+import { QueryState } from "@/components/ui/query-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, Package, Search, ChevronLeft, ChevronRight } from "lucide-react"
@@ -52,7 +53,7 @@ export default function DocumentsPage() {
     setPage(1)
   }
 
-  const { data, isLoading } = useDocuments({
+  const { data, isLoading, isError, refetch } = useDocuments({
     status: status || undefined,
     type: type ? parseInt(type, 10) : undefined,
     from: from || undefined,
@@ -211,49 +212,48 @@ export default function DocumentsPage() {
         </div>
       </section>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <>
-          <DocumentTable
-            documents={data?.documents || []}
-            sort={sort}
-            order={order}
-            onSort={handleSort}
-          />
+      <QueryState
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        errorMessage="No pudimos cargar los documentos."
+      >
+        <DocumentTable
+          documents={data?.documents || []}
+          sort={sort}
+          order={order}
+          onSort={handleSort}
+        />
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-muted-foreground font-mono tabular">
-                {(page - 1) * limit + 1}–{Math.min(page * limit, data?.total ?? 0)} de {data?.total ?? 0} documentos
-              </p>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-xs font-mono tabular text-muted-foreground">
-                  {page} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-xs text-muted-foreground font-mono tabular">
+              {(page - 1) * limit + 1}–{Math.min(page * limit, data?.total ?? 0)} de {data?.total ?? 0} documentos
+            </p>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs font-mono tabular text-muted-foreground">
+                {page} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </QueryState>
     </div>
   )
 }
