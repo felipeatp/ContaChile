@@ -1,38 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { QueryState } from '@/components/ui/query-state'
 import { Loader2, Play, FileDown, CheckCircle2 } from 'lucide-react'
 import { formatCLP } from '@contachile/validators'
-
-type Payroll = {
-  id: string
-  year: number
-  month: number
-  bruto: number
-  afp: number
-  salud: number
-  cesantia: number
-  impuesto: number
-  liquido: number
-  status: 'DRAFT' | 'APPROVED' | 'PAID'
-  employee: { rut: string; name: string; position: string; afp: string }
-}
-
-type Response = {
-  payrolls: Payroll[]
-  totals: {
-    bruto: number
-    afp: number
-    salud: number
-    cesantia: number
-    impuesto: number
-    liquido: number
-  }
-}
+import { usePayroll, useGeneratePayroll, useApprovePayroll } from '@/hooks/use-payroll'
 
 const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -40,61 +16,42 @@ export default function LiquidacionesPage() {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
-  const [data, setData] = useState<Response | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [generating, setGenerating] = useState(false)
   const [confirmGenerate, setConfirmGenerate] = useState(false)
   const [confirmApprove, setConfirmApprove] = useState<string | null>(null)
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/payroll/${year}/${month}`)
-      const json = await res.json()
-      setData(json)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading, isError, refetch } = usePayroll({ year, month })
+  const generatePayroll = useGeneratePayroll()
+  const approvePayroll = useApprovePayroll()
 
-  useEffect(() => {
-    fetchData()
-  }, [year, month])
+  const payrolls = data?.payrolls ?? []
+  const totals = data?.totals
 
-  const handleGenerate = async () => {
+  const totalDescuentos = totals
+    ? totals.afp + totals.salud + totals.cesantia + totals.impuesto
+    : 0
+
+  const handleGenerate = () => {
     setConfirmGenerate(false)
-    setGenerating(true)
-    try {
-      const res = await fetch('/api/payroll/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year, month }),
-      })
-      const result = await res.json()
-      if (!res.ok) {
-        toast.error(result.error || 'Error al generar las liquidaciones')
-        return
+    generatePayroll.mutate(
+      { year, month },
+      {
+        onSuccess: (result) => {
+          toast.success(`Generadas: ${result.generated} liquidación${result.generated !== 1 ? 'es' : ''} · Saltadas: ${result.skipped}`)
+        },
+        onError: (e) => toast.error(e.message),
       }
-      toast.success(`Generadas: ${result.generated} liquidación${result.generated !== 1 ? 'es' : ''} · Saltadas: ${result.skipped}`)
-      fetchData()
-    } finally {
-      setGenerating(false)
-    }
+    )
   }
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = (id: string) => {
     setConfirmApprove(null)
-    const res = await fetch(`/api/payroll/item/${id}/approve`, { method: 'POST' })
-    if (res.ok) {
-      toast.success('Liquidación aprobada — asiento contable generado')
-      fetchData()
-    } else {
-      const err = await res.json()
-      toast.error(err.error || 'Error al aprobar la liquidación')
-    }
+    approvePayroll.mutate(id, {
+      onSuccess: () => {
+        toast.success('Liquidación aprobada — asiento contable generado')
+      },
+      onError: (e) => toast.error(e.message),
+    })
   }
-
-  const totalDescuentos = data ? data.totals.afp + data.totals.salud + data.totals.cesantia + data.totals.impuesto : 0
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -104,7 +61,7 @@ export default function LiquidacionesPage() {
             <span className="eyebrow">Remuneraciones · Liquidaciones</span>
             <span className="h-px w-10 bg-foreground/20" />
             <span className="eyebrow text-muted-foreground/60">
-              {data?.payrolls.length ?? 0} ítems
+              {payrolls.length} ítems
             </span>
           </div>
           <h2 className="font-display text-xl md:text-2xl lg:text-4xl font-semibold leading-[1.05] tracking-tightest text-foreground">
@@ -132,25 +89,28 @@ export default function LiquidacionesPage() {
               <option key={i} value={i + 1}>{m}</option>
             ))}
           </select>
-          <Button onClick={() => setConfirmGenerate(true)} disabled={generating}>
-            {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+          <Button onClick={() => setConfirmGenerate(true)} disabled={generatePayroll.isPending}>
+            {generatePayroll.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
             Generar mes
           </Button>
         </div>
       </section>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : data ? (
+      <QueryState
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
+        errorMessage="No pudimos cargar las liquidaciones."
+      >
         <>
-          <section className="grid gap-4 md:grid-cols-4">
-            <Stat label="Bruto" value={formatCLP(data.totals.bruto)} tone="default" />
-            <Stat label="Descuentos" value={formatCLP(totalDescuentos)} tone="negative" caption="AFP + salud + cesantía + impuesto" />
-            <Stat label="Impuesto único" value={formatCLP(data.totals.impuesto)} tone="warning" />
-            <Stat label="Líquido a pagar" value={formatCLP(data.totals.liquido)} tone="positive" />
-          </section>
+          {totals && (
+            <section className="grid gap-4 md:grid-cols-4">
+              <Stat label="Bruto" value={formatCLP(totals.bruto)} tone="default" />
+              <Stat label="Descuentos" value={formatCLP(totalDescuentos)} tone="negative" caption="AFP + salud + cesantía + impuesto" />
+              <Stat label="Impuesto único" value={formatCLP(totals.impuesto)} tone="warning" />
+              <Stat label="Líquido a pagar" value={formatCLP(totals.liquido)} tone="positive" />
+            </section>
+          )}
 
           <section>
             <div className="flex items-end justify-between mb-4">
@@ -163,16 +123,12 @@ export default function LiquidacionesPage() {
             </div>
 
             <div className="card-editorial overflow-hidden">
-              {data.payrolls.length === 0 ? (
-                <div className="p-12 text-center">
-                  <p className="font-display text-lg text-muted-foreground mb-1">
-                    Sin liquidaciones para este período
-                  </p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Pulsa &ldquo;Generar mes&rdquo; para crear las liquidaciones de los trabajadores activos.
-                  </p>
-                </div>
-              ) : (
+              <QueryState
+                isLoading={false}
+                isError={false}
+                isEmpty={payrolls.length === 0}
+                emptyMessage="Sin liquidaciones para este período"
+              >
                 <div className="overflow-x-auto">
                   <table className="table-editorial">
                     <thead>
@@ -190,7 +146,7 @@ export default function LiquidacionesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {data.payrolls.map((p) => (
+                      {payrolls.map((p) => (
                         <tr key={p.id}>
                           <td>{p.employee.name}</td>
                           <td className="font-mono text-xs">{p.employee.rut}</td>
@@ -219,6 +175,7 @@ export default function LiquidacionesPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setConfirmApprove(p.id)}
+                                  disabled={approvePayroll.isPending}
                                   title="Aprobar"
                                   aria-label="Aprobar liquidación"
                                 >
@@ -229,23 +186,25 @@ export default function LiquidacionesPage() {
                           </td>
                         </tr>
                       ))}
-                      <tr className="bg-secondary/60 font-semibold">
-                        <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Totales</td>
-                        <td data-numeric="true">{formatCLP(data.totals.bruto)}</td>
-                        <td data-numeric="true">{formatCLP(data.totals.afp)}</td>
-                        <td data-numeric="true">{formatCLP(data.totals.salud)}</td>
-                        <td data-numeric="true">{formatCLP(data.totals.impuesto)}</td>
-                        <td data-numeric="true">{formatCLP(data.totals.liquido)}</td>
-                        <td colSpan={2}></td>
-                      </tr>
+                      {totals && (
+                        <tr className="bg-secondary/60 font-semibold">
+                          <td colSpan={3} className="!text-right uppercase tracking-eyebrow text-[0.65rem] text-muted-foreground">Totales</td>
+                          <td data-numeric="true">{formatCLP(totals.bruto)}</td>
+                          <td data-numeric="true">{formatCLP(totals.afp)}</td>
+                          <td data-numeric="true">{formatCLP(totals.salud)}</td>
+                          <td data-numeric="true">{formatCLP(totals.impuesto)}</td>
+                          <td data-numeric="true">{formatCLP(totals.liquido)}</td>
+                          <td colSpan={2}></td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-              )}
+              </QueryState>
             </div>
           </section>
         </>
-      ) : null}
+      </QueryState>
 
       <ConfirmModal
         open={confirmGenerate}
