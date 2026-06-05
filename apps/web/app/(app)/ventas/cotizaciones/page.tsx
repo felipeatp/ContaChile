@@ -1,37 +1,22 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { useConfirm } from '@/components/ui/confirm-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
+import { QueryState } from '@/components/ui/query-state'
 import { Loader2, Plus, X, FileDown, Send, CheckCircle2, XCircle, FileText } from 'lucide-react'
 import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
-
-type Status = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'INVOICED' | 'EXPIRED'
-
-type Item = { description: string; quantity: number; unitPrice: number; totalPrice: number }
-
-type Quote = {
-  id: string
-  number: number
-  date: string
-  validUntil?: string | null
-  receiverRut: string
-  receiverName: string
-  receiverEmail?: string | null
-  totalNet: number
-  totalTax: number
-  totalAmount: number
-  paymentMethod: string
-  notes?: string | null
-  status: Status
-  invoicedDocumentId?: string | null
-  rejectionReason?: string | null
-  items: Item[]
-}
+import {
+  useQuotes,
+  useCreateQuote,
+  useQuoteAction,
+  useDeleteQuote,
+} from '@/hooks/use-quotes'
+import type { Status } from '@/hooks/use-quotes'
 
 const STATUS_LABEL: Record<Status, string> = {
   DRAFT: 'Borrador',
@@ -53,28 +38,14 @@ const STATUS_COLOR: Record<Status, string> = {
 
 export default function CotizacionesPage() {
   const confirm = useConfirm()
-  const [quotes, setQuotes] = useState<Quote[]>([])
-  const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<'' | Status>('')
   const [formOpen, setFormOpen] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
-  const fetchQuotes = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (statusFilter) params.set('status', statusFilter)
-      const res = await fetch(`/api/quotes?${params}`)
-      const data = await res.json()
-      setQuotes(data.quotes || [])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchQuotes()
-  }, [statusFilter])
+  const params = statusFilter ? { status: statusFilter } : undefined
+  const { data: quotes = [], isLoading, isError, refetch } = useQuotes(params)
+  const quoteAction = useQuoteAction()
+  const deleteQuote = useDeleteQuote()
 
   const action = async (id: string, what: 'send' | 'accept' | 'reject' | 'to-invoice') => {
     if (what === 'to-invoice') {
@@ -86,39 +57,26 @@ export default function CotizacionesPage() {
       })
       if (!ok) return
     }
+
+    const body: Record<string, unknown> = {}
     if (what === 'reject') {
       const reason = prompt('Motivo del rechazo (opcional):')
-      setBusyId(id)
-      try {
-        const res = await fetch(`/api/quotes/${id}/${what}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reason: reason || undefined }),
-        })
-        if (!res.ok) toast.error((await res.json()).error || 'Error')
-        await fetchQuotes()
-      } finally {
-        setBusyId(null)
-      }
-      return
+      if (reason) body.reason = reason
     }
+
     setBusyId(id)
-    try {
-      const res = await fetch(`/api/quotes/${id}/${what}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        toast.error(data.error || 'Error')
-      } else if (what === 'to-invoice' && data.document) {
-        toast.success(`Factura creada con folio ${data.document.folio}`)
+    quoteAction.mutate(
+      { id, action: what, body },
+      {
+        onSuccess: (data) => {
+          if (what === 'to-invoice' && data.document) {
+            toast.success(`Factura creada con folio ${(data.document as { folio: number }).folio}`)
+          }
+        },
+        onError: (e) => toast.error(e.message),
+        onSettled: () => setBusyId(null),
       }
-      await fetchQuotes()
-    } finally {
-      setBusyId(null)
-    }
+    )
   }
 
   const remove = async (id: string) => {
@@ -129,8 +87,9 @@ export default function CotizacionesPage() {
       destructive: true,
     })
     if (!ok) return
-    await fetch(`/api/quotes/${id}`, { method: 'DELETE' })
-    fetchQuotes()
+    deleteQuote.mutate(id, {
+      onError: (e) => toast.error(e.message),
+    })
   }
 
   return (
@@ -173,20 +132,14 @@ export default function CotizacionesPage() {
       </section>
 
       <div className="card-editorial overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : quotes.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-display text-lg text-muted-foreground mb-1">
-              Sin cotizaciones
-            </p>
-            <p className="text-xs text-muted-foreground/70">
-              Crea la primera con el botón &ldquo;Nueva cotización&rdquo;.
-            </p>
-          </div>
-        ) : (
+        <QueryState
+          isLoading={isLoading}
+          isError={isError}
+          isEmpty={quotes.length === 0}
+          onRetry={() => refetch()}
+          errorMessage="No pudimos cargar las cotizaciones."
+          emptyMessage="Sin cotizaciones"
+        >
           <div className="overflow-x-auto">
             <table className="table-editorial">
               <thead>
@@ -234,27 +187,27 @@ export default function CotizacionesPage() {
                           <FileDown className="h-4 w-4" />
                         </a>
                         {q.status === "DRAFT" && (
-                          <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, "send")} title="Enviar" aria-label="Enviar cotización">
+                          <Button size="sm" variant="ghost" disabled={busyId === q.id || quoteAction.isPending} onClick={() => action(q.id, "send")} title="Enviar" aria-label="Enviar cotización">
                             <Send className="h-4 w-4" />
                           </Button>
                         )}
                           {(q.status === 'DRAFT' || q.status === 'SENT') && (
                             <>
-                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'accept')} title="Aceptar" aria-label="Aceptar cotización">
+                              <Button size="sm" variant="ghost" disabled={busyId === q.id || quoteAction.isPending} onClick={() => action(q.id, 'accept')} title="Aceptar" aria-label="Aceptar cotización">
                                 <CheckCircle2 className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'reject')} title="Rechazar" aria-label="Rechazar cotización">
+                              <Button size="sm" variant="ghost" disabled={busyId === q.id || quoteAction.isPending} onClick={() => action(q.id, 'reject')} title="Rechazar" aria-label="Rechazar cotización">
                                 <XCircle className="h-4 w-4" />
                               </Button>
                             </>
                           )}
                           {q.status === 'ACCEPTED' && (
-                            <Button size="sm" variant="ghost" disabled={busyId === q.id} onClick={() => action(q.id, 'to-invoice')} title="Convertir a factura" aria-label="Convertir a factura">
+                            <Button size="sm" variant="ghost" disabled={busyId === q.id || quoteAction.isPending} onClick={() => action(q.id, 'to-invoice')} title="Convertir a factura" aria-label="Convertir a factura">
                               <FileText className="h-4 w-4" />
                             </Button>
                           )}
                           {q.status === 'DRAFT' && (
-                            <Button size="sm" variant="ghost" onClick={() => remove(q.id)} title="Eliminar" aria-label="Eliminar cotización">
+                            <Button size="sm" variant="ghost" disabled={deleteQuote.isPending} onClick={() => remove(q.id)} title="Eliminar" aria-label="Eliminar cotización">
                               <X className="h-4 w-4" />
                             </Button>
                           )}
@@ -265,13 +218,13 @@ export default function CotizacionesPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          </QueryState>
         </div>
 
       {formOpen && (
         <QuoteForm
           onClose={() => setFormOpen(false)}
-          onSaved={() => { setFormOpen(false); fetchQuotes() }}
+          onSaved={() => setFormOpen(false)}
         />
       )}
     </div>
@@ -279,6 +232,7 @@ export default function CotizacionesPage() {
 }
 
 function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const createQuote = useCreateQuote()
   const [number, setNumber] = useState(1)
   const [receiverRut, setReceiverRut] = useState('')
   const [receiverName, setReceiverName] = useState('')
@@ -287,7 +241,6 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
   const [paymentMethod, setPaymentMethod] = useState('CONTADO')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState([{ description: '', quantity: 1, unitPrice: 0 }])
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const neto = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)
@@ -300,40 +253,35 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
   const addItem = () => setItems([...items, { description: '', quantity: 1, unitPrice: 0 }])
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i))
 
-  const submit = async () => {
+  const submit = () => {
     setError(null)
     if (items.length === 0 || items.some((i) => !i.description || i.unitPrice <= 0)) {
       setError('Cada item debe tener descripción y precio')
       return
     }
-    setSaving(true)
-    try {
-      const res = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          number,
-          receiverRut,
-          receiverName,
-          receiverEmail: receiverEmail || undefined,
-          validUntil: validUntil || undefined,
-          paymentMethod,
-          notes: notes || undefined,
-          items: items.map((i) => ({
-            description: i.description,
-            quantity: Number(i.quantity),
-            unitPrice: parseCLP(String(i.unitPrice)),
-          })),
-        }),
-      })
-      if (!res.ok) {
-        setError((await res.json()).error || 'Error al guardar')
-        return
+    createQuote.mutate(
+      {
+        number,
+        receiverRut,
+        receiverName,
+        receiverEmail: receiverEmail || undefined,
+        validUntil: validUntil || undefined,
+        paymentMethod,
+        notes: notes || undefined,
+        items: items.map((i) => ({
+          description: i.description,
+          quantity: Number(i.quantity),
+          unitPrice: parseCLP(String(i.unitPrice)),
+        })),
+      },
+      {
+        onSuccess: () => {
+          toast.success('Cotización guardada')
+          onSaved()
+        },
+        onError: (e) => setError(e.message),
       }
-      onSaved()
-    } finally {
-      setSaving(false)
-    }
+    )
   }
 
   return (
@@ -346,11 +294,11 @@ function QuoteForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
       size="lg"
       footer={
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
+          <Button variant="outline" onClick={onClose} disabled={createQuote.isPending}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={saving || total === 0}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar cotización'}
+          <Button onClick={submit} disabled={createQuote.isPending || total === 0}>
+            {createQuote.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar cotización'}
           </Button>
         </div>
       }
