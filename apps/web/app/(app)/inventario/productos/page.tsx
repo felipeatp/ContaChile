@@ -1,65 +1,50 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { useConfirm } from '@/components/ui/confirm-provider'
-import { Card, CardContent } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
+import { QueryState } from '@/components/ui/query-state'
+import { Loader2, Plus, Trash2, AlertTriangle } from 'lucide-react'
 import { formatCLP, parseCLP } from '@contachile/validators'
-
-type Product = {
-  id: string
-  code: string
-  name: string
-  description?: string | null
-  unit: string
-  salePrice: number
-  costPrice: number
-  stock: number
-  minStock: number
-  affectedIVA: boolean
-  isActive: boolean
-}
+import {
+  useInventoryProducts,
+  useCreateProduct,
+  useUpdateProduct,
+  useDeactivateProduct,
+  type Product,
+} from '@/hooks/use-inventory-products'
 
 export default function ProductosPage() {
   const confirm = useConfirm()
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeSearch, setActiveSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Product | null>(null)
 
-  const fetch_ = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (!showInactive) params.set('active', 'true')
-      if (search) params.set('search', search)
-      const res = await fetch(`/api/inventory/products?${params}`)
-      const data = await res.json()
-      setProducts(data.products || [])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: products = [], isLoading, isError, refetch } = useInventoryProducts({
+    active: !showInactive,
+    search: activeSearch || undefined,
+  })
 
-  useEffect(() => {
-    fetch_()
-  }, [showInactive])
+  const deactivate = useDeactivateProduct()
 
-  const handleSearch = () => fetch_()
+  const handleSearch = () => setActiveSearch(search)
+
   const handleDelete = async (id: string) => {
     const ok = await confirm({
-      title: "Desactivar producto",
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Desactivar",
+      title: 'Desactivar producto',
+      description: 'Esta acción no se puede deshacer.',
+      confirmLabel: 'Desactivar',
       destructive: true,
     })
     if (!ok) return
-    await fetch(`/api/inventory/products/${id}`, { method: 'DELETE' })
-    fetch_()
+    deactivate.mutate(id, {
+      onSuccess: () => toast.success('Producto desactivado'),
+      onError: (e) => toast.error(e.message),
+    })
   }
 
   return (
@@ -119,20 +104,14 @@ export default function ProductosPage() {
         </div>
 
         <div className="card-editorial overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : products.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="font-display text-lg text-muted-foreground mb-1">
-                Sin productos
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                Registra el primero con &ldquo;Nuevo producto&rdquo;.
-              </p>
-            </div>
-          ) : (
+          <QueryState
+            isLoading={isLoading}
+            isError={isError}
+            isEmpty={products.length === 0}
+            onRetry={() => refetch()}
+            errorMessage="No pudimos cargar los productos."
+            emptyMessage="Sin productos registrados"
+          >
             <div className="overflow-x-auto">
               <table className="table-editorial">
                 <thead>
@@ -177,8 +156,18 @@ export default function ProductosPage() {
                         </td>
                         <td className="text-right">
                           {p.isActive && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id)} aria-label="Eliminar producto">
-                              <Trash2 className="h-4 w-4" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(p.id)}
+                              disabled={deactivate.isPending}
+                              aria-label="Eliminar producto"
+                            >
+                              {deactivate.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
                             </Button>
                           )}
                         </td>
@@ -188,7 +177,7 @@ export default function ProductosPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          </QueryState>
         </div>
       </section>
 
@@ -196,7 +185,7 @@ export default function ProductosPage() {
         <ProductForm
           editing={editing}
           onClose={() => setFormOpen(false)}
-          onSaved={() => { setFormOpen(false); fetch_() }}
+          onSaved={() => setFormOpen(false)}
         />
       )}
     </div>
@@ -212,28 +201,29 @@ function ProductForm({
   onClose: () => void
   onSaved: () => void
 }) {
+  const createProduct = useCreateProduct()
+  const updateProduct = useUpdateProduct()
+
   const [form, setForm] = useState({
-    code: editing?.code || '',
-    name: editing?.name || '',
-    description: editing?.description || '',
-    unit: editing?.unit || 'unidad',
-    salePrice: editing?.salePrice || 0,
-    costPrice: editing?.costPrice || 0,
+    code: editing?.code ?? '',
+    name: editing?.name ?? '',
+    description: editing?.description ?? '',
+    unit: editing?.unit ?? 'unidad',
+    salePrice: editing?.salePrice ?? 0,
+    costPrice: editing?.costPrice ?? 0,
     initialStock: 0,
-    minStock: editing?.minStock || 0,
+    minStock: editing?.minStock ?? 0,
     affectedIVA: editing?.affectedIVA ?? true,
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const submit = async () => {
-    setError(null)
-    setSaving(true)
-    try {
-      const url = editing ? `/api/inventory/products/${editing.id}` : '/api/inventory/products'
-      const method = editing ? 'PATCH' : 'POST'
-      const payload = editing
-        ? {
+  const isPending = createProduct.isPending || updateProduct.isPending
+
+  const submit = () => {
+    if (editing) {
+      updateProduct.mutate(
+        {
+          id: editing.id,
+          body: {
             code: form.code,
             name: form.name,
             description: form.description || undefined,
@@ -241,20 +231,37 @@ function ProductForm({
             salePrice: form.salePrice,
             minStock: form.minStock,
             affectedIVA: form.affectedIVA,
-          }
-        : form
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) {
-        setError((await res.json()).error || 'Error')
-        return
-      }
-      onSaved()
-    } finally {
-      setSaving(false)
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success('Producto actualizado')
+            onSaved()
+          },
+          onError: (e) => toast.error(e.message),
+        }
+      )
+    } else {
+      createProduct.mutate(
+        {
+          code: form.code,
+          name: form.name,
+          description: form.description || undefined,
+          unit: form.unit,
+          salePrice: form.salePrice,
+          costPrice: form.costPrice,
+          initialStock: form.initialStock,
+          minStock: form.minStock,
+          affectedIVA: form.affectedIVA,
+        },
+        {
+          onSuccess: () => {
+            toast.success('Producto creado correctamente')
+            onSaved()
+          },
+          onError: (e) => toast.error(e.message),
+        }
+      )
     }
   }
 
@@ -267,60 +274,56 @@ function ProductForm({
       size="md"
       footer={
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
+          <Button onClick={submit} disabled={isPending}>
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar'}
           </Button>
         </div>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-          <Field label="Código">
-            <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        <Field label="Código">
+          <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </Field>
+        <Field label="Unidad">
+          <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="unidad">Unidad</option>
+            <option value="kg">Kilogramo</option>
+            <option value="litro">Litro</option>
+            <option value="metro">Metro</option>
+            <option value="caja">Caja</option>
+            <option value="paquete">Paquete</option>
+          </select>
+        </Field>
+        <Field label="Nombre" className="col-span-2">
+          <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </Field>
+        <Field label="Descripción (opcional)" className="col-span-2">
+          <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </Field>
+        <Field label="Precio costo (CLP)">
+          <input type="number" min={0} value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" disabled={!!editing} />
+          {editing && <p className="text-xs text-muted-foreground mt-1">El costo se actualiza vía movimientos</p>}
+        </Field>
+        <Field label="Precio venta (CLP)">
+          <input type="number" min={0} value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </Field>
+        {!editing && (
+          <Field label="Stock inicial">
+            <input type="number" min={0} value={form.initialStock} onChange={(e) => setForm({ ...form, initialStock: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
           </Field>
-          <Field label="Unidad">
-            <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-              <option value="unidad">Unidad</option>
-              <option value="kg">Kilogramo</option>
-              <option value="litro">Litro</option>
-              <option value="metro">Metro</option>
-              <option value="caja">Caja</option>
-              <option value="paquete">Paquete</option>
-            </select>
-          </Field>
-          <Field label="Nombre" className="col-span-2">
-            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </Field>
-          <Field label="Descripción (opcional)" className="col-span-2">
-            <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </Field>
-          <Field label="Precio costo (CLP)">
-            <input type="number" min={0} value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" disabled={!!editing} />
-            {editing && <p className="text-xs text-muted-foreground mt-1">El costo se actualiza vía movimientos</p>}
-          </Field>
-          <Field label="Precio venta (CLP)">
-            <input type="number" min={0} value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: parseCLP(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </Field>
-          {!editing && (
-            <Field label="Stock inicial">
-              <input type="number" min={0} value={form.initialStock} onChange={(e) => setForm({ ...form, initialStock: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-            </Field>
-          )}
-          <Field label="Stock mínimo (alerta)">
-            <input type="number" min={0} value={form.minStock} onChange={(e) => setForm({ ...form, minStock: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
-          </Field>
-          <Field label="Afecto a IVA" className="col-span-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.affectedIVA} onChange={(e) => setForm({ ...form, affectedIVA: e.target.checked })} />
-              Sí, este producto genera IVA al vender
-            </label>
-          </Field>
-
-          {error && (
-            <div className="col-span-2 rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div>
-          )}
+        )}
+        <Field label="Stock mínimo (alerta)">
+          <input type="number" min={0} value={form.minStock} onChange={(e) => setForm({ ...form, minStock: Number(e.target.value) })} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </Field>
+        <Field label="Afecto a IVA" className="col-span-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.affectedIVA} onChange={(e) => setForm({ ...form, affectedIVA: e.target.checked })} />
+            Sí, este producto genera IVA al vender
+          </label>
+        </Field>
       </div>
     </Modal>
   )

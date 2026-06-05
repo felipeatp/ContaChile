@@ -1,43 +1,22 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { useConfirm } from '@/components/ui/confirm-provider'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Stat } from '@/components/ui/stat'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
-import { Loader2, Plus, X, Trash2 } from 'lucide-react'
+import { QueryState } from '@/components/ui/query-state'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { formatCLP, parseCLP } from '@contachile/validators'
 import { RutField } from '@/components/forms/rut-field'
-
-type HonorarioType = 'ISSUED' | 'RECEIVED'
-type HonorarioStatus = 'PENDING' | 'PAID'
-
-type Honorario = {
-  id: string
-  type: HonorarioType
-  number: number
-  date: string
-  counterpartRut: string
-  counterpartName: string
-  description?: string | null
-  grossAmount: number
-  retentionAmount: number
-  netAmount: number
-  status: HonorarioStatus
-}
-
-type Response = {
-  honorarios: Honorario[]
-  totals: {
-    issuedGross: number
-    issuedRetention: number
-    issuedNet: number
-    receivedGross: number
-    receivedRetention: number
-    receivedNet: number
-  }
-}
+import {
+  useHonorarios,
+  useCreateHonorario,
+  useDeleteHonorario,
+  type HonorarioType,
+  type HonorarioInput,
+} from '@/hooks/use-honorarios'
 
 const MONTHS = ['Todos', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -47,27 +26,13 @@ export default function HonorariosPage() {
   const [type, setType] = useState<'' | HonorarioType>('')
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(0)
-  const [data, setData] = useState<Response | null>(null)
-  const [loading, setLoading] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (type) params.set('type', type)
-      params.set('year', String(year))
-      if (month > 0) params.set('month', String(month))
-      const res = await fetch(`/api/honorarios?${params}`)
-      setData(await res.json())
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data, isLoading, isError, refetch } = useHonorarios({ type, year, month })
+  const deleteHonorario = useDeleteHonorario()
 
-  useEffect(() => {
-    fetchData()
-  }, [type, year, month])
+  const honorarios = data?.honorarios ?? []
+  const totals = data?.totals
 
   const handleDelete = async (id: string) => {
     const ok = await confirm({
@@ -77,8 +42,10 @@ export default function HonorariosPage() {
       destructive: true,
     })
     if (!ok) return
-    await fetch(`/api/honorarios/${id}`, { method: 'DELETE' })
-    fetchData()
+    deleteHonorario.mutate(id, {
+      onSuccess: () => toast.success("Boleta eliminada"),
+      onError: (e) => toast.error(e.message),
+    })
   }
 
   return (
@@ -134,7 +101,7 @@ export default function HonorariosPage() {
         </div>
       </section>
 
-      {data && (
+      {totals && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <span className="eyebrow">I · Resumen del período</span>
@@ -142,19 +109,19 @@ export default function HonorariosPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Stat
               label="Emitidas · bruto"
-              value={formatCLP(data.totals.issuedGross)}
-              caption={`Retención ${formatCLP(data.totals.issuedRetention)}`}
+              value={formatCLP(totals.issuedGross)}
+              caption={`Retención ${formatCLP(totals.issuedRetention)}`}
               tone="default"
             />
             <Stat
               label="Recibidas · bruto"
-              value={formatCLP(data.totals.receivedGross)}
-              caption={`Retención ${formatCLP(data.totals.receivedRetention)}`}
+              value={formatCLP(totals.receivedGross)}
+              caption={`Retención ${formatCLP(totals.receivedRetention)}`}
               tone="default"
             />
             <Stat
               label="Retenciones totales"
-              value={formatCLP(data.totals.issuedRetention + data.totals.receivedRetention)}
+              value={formatCLP(totals.issuedRetention + totals.receivedRetention)}
               tone="accent"
               caption="13,75 % sobre montos brutos"
             />
@@ -171,25 +138,19 @@ export default function HonorariosPage() {
             </h3>
           </div>
           <span className="text-xs text-muted-foreground/60 font-mono">
-            {data?.honorarios.length ?? 0} boletas
+            {honorarios.length} boletas
           </span>
         </div>
 
         <div className="card-editorial overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : !data || data.honorarios.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="font-display text-lg text-muted-foreground mb-1">
-                Sin boletas en el período
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                Registra la primera con &ldquo;Nueva boleta&rdquo;.
-              </p>
-            </div>
-          ) : (
+          <QueryState
+            isLoading={isLoading}
+            isError={isError}
+            isEmpty={honorarios.length === 0}
+            onRetry={() => refetch()}
+            errorMessage="No pudimos cargar las boletas de honorarios."
+            emptyMessage="Sin boletas en el período"
+          >
             <div className="overflow-x-auto">
               <table className="table-editorial">
                 <thead>
@@ -205,7 +166,7 @@ export default function HonorariosPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.honorarios.map((h) => (
+                  {honorarios.map((h) => (
                     <tr key={h.id}>
                       <td className="text-muted-foreground">
                         {new Date(h.date).toLocaleDateString('es-CL')}
@@ -236,8 +197,18 @@ export default function HonorariosPage() {
                         {formatCLP(h.netAmount)}
                       </td>
                       <td className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(h.id)} aria-label="Eliminar boleta de honorarios">
-                          <Trash2 className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(h.id)}
+                          disabled={deleteHonorario.isPending}
+                          aria-label="Eliminar boleta de honorarios"
+                        >
+                          {deleteHonorario.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </td>
                     </tr>
@@ -245,17 +216,14 @@ export default function HonorariosPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          </QueryState>
         </div>
       </section>
 
       {formOpen && (
         <HonorarioForm
           onClose={() => setFormOpen(false)}
-          onSaved={() => {
-            setFormOpen(false)
-            fetchData()
-          }}
+          onSaved={() => setFormOpen(false)}
         />
       )}
     </div>
@@ -263,8 +231,9 @@ export default function HonorariosPage() {
 }
 
 function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({
-    type: 'RECEIVED' as HonorarioType,
+  const createHonorario = useCreateHonorario()
+  const [form, setForm] = useState<HonorarioInput>({
+    type: 'RECEIVED',
     number: 1,
     date: new Date().toISOString().slice(0, 10),
     counterpartRut: '',
@@ -272,30 +241,21 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
     description: '',
     grossAmount: 0,
   })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const retention = Math.round(form.grossAmount * 0.1375)
   const net = form.grossAmount - retention
 
-  const submit = async () => {
-    setError(null)
-    setSaving(true)
-    try {
-      const res = await fetch('/api/honorarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, description: form.description || undefined }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error || 'Error al guardar')
-        return
+  const submit = () => {
+    createHonorario.mutate(
+      { ...form, description: form.description || undefined },
+      {
+        onSuccess: () => {
+          toast.success("Boleta registrada correctamente")
+          onSaved()
+        },
+        onError: (e) => toast.error(e.message),
       }
-      onSaved()
-    } finally {
-      setSaving(false)
-    }
+    )
   }
 
   return (
@@ -308,11 +268,11 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
       size="md"
       footer={
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
+          <Button variant="outline" onClick={onClose} disabled={createHonorario.isPending}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={saving || form.grossAmount === 0}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar boleta'}
+          <Button onClick={submit} disabled={createHonorario.isPending || form.grossAmount === 0}>
+            {createHonorario.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar boleta'}
           </Button>
         </div>
       }
@@ -371,7 +331,7 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
             <label className="text-sm font-medium">Descripción (opcional)</label>
             <input
               type="text"
-              value={form.description}
+              value={form.description ?? ''}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               className="mt-1 h-10 w-full px-3 text-sm"
             />
@@ -398,12 +358,6 @@ function HonorarioForm({ onClose, onSaved }: { onClose: () => void; onSaved: () 
             </div>
           </div>
         </div>
-
-        {error && (
-          <div className="rounded-sm border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-            {error}
-          </div>
-        )}
       </div>
     </Modal>
   )
