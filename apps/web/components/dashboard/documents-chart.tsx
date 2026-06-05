@@ -14,33 +14,21 @@ import {
   ReferenceLine,
 } from "recharts"
 import { CHART_PALETTE, ChartTooltip } from "@/components/ui/chart-theme"
-import { Document } from "@/types"
+import { DocumentStats } from "@/types"
 
 interface DocumentsChartProps {
-  documents: Document[]
+  stats: DocumentStats
 }
 
-export function DocumentsChart({ documents }: DocumentsChartProps) {
+const MONTHS_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+
+export function DocumentsChart({ stats }: DocumentsChartProps) {
   const { data, max, total, avg, peakIdx } = useMemo(() => {
-    const byMonth: Record<string, number> = {}
-
-    documents.forEach((doc) => {
-      const date = new Date(doc.emittedAt)
-      const key = date.toLocaleString("es-CL", { month: "short", year: "2-digit" })
-      byMonth[key] = (byMonth[key] || 0) + 1
+    const data = stats.monthly.slice(-6).map((m) => {
+      const [year, month] = m.month.split("-")
+      const name = `${MONTHS_SHORT[parseInt(month, 10) - 1]} ${year.slice(2)}`
+      return { name, value: m.count }
     })
-
-    const data = Object.entries(byMonth)
-      .sort((a, b) => {
-        const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
-        const [ma, ya] = a[0].split(" ")
-        const [mb, yb] = b[0].split(" ")
-        const yearDiff = parseInt(ya || "0") - parseInt(yb || "0")
-        if (yearDiff !== 0) return yearDiff
-        return months.indexOf(ma?.toLowerCase() || "") - months.indexOf(mb?.toLowerCase() || "")
-      })
-      .slice(-6)
-      .map(([name, value]) => ({ name, value }))
 
     const max = data.reduce((m, d) => Math.max(m, d.value), 0)
     const total = data.reduce((s, d) => s + d.value, 0)
@@ -48,7 +36,7 @@ export function DocumentsChart({ documents }: DocumentsChartProps) {
     const peakIdx = data.findIndex((d) => d.value === max)
 
     return { data, max, total, avg, peakIdx }
-  }, [documents])
+  }, [stats])
 
   if (data.length === 0) {
     return <ChartShell title="Documentos por mes" empty />

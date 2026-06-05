@@ -10,10 +10,10 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { CHART_PALETTE, ChartTooltip } from "@/components/ui/chart-theme"
-import { Document } from "@/types"
+import { DocumentStats } from "@/types"
 
 interface StatusChartProps {
-  documents: Document[]
+  stats: DocumentStats
 }
 
 const COLORS: Record<string, string> = {
@@ -30,25 +30,29 @@ const LABELS: Record<string, string> = {
   FAILED: "Fallido",
 }
 
-export function StatusChart({ documents }: StatusChartProps) {
+export function StatusChart({ stats }: StatusChartProps) {
   const { data, total, accepted, acceptedPct } = useMemo(() => {
-    const byStatus: Record<string, number> = {}
-    documents.forEach((doc) => {
-      byStatus[doc.status] = (byStatus[doc.status] || 0) + 1
-    })
+    const byStatus: Record<string, number> = {
+      PENDING: stats.byStatus.pending,
+      ACCEPTED: stats.byStatus.accepted,
+      REJECTED: stats.byStatus.rejected,
+      FAILED: stats.byStatus.failed,
+    }
 
-    const data = Object.entries(byStatus).map(([status, value]) => ({
-      name: LABELS[status] || status,
-      value,
-      color: COLORS[status] || CHART_PALETTE.muted,
-    }))
+    const data = Object.entries(byStatus)
+      .filter(([, value]) => value > 0)
+      .map(([status, value]) => ({
+        name: LABELS[status] || status,
+        value,
+        color: COLORS[status] || CHART_PALETTE.muted,
+      }))
 
     const total = data.reduce((s, d) => s + d.value, 0)
     const accepted = byStatus["ACCEPTED"] || 0
     const acceptedPct = total > 0 ? Math.round((accepted / total) * 100) : 0
 
     return { data, total, accepted, acceptedPct }
-  }, [documents])
+  }, [stats])
 
   if (data.length === 0) {
     return (
