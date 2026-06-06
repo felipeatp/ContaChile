@@ -6,6 +6,7 @@ import { drizzle as drizzleNeon } from "drizzle-orm/neon-http"
 import { drizzle as drizzleNode } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
 import { schema } from "./db-schema"
+import { sendPasswordResetEmail } from "./email"
 
 // Auth para web. En producción/edge (Cloudflare Workers) usa Drizzle + Neon HTTP
 // (Prisma/pg necesitan TCP, no disponible en CF Workers). En desarrollo local el
@@ -54,6 +55,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    resetPasswordTokenExpiresIn: 3600, // 1 hora
+    sendResetPassword: async ({ user, url }) => {
+      await sendPasswordResetEmail({ to: user.email, url, userName: user.name })
+    },
   },
   socialProviders: {
     google: {

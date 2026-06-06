@@ -8,8 +8,8 @@ if (process.env.NODE_ENV === "production" && process.env.DEV_BYPASS_AUTH === "tr
 }
 // ──────────────────────────────────────────────────────────────────────────
 
-const PUBLIC_ROUTES = ["/login", "/sign-up", "/", "/blog", "/api/auth"]
-const AUTH_ROUTES = ["/login", "/sign-up"]
+const PUBLIC_ROUTES = ["/login", "/sign-up", "/forgot-password", "/reset-password", "/", "/blog", "/api/auth"]
+const AUTH_ROUTES = ["/login", "/sign-up", "/forgot-password", "/reset-password"]
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some(

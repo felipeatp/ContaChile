@@ -20,3 +20,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 # Anthropic
 ANTHROPIC_API_KEY=
+
+# Email (Resend) — recuperación de contraseña. Sin esto el email de reset es no-op (se loguea).
+RESEND_API_KEY=
+EMAIL_FROM=ContaChile <noreply@contachile.cl>

@@ -105,6 +105,14 @@ function LoginForm() {
               </button>
             </div>
           </div>
+          <div className="flex justify-end -mt-1">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Iniciar sesión
